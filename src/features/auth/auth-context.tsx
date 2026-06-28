@@ -1,0 +1,136 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
+import {
+  loginRequest,
+  logoutRequest,
+  profileRequest,
+  refreshRequest,
+} from './auth-api'
+import { authStore } from './auth-store'
+import type { UserProfile } from './auth-types'
+import {
+  clearPersistedToken,
+  loadPersistedToken,
+  persistToken,
+} from './token-storage'
+
+type AuthContextValue = {
+  user: UserProfile | null
+  accessToken: string | null
+  isAuthenticated: boolean
+  isBootstrapping: boolean
+  login: (email: string, senha: string) => Promise<void>
+  logout: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined)
+
+async function loadProfileWithToken(token: string): Promise<UserProfile | null> {
+  authStore.setAccessToken(token)
+
+  try {
+    const profile = await profileRequest()
+    authStore.setUser(profile)
+    return profile
+  } catch {
+    try {
+      const refreshed = await refreshRequest()
+      authStore.setAccessToken(refreshed.access_token)
+      await persistToken(refreshed.access_token)
+      const profile = await profileRequest()
+      authStore.setUser(profile)
+      return profile
+    } catch {
+      authStore.reset()
+      await clearPersistedToken()
+      return null
+    }
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [version, setVersion] = useState(0)
+
+  useEffect(() => {
+    return authStore.subscribe(() => {
+      setVersion((current) => current + 1)
+    })
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function bootstrap() {
+      authStore.setIsBootstrapping(true)
+
+      try {
+        const persistedToken = await loadPersistedToken()
+
+        if (persistedToken) {
+          await loadProfileWithToken(persistedToken)
+        }
+      } finally {
+        if (!cancelled) {
+          authStore.setIsBootstrapping(false)
+        }
+      }
+    }
+
+    void bootstrap()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const login = useCallback(async (email: string, senha: string) => {
+    const session = await loginRequest(email, senha)
+    authStore.setAccessToken(session.access_token)
+    await persistToken(session.access_token)
+
+    const profile = await profileRequest()
+    authStore.setUser(profile)
+  }, [])
+
+  const logout = useCallback(async () => {
+    try {
+      await logoutRequest()
+    } catch {
+      // ignore network errors during logout
+    } finally {
+      authStore.reset()
+      await clearPersistedToken()
+    }
+  }, [])
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user: authStore.getUser(),
+      accessToken: authStore.getAccessToken(),
+      isAuthenticated: authStore.isAuthenticated(),
+      isBootstrapping: authStore.getIsBootstrapping(),
+      login,
+      logout,
+    }),
+    [version, login, logout],
+  )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext)
+
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider')
+  }
+
+  return context
+}

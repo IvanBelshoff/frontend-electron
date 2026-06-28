@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root,
+[data-theme='dark'] {
+  --vscode-bg: #1e1e1e;
+  --vscode-sidebar: #252526;
+  --vscode-activity-bar: #333333;
+  --vscode-border: #3c3c3c;
+  --vscode-accent: #007acc;
+  --vscode-accent-hover: #1a8ad4;
+  --vscode-text: #cccccc;
+  --vscode-text-muted: #858585;
+  --vscode-input-bg: #3c3c3c;
+  --vscode-error: #f48771;
+  --vscode-success: #89d185;
+}
+
+[data-theme='light'] {
+  --vscode-bg: #ffffff;
+  --vscode-sidebar: #f3f3f3;
+  --vscode-activity-bar: #e8e8e8;
+  --vscode-border: #e5e5e5;
+  --vscode-accent: #007acc;
+  --vscode-accent-hover: #0062a3;
+  --vscode-text: #333333;
+  --vscode-text-muted: #6e6e6e;
+  --vscode-input-bg: #ffffff;
+  --vscode-error: #a1260d;
+  --vscode-success: #388a34;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply h-full;
+  }
+
+  body {
+    @apply bg-vscode-bg font-sans text-sm text-vscode-text antialiased;
+  }
+
+  * {
+    @apply border-vscode-border;
+  }
+}
