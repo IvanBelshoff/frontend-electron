@@ -20,10 +20,12 @@ export type ApiErrorBody = {
 
 export class ApiError extends Error {
   statusCode: number
+  body?: unknown
 
-  constructor(message: string, statusCode: number) {
+  constructor(message: string, statusCode: number, body?: unknown) {
     super(message)
     this.name = 'ApiError'
     this.statusCode = statusCode
+    this.body = body
   }
 }

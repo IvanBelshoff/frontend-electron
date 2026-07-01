@@ -60,10 +60,15 @@ export type ApiRequestOptions = Omit<RequestInit, 'body'> & {
   skipRefresh?: boolean
 }
 
-export async function apiRequest<T>(
+export type ApiRequestResult<T> = {
+  data: T
+  response: Response
+}
+
+async function executeApiRequest(
   path: string,
   options: ApiRequestOptions = {},
-): Promise<T> {
+): Promise<{ response: Response; payload: unknown }> {
   const { body, skipAuth = false, skipRefresh = false, ...init } = options
 
   const execute = async (token?: string | null) => {
@@ -113,8 +118,25 @@ export async function apiRequest<T>(
     throw new ApiError(
       extractErrorMessage(payload, 'Falha na requisição.'),
       response.status,
+      payload,
     )
   }
 
+  return { response, payload }
+}
+
+export async function apiRequest<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<T> {
+  const { payload } = await executeApiRequest(path, options)
   return payload as T
+}
+
+export async function apiRequestWithResponse<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<ApiRequestResult<T>> {
+  const { response, payload } = await executeApiRequest(path, options)
+  return { data: payload as T, response }
 }

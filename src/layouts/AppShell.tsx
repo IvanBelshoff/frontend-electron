@@ -1,4 +1,5 @@
 import { Outlet } from '@tanstack/react-router'
+import PageContainer from '@/components/layout/PageContainer'
 import Sidebar from '@/components/layout/Sidebar'
 
 export default function AppShell() {
@@ -6,8 +7,10 @@ export default function AppShell() {
     <div className="flex h-full min-h-screen">
       <Sidebar />
 
-      <main className="min-w-0 flex-1 overflow-auto bg-vscode-bg p-6">
-        <Outlet />
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-vscode-bg p-6">
+        <PageContainer>
+          <Outlet />
+        </PageContainer>
       </main>
     </div>
   )

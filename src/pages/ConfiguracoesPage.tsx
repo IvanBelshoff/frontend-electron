@@ -1,10 +1,21 @@
-import PagePlaceholder from '@/components/layout/PagePlaceholder'
+import SettingsPageHeader from '@/components/settings/SettingsPageHeader'
+import BackendUrlSection from '@/features/settings/sections/BackendUrlSection'
+import GeneralInfoSection from '@/features/settings/sections/GeneralInfoSection'
+import LanguageSection from '@/features/settings/sections/LanguageSection'
+import ThemeSection from '@/features/settings/sections/ThemeSection'
 
 export default function ConfiguracoesPage() {
   return (
-    <PagePlaceholder
-      title="Configurações"
-      description="Em breve você poderá ajustar preferências do aplicativo nesta área."
-    />
+    <div className="h-full min-h-0 space-y-6 overflow-y-auto">
+      <SettingsPageHeader title="Configurações" />
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <BackendUrlSection />
+        <ThemeSection />
+        <LanguageSection />
+      </div>
+
+      <GeneralInfoSection />
+    </div>
   )
 }

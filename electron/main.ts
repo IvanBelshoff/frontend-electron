@@ -101,6 +101,14 @@ function createWindow() {
 
   lockDownDevTools(mainWindow)
 
+  mainWindow.webContents.on('enter-html-full-screen', () => {
+    mainWindow?.setFullScreen(true)
+  })
+
+  mainWindow.webContents.on('leave-html-full-screen', () => {
+    mainWindow?.setFullScreen(false)
+  })
+
   if (process.env.VITE_DEV_SERVER_URL) {
     void mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
     if (isDev) {

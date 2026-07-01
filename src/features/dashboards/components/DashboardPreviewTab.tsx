@@ -1,0 +1,37 @@
+import Alert from '@/components/ui/Alert'
+import { buildDashboardPreviewUrl } from '@/features/dashboards/build-dashboard-preview-url'
+
+type DashboardPreviewTabProps = {
+  dashboardName: string
+  url: string
+}
+
+export default function DashboardPreviewTab({
+  dashboardName,
+  url,
+}: DashboardPreviewTabProps) {
+  const previewUrl = buildDashboardPreviewUrl(url)
+
+  if (!previewUrl) {
+    return (
+      <Alert variant="info">
+        Informe uma URL no dashboard para visualizar o preview.
+      </Alert>
+    )
+  }
+
+  return (
+    <article className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-vscode-border bg-vscode-sidebar">
+      <iframe
+        key={previewUrl}
+        title={`Preview: ${dashboardName}`}
+        src={previewUrl}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        allow="fullscreen"
+        allowFullScreen
+        className="block h-full min-h-0 w-full flex-1 border-0 bg-[#0b1220]"
+      />
+    </article>
+  )
+}

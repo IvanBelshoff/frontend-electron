@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AuthProvider, useAuth } from '@/features/auth/use-auth'
+import { ThemeProvider } from '@/features/settings/theme/theme-provider'
 import { queryClient } from '@/lib/query-client'
 import AppRouter from '@/router'
 import { router } from '@/router/router'
@@ -31,18 +32,16 @@ function BootstrapGate({ children }: { children: React.ReactNode }) {
 }
 
 function RootApp() {
-  useEffect(() => {
-    document.documentElement.dataset.theme = 'dark'
-  }, [])
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BootstrapGate>
-          <AppRouter />
-        </BootstrapGate>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BootstrapGate>
+            <AppRouter />
+          </BootstrapGate>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   )
 }
 

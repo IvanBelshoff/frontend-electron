@@ -13,3 +13,27 @@ export type UserDetail = {
   bloqueado: boolean
   foto?: UserPhoto | null
 }
+
+export type AccessUser = {
+  id: number
+  nome: string
+  sobrenome: string
+  foto?: UserPhoto | null
+}
+
+export type DashboardAccessLists = {
+  usuarios: AccessUser[]
+  usuariosDisponiveis: AccessUser[]
+}
+
+export type AccessUserApiRecord = {
+  id: number | string
+  nome: string
+  sobrenome: string
+  foto?: UserPhoto | null
+}
+
+export type DashboardAccessListsApiRecord = {
+  usuarios: AccessUserApiRecord[]
+  usuariosDisponiveis: AccessUserApiRecord[]
+}

@@ -55,7 +55,7 @@ export default function Button({
           aria-hidden="true"
         />
       )}
-      <span>{children}</span>
+      {children}
     </button>
   )
 }

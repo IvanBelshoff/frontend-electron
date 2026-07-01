@@ -55,6 +55,16 @@ Credenciais padrão (seed do backend): `admin@example.com` / `ChangeMe123`
 | `VITE_API_URL` | URL base da API NestJS |
 | `VITE_REGRAS_PERMISSOES` | JSON de roles → permissões (copiar do backend) |
 
+## Preferências locais (localStorage)
+
+| Chave | Descrição |
+|-------|-----------|
+| `datadash.apiUrl` | URL base da API (override do `.env`) |
+| `datadash.theme` | `system`, `dark` ou `light` |
+| `datadash.accentColor` | Cor primária em hex |
+
+Na tela **Configurações**, a URL do backend exige **Validar** (`GET /`) antes de **Salvar**.
+
 ## Segurança (Electron)
 
 Em builds de produção:
