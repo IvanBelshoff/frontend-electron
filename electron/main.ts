@@ -102,10 +102,10 @@ function createWindow() {
   lockDownDevTools(mainWindow)
 
   mainWindow.webContents.on('enter-html-full-screen', () => {
-    mainWindow?.setFullScreen(true)
+    mainWindow?.setFullScreen(false)
   })
 
-  mainWindow.webContents.on('leave-html-full-screen', () => {
+  mainWindow.on('enter-full-screen', () => {
     mainWindow?.setFullScreen(false)
   })
 

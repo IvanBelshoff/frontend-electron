@@ -11,60 +11,13 @@ import type {
   DashboardEditTab,
   DashboardFieldErrors,
 } from '@/features/dashboards/dashboard-types'
-import { ApiError } from '@/features/auth/auth-types'
+import {
+  parseDashboardFieldErrors,
+  validateDashboardDraft,
+} from '@/features/dashboards/dashboard-validation'
 import { queryKeys } from '@/lib/query-keys'
 
 const DASHBOARDS_FETCH_LIMIT = 100
-
-function parseFieldErrors(error: unknown): DashboardFieldErrors {
-  if (!(error instanceof ApiError) || error.statusCode !== 409) {
-    return { general: error instanceof Error ? error.message : 'Falha ao salvar dashboard.' }
-  }
-
-  const body = error.body as { errors?: { nome?: string; url?: string }; message?: string } | undefined
-  const fieldErrors: DashboardFieldErrors = {}
-
-  if (body?.errors?.nome) fieldErrors.nome = body.errors.nome
-  if (body?.errors?.url) fieldErrors.url = body.errors.url
-
-  if (!fieldErrors.nome && !fieldErrors.url) {
-    fieldErrors.general = error.message
-  }
-
-  return fieldErrors
-}
-
-function validateDraft(draft: DashboardEditDraft): DashboardFieldErrors {
-  const errors: DashboardFieldErrors = {}
-
-  if (!draft.nome.trim()) {
-    errors.nome = 'Nome é obrigatório.'
-  }
-
-  if (!draft.url.trim()) {
-    errors.url = 'URL é obrigatória.'
-  }
-
-  if (draft.temporario) {
-    if (!draft.dataExpiracaoInicial) {
-      errors.general = 'Data de expiração inicial é obrigatória para dashboards temporários.'
-    }
-
-    if (!draft.dataExpiracaoFinal) {
-      errors.general = 'Data de expiração final é obrigatória para dashboards temporários.'
-    }
-
-    if (
-      draft.dataExpiracaoInicial &&
-      draft.dataExpiracaoFinal &&
-      draft.dataExpiracaoFinal < draft.dataExpiracaoInicial
-    ) {
-      errors.general = 'A data final deve ser igual ou posterior à data inicial.'
-    }
-  }
-
-  return errors
-}
 
 export function useDashboardEditState(dashboardId: number) {
   const queryClient = useQueryClient()
@@ -122,7 +75,7 @@ export function useDashboardEditState(dashboardId: number) {
       setSaveSuccess(true)
     },
     onError: (error) => {
-      setFieldErrors(parseFieldErrors(error))
+      setFieldErrors(parseDashboardFieldErrors(error))
       setSaveSuccess(false)
     },
   })
@@ -161,7 +114,7 @@ export function useDashboardEditState(dashboardId: number) {
       return
     }
 
-    const validationErrors = validateDraft(draft)
+    const validationErrors = validateDashboardDraft(draft)
 
     if (validationErrors.nome || validationErrors.url || validationErrors.general) {
       setFieldErrors(validationErrors)
@@ -176,10 +129,6 @@ export function useDashboardEditState(dashboardId: number) {
     await dashboardQuery.refetch()
   }, [dashboardQuery])
 
-  const handleDelete = useCallback(() => {
-    console.log('[dashboards] Excluir dashboard', dashboardId)
-  }, [dashboardId])
-
   return {
     dashboard,
     draft,
@@ -192,7 +141,6 @@ export function useDashboardEditState(dashboardId: number) {
     saveEdit,
     cancelEdit,
     refresh,
-    handleDelete,
     isLoading: dashboardQuery.isLoading,
     isError: dashboardQuery.isError,
     error: dashboardQuery.error,

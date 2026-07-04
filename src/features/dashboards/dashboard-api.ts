@@ -1,10 +1,15 @@
 import {
   mapDashboardFromApi,
   mapDashboardListFromApi,
+  mapDashboardToCreateApi,
   mapDashboardToUpdateApi,
   type DashboardApiRecord,
 } from '@/features/dashboards/dashboard-mapper'
-import type { Dashboard, UpdateDashboardInput } from '@/features/dashboards/dashboard-types'
+import type {
+  CreateDashboardInput,
+  Dashboard,
+  UpdateDashboardInput,
+} from '@/features/dashboards/dashboard-types'
 import { apiRequest, apiRequestWithResponse } from '@/lib/api-client'
 
 export type ListDashboardsParams = {
@@ -74,6 +79,15 @@ export async function getDashboard(id: number): Promise<Dashboard> {
   return mapDashboardFromApi(data)
 }
 
+export async function createDashboard(input: CreateDashboardInput): Promise<Dashboard> {
+  const data = await apiRequest<DashboardApiRecord>('/dashboards', {
+    method: 'POST',
+    body: mapDashboardToCreateApi(input),
+  })
+
+  return mapDashboardFromApi(data)
+}
+
 export async function updateDashboard(
   id: number,
   input: UpdateDashboardInput,
@@ -94,4 +108,8 @@ export async function assignDashboardUsers(
     method: 'PATCH',
     body: { usuarios },
   })
+}
+
+export async function deleteDashboard(id: number): Promise<void> {
+  await apiRequest<void>(`/dashboards/${id}`, { method: 'DELETE' })
 }

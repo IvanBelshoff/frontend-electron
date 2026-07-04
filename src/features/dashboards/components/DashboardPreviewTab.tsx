@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import Alert from '@/components/ui/Alert'
 import { buildDashboardPreviewUrl } from '@/features/dashboards/build-dashboard-preview-url'
 
@@ -11,6 +12,24 @@ export default function DashboardPreviewTab({
   url,
 }: DashboardPreviewTabProps) {
   const previewUrl = buildDashboardPreviewUrl(url)
+  const blockNextAutoFullscreen = useRef(true)
+
+  useEffect(() => {
+    blockNextAutoFullscreen.current = true
+
+    const onFullscreenChange = () => {
+      if (document.fullscreenElement && blockNextAutoFullscreen.current) {
+        blockNextAutoFullscreen.current = false
+        void document.exitFullscreen()
+      }
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange)
+    }
+  }, [previewUrl])
 
   if (!previewUrl) {
     return (
@@ -30,6 +49,9 @@ export default function DashboardPreviewTab({
         referrerPolicy="no-referrer"
         allow="fullscreen"
         allowFullScreen
+        onLoad={() => {
+          blockNextAutoFullscreen.current = true
+        }}
         className="block h-full min-h-0 w-full flex-1 border-0 bg-[#0b1220]"
       />
     </article>

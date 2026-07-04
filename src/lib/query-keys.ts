@@ -3,6 +3,7 @@ export const queryKeys = {
     profile: ['auth', 'profile'] as const,
   },
   user: {
+    list: (params?: { limit?: number }) => ['user', 'list', params] as const,
     detail: (id?: number) => ['user', 'detail', id] as const,
   },
   dashboard: {

@@ -1,4 +1,5 @@
 import type {
+  CreateDashboardInput,
   Dashboard,
   DashboardEditDraft,
   DashboardUser,
@@ -120,7 +121,7 @@ export function mapDashboardToEditDraft(dashboard: Dashboard): DashboardEditDraf
   }
 }
 
-export function mapDashboardToUpdateApi(input: UpdateDashboardInput): Record<string, unknown> {
+function mapDashboardDraftToApi(input: DashboardEditDraft): Record<string, unknown> {
   return {
     nome: input.nome.trim(),
     url: input.url.trim(),
@@ -132,6 +133,25 @@ export function mapDashboardToUpdateApi(input: UpdateDashboardInput): Record<str
     data_expiracao_inicial: input.temporario ? input.dataExpiracaoInicial ?? null : null,
     data_expiracao_final: input.temporario ? input.dataExpiracaoFinal ?? null : null,
   }
+}
+
+export function mapDashboardToUpdateApi(input: UpdateDashboardInput): Record<string, unknown> {
+  return mapDashboardDraftToApi(input)
+}
+
+export function mapDashboardToCreateApi(input: CreateDashboardInput): Record<string, unknown> {
+  const body = mapDashboardDraftToApi(input)
+
+  if (body.query === null || body.query === undefined) {
+    delete body.query
+  }
+
+  if (!input.temporario) {
+    delete body.data_expiracao_inicial
+    delete body.data_expiracao_final
+  }
+
+  return body
 }
 
 export function areDashboardDraftsEqual(a: DashboardEditDraft, b: DashboardEditDraft): boolean {

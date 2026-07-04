@@ -15,30 +15,34 @@ import {
   FilterOptionButton,
 } from '@/features/dashboards/icons/DashboardIcons'
 
-type DashboardEditFormProps = {
+type DashboardEditFormBaseProps = {
   draft: DashboardEditDraft
   defaultIcon: string
   updateDraft: (patch: Partial<DashboardEditDraft>) => void
   fieldErrors: DashboardFieldErrors
-  isDirty: boolean
   isSaving: boolean
+}
+
+type DashboardEditFormEditProps = DashboardEditFormBaseProps & {
+  mode?: 'edit'
+  isDirty: boolean
   saveSuccess: boolean
   onSave: () => void
   onCancel: () => void
 }
 
-export default function DashboardEditForm({
-  draft,
-  defaultIcon,
-  updateDraft,
-  fieldErrors,
-  isDirty,
-  isSaving,
-  saveSuccess,
-  onSave,
-  onCancel,
-}: DashboardEditFormProps) {
+type DashboardEditFormCreateProps = DashboardEditFormBaseProps & {
+  mode: 'create'
+  onSaveToList: () => void
+  onSaveAndEdit: () => void
+}
+
+export type DashboardEditFormProps = DashboardEditFormEditProps | DashboardEditFormCreateProps
+
+export default function DashboardEditForm(props: DashboardEditFormProps) {
+  const { draft, defaultIcon, updateDraft, fieldErrors, isSaving } = props
   const [iconPickerOpen, setIconPickerOpen] = useState(false)
+  const isCreateMode = props.mode === 'create'
 
   return (
     <>
@@ -51,6 +55,7 @@ export default function DashboardEditForm({
                 value={draft.nome}
                 onChange={(event) => updateDraft({ nome: event.target.value })}
                 hasError={Boolean(fieldErrors.nome)}
+                placeholder={isCreateMode ? 'Ex.: Comercial - Receita mensal' : undefined}
               />
               {fieldErrors.nome && (
                 <p className="text-xs text-vscode-error">{fieldErrors.nome}</p>
@@ -80,6 +85,7 @@ export default function DashboardEditForm({
               value={draft.url}
               onChange={(event) => updateDraft({ url: event.target.value })}
               hasError={Boolean(fieldErrors.url)}
+              placeholder={isCreateMode ? 'https://seu-dominio.com/dashboard' : undefined}
             />
             {fieldErrors.url && (
               <p className="text-xs text-vscode-error">{fieldErrors.url}</p>
@@ -171,19 +177,40 @@ export default function DashboardEditForm({
 
           {fieldErrors.general && <Alert variant="error">{fieldErrors.general}</Alert>}
 
-          {saveSuccess && !isDirty && (
+          {props.mode !== 'create' && props.saveSuccess && !props.isDirty && (
             <Alert variant="success">Dashboard salvo com sucesso.</Alert>
           )}
 
-          {isDirty && (
+          {props.mode === 'create' ? (
             <div className="flex flex-wrap gap-2 border-t border-vscode-border pt-4">
-              <Button type="button" loading={isSaving} onClick={onSave}>
+              <Button type="button" loading={isSaving} onClick={props.onSaveToList}>
                 Salvar
               </Button>
-              <Button type="button" variant="secondary" disabled={isSaving} onClick={onCancel}>
-                Cancelar
+              <Button
+                type="button"
+                variant="secondary"
+                loading={isSaving}
+                onClick={props.onSaveAndEdit}
+              >
+                Salvar e Editar
               </Button>
             </div>
+          ) : (
+            props.isDirty && (
+              <div className="flex flex-wrap gap-2 border-t border-vscode-border pt-4">
+                <Button type="button" loading={isSaving} onClick={props.onSave}>
+                  Salvar
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={isSaving}
+                  onClick={props.onCancel}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            )
           )}
         </div>
       </SettingsCard>

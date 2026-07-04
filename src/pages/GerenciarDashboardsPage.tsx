@@ -1,8 +1,10 @@
 import Alert from '@/components/ui/Alert'
 import DashboardCardGrid from '@/features/dashboards/components/DashboardCardGrid'
+import DashboardDeleteConfirmDialog from '@/features/dashboards/components/DashboardDeleteConfirmDialog'
 import DashboardFiltersDialog from '@/features/dashboards/components/DashboardFiltersDialog'
 import DashboardManagementHeader from '@/features/dashboards/components/DashboardManagementHeader'
 import DashboardTable from '@/features/dashboards/components/DashboardTable'
+import { useDashboardDeleteDialog } from '@/features/dashboards/hooks/use-dashboard-delete-dialog'
 import { useDashboardListState } from '@/features/dashboards/hooks/use-dashboard-list-state'
 import { ApiError } from '@/features/auth/auth-types'
 
@@ -30,8 +32,9 @@ export default function GerenciarDashboardsPage() {
     closeFilterDialog,
     handleCreate,
     handleEdit,
-    handleDelete,
   } = useDashboardListState()
+
+  const deleteDialog = useDashboardDeleteDialog()
 
   const errorMessage =
     error instanceof ApiError
@@ -67,14 +70,14 @@ export default function GerenciarDashboardsPage() {
           <DashboardCardGrid
             dashboards={filteredDashboards}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={deleteDialog.requestDelete}
             onClearFilters={clearFilters}
           />
         ) : (
           <DashboardTable
             dashboards={filteredDashboards}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={deleteDialog.requestDelete}
             onClearFilters={clearFilters}
           />
         )}
@@ -87,6 +90,15 @@ export default function GerenciarDashboardsPage() {
         onDraftChange={setDraftFilters}
         onApply={applyFilters}
         onClose={closeFilterDialog}
+      />
+
+      <DashboardDeleteConfirmDialog
+        isOpen={deleteDialog.deleteTarget !== null}
+        dashboardName={deleteDialog.deleteTarget?.nome ?? ''}
+        isDeleting={deleteDialog.isDeleting}
+        error={deleteDialog.error}
+        onConfirm={() => void deleteDialog.confirmDelete()}
+        onCancel={deleteDialog.cancelDelete}
       />
     </div>
   )

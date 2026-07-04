@@ -46,6 +46,22 @@ export type DashboardEditDraft = {
 
 export type UpdateDashboardInput = DashboardEditDraft
 
+export type CreateDashboardInput = DashboardEditDraft
+
+export type DashboardCreateSaveMode = 'list' | 'edit'
+
+export const INITIAL_DASHBOARD_CREATE_DRAFT: DashboardEditDraft = {
+  nome: '',
+  icone: 'insert_chart',
+  url: '',
+  query: null,
+  privacidade: 'privado',
+  visivel: true,
+  temporario: false,
+  dataExpiracaoInicial: null,
+  dataExpiracaoFinal: null,
+}
+
 export type DashboardFilters = {
   privacidade: 'all' | Privacidade
   visivel: 'all' | boolean

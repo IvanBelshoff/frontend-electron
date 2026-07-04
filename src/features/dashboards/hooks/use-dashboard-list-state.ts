@@ -78,8 +78,8 @@ export function useDashboardListState() {
   }, [dashboardsQuery])
 
   const handleCreate = useCallback(() => {
-    console.log('[dashboards] Criar dashboard')
-  }, [])
+    void navigate({ to: '/dashboards/novo' })
+  }, [navigate])
 
   const handleEdit = useCallback(
     (dashboard: Dashboard) => {
@@ -90,10 +90,6 @@ export function useDashboardListState() {
     },
     [navigate],
   )
-
-  const handleDelete = useCallback((dashboard: Dashboard) => {
-    console.log('[dashboards] Excluir dashboard', dashboard.id)
-  }, [])
 
   return {
     dashboards,
@@ -119,6 +115,5 @@ export function useDashboardListState() {
     closeFilterDialog,
     handleCreate,
     handleEdit,
-    handleDelete,
   }
 }

@@ -1,10 +1,86 @@
-import PagePlaceholder from '@/components/layout/PagePlaceholder'
+import Alert from '@/components/ui/Alert'
+import UserCardGrid from '@/features/user/components/UserCardGrid'
+import UserDeleteConfirmDialog from '@/features/user/components/UserDeleteConfirmDialog'
+import UserManagementHeader from '@/features/user/components/UserManagementHeader'
+import UserTable from '@/features/user/components/UserTable'
+import { useUserDeleteDialog } from '@/features/user/hooks/use-user-delete-dialog'
+import { useUserListState } from '@/features/user/hooks/use-user-list-state'
+import { ApiError } from '@/features/auth/auth-types'
 
 export default function GerenciarUsuariosPage() {
+  const {
+    filteredUsers,
+    totalCount,
+    filteredCount,
+    search,
+    setSearch,
+    clearSearch,
+    viewMode,
+    setViewMode,
+    isLoading,
+    isError,
+    error,
+    isRefreshing,
+    refresh,
+    handleCreate,
+    handleEdit,
+  } = useUserListState()
+
+  const deleteDialog = useUserDeleteDialog()
+
+  const errorMessage =
+    error instanceof ApiError
+      ? error.message
+      : error instanceof Error
+        ? error.message
+        : 'Não foi possível carregar os usuários.'
+
   return (
-    <PagePlaceholder
-      title="Gerenciar Usuários"
-      description="Em breve você poderá administrar usuários e permissões nesta área."
-    />
+    <div className="flex h-full min-h-0 flex-col">
+      <UserManagementHeader
+        filteredCount={filteredCount}
+        totalCount={totalCount}
+        isRefreshing={isRefreshing}
+        onRefresh={refresh}
+        search={search}
+        onSearchChange={setSearch}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onCreate={handleCreate}
+      />
+
+      <div className="min-h-0 flex-1 overflow-y-auto pt-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center rounded-lg border border-vscode-border bg-vscode-sidebar px-6 py-16 text-sm text-vscode-text-muted">
+            Carregando usuários...
+          </div>
+        ) : isError ? (
+          <Alert variant="error">{errorMessage}</Alert>
+        ) : viewMode === 'grid' ? (
+          <UserCardGrid
+            users={filteredUsers}
+            onEdit={handleEdit}
+            onDelete={deleteDialog.requestDelete}
+            onClearSearch={clearSearch}
+          />
+        ) : (
+          <UserTable
+            users={filteredUsers}
+            onEdit={handleEdit}
+            onDelete={deleteDialog.requestDelete}
+            onClearSearch={clearSearch}
+          />
+        )}
+      </div>
+
+      <UserDeleteConfirmDialog
+        isOpen={deleteDialog.deleteTarget !== null}
+        userName={deleteDialog.deleteTarget?.displayName ?? ''}
+        isDeleting={deleteDialog.isDeleting}
+        error={deleteDialog.error}
+        onConfirm={() => void deleteDialog.confirmDelete()}
+        onCancel={deleteDialog.cancelDelete}
+      />
+    </div>
   )
 }

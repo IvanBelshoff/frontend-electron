@@ -1,11 +1,13 @@
 import { Link, useParams } from '@tanstack/react-router'
 import Alert from '@/components/ui/Alert'
 import DashboardAccessTab from '@/features/dashboards/components/DashboardAccessTab'
+import DashboardDeleteConfirmDialog from '@/features/dashboards/components/DashboardDeleteConfirmDialog'
 import DashboardEditForm from '@/features/dashboards/components/DashboardEditForm'
 import DashboardEditHeader from '@/features/dashboards/components/DashboardEditHeader'
 import DashboardEditTabs from '@/features/dashboards/components/DashboardEditTabs'
 import DashboardInfoSection from '@/features/dashboards/components/DashboardInfoSection'
 import DashboardPreviewTab from '@/features/dashboards/components/DashboardPreviewTab'
+import { useDashboardDeleteDialog } from '@/features/dashboards/hooks/use-dashboard-delete-dialog'
 import { useDashboardEditState } from '@/features/dashboards/hooks/use-dashboard-edit-state'
 import { ApiError } from '@/features/auth/auth-types'
 
@@ -25,13 +27,14 @@ export default function EditarDashboardPage() {
     saveEdit,
     cancelEdit,
     refresh,
-    handleDelete,
     isLoading,
     isError,
     error,
     isSaving,
     isRefreshing,
   } = useDashboardEditState(dashboardId)
+
+  const deleteDialog = useDashboardDeleteDialog({ redirectToListOnSuccess: true })
 
   const errorMessage =
     error instanceof ApiError
@@ -61,7 +64,11 @@ export default function EditarDashboardPage() {
           dashboardName={dashboard?.nome ?? 'Carregando...'}
           isRefreshing={isRefreshing}
           onRefresh={refresh}
-          onDelete={handleDelete}
+          onDelete={() => {
+            if (dashboard) {
+              deleteDialog.requestDelete(dashboard)
+            }
+          }}
         />
 
         <DashboardEditTabs activeTab={activeTab} onChange={setActiveTab} />
@@ -112,6 +119,15 @@ export default function EditarDashboardPage() {
           <DashboardPreviewTab dashboardName={dashboard.nome} url={dashboard.url} />
         )}
       </div>
+
+      <DashboardDeleteConfirmDialog
+        isOpen={deleteDialog.deleteTarget !== null}
+        dashboardName={deleteDialog.deleteTarget?.nome ?? ''}
+        isDeleting={deleteDialog.isDeleting}
+        error={deleteDialog.error}
+        onConfirm={() => void deleteDialog.confirmDelete()}
+        onCancel={deleteDialog.cancelDelete}
+      />
     </div>
   )
 }

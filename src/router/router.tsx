@@ -9,8 +9,10 @@ import {
 import { authStore } from '@/features/auth/auth-store'
 import AppShell from '@/layouts/AppShell'
 import ConfiguracoesPage from '@/pages/ConfiguracoesPage'
+import CriarDashboardPage from '@/pages/CriarDashboardPage'
 import EditarDashboardPage from '@/pages/EditarDashboardPage'
 import GerenciarDashboardsPage from '@/pages/GerenciarDashboardsPage'
+import EditarUsuarioPage from '@/pages/EditarUsuarioPage'
 import GerenciarUsuariosPage from '@/pages/GerenciarUsuariosPage'
 import LoginPage from '@/pages/LoginPage'
 import MeusDashboardsPage from '@/pages/MeusDashboardsPage'
@@ -46,6 +48,12 @@ const gerenciarDashboardsRoute = createRoute({
   component: GerenciarDashboardsPage,
 })
 
+const criarDashboardRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/dashboards/novo',
+  component: CriarDashboardPage,
+})
+
 const editarDashboardRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/dashboards/$dashboardId/editar',
@@ -56,6 +64,12 @@ const gerenciarUsuariosRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/usuarios',
   component: GerenciarUsuariosPage,
+})
+
+const editarUsuarioRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/usuarios/$userId/editar',
+  component: EditarUsuarioPage,
 })
 
 const configuracoesRoute = createRoute({
@@ -83,8 +97,10 @@ const routeTree = rootRoute.addChildren([
   authenticatedRoute.addChildren([
     meusDashboardsRoute,
     gerenciarDashboardsRoute,
+    criarDashboardRoute,
     editarDashboardRoute,
     gerenciarUsuariosRoute,
+    editarUsuarioRoute,
     configuracoesRoute,
   ]),
   loginRoute,
