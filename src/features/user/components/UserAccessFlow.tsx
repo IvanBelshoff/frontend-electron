@@ -109,10 +109,7 @@ export default function UserAccessFlow({ user }: UserAccessFlowProps) {
     }
   }, [])
 
-  const graph = useMemo(
-    () => buildUserAccessFlowGraph(user, flowCanvasWidth),
-    [user, flowCanvasWidth],
-  )
+  const graph = useMemo(() => buildUserAccessFlowGraph(user), [user])
 
   if (!hasAccessData) {
     return null

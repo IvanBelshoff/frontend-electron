@@ -2,6 +2,8 @@ import clsx from 'clsx'
 
 type DashboardAccessMoveButtonsProps = {
   disabled?: boolean
+  canMoveSelectedRight?: boolean
+  canMoveSelectedLeft?: boolean
   onMoveSelectedRight: () => void
   onMoveAllRight: () => void
   onMoveSelectedLeft: () => void
@@ -39,6 +41,8 @@ function MoveButton({
 
 export default function DashboardAccessMoveButtons({
   disabled = false,
+  canMoveSelectedRight = false,
+  canMoveSelectedLeft = false,
   onMoveSelectedRight,
   onMoveAllRight,
   onMoveSelectedLeft,
@@ -49,7 +53,7 @@ export default function DashboardAccessMoveButtons({
       <MoveButton
         label="Conceder acesso aos selecionados"
         onClick={onMoveSelectedRight}
-        disabled={disabled}
+        disabled={disabled || !canMoveSelectedRight}
       >
         {'>'}
       </MoveButton>
@@ -63,7 +67,7 @@ export default function DashboardAccessMoveButtons({
       <MoveButton
         label="Remover acesso dos selecionados"
         onClick={onMoveSelectedLeft}
-        disabled={disabled}
+        disabled={disabled || !canMoveSelectedLeft}
       >
         {'<'}
       </MoveButton>

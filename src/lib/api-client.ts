@@ -74,12 +74,13 @@ async function executeApiRequest(
   const execute = async (token?: string | null) => {
     const headers = new Headers(init.headers)
     headers.set('Accept', 'application/json')
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
 
     if (!skipAuth && token) {
       headers.set('Authorization', `Bearer ${token}`)
     }
 
-    if (body !== undefined) {
+    if (body !== undefined && !isFormData) {
       headers.set('Content-Type', 'application/json')
     }
 
@@ -87,7 +88,7 @@ async function executeApiRequest(
       ...init,
       headers,
       credentials: 'include',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
     })
   }
 

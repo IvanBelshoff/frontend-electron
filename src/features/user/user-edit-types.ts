@@ -7,6 +7,15 @@ export type UserEditDraft = {
   bloqueado: boolean
 }
 
+export type UserFieldErrors = {
+  nome?: string
+  sobrenome?: string
+  email?: string
+  general?: string
+}
+
+export type UpdateUserInput = UserEditDraft
+
 export type UserDeleteTarget = {
   id: number
   displayName: string

@@ -79,3 +79,52 @@ export function mapManagedUserToEditDraft(user: ManagedUser): UserEditDraft {
     bloqueado: user.bloqueado,
   }
 }
+
+export function normalizeUserEditDraft(draft: UserEditDraft): UserEditDraft {
+  return {
+    nome: draft.nome.trim(),
+    sobrenome: draft.sobrenome.trim(),
+    email: draft.email.trim().toLowerCase(),
+    bloqueado: draft.bloqueado,
+  }
+}
+
+export function mapUserDraftToUpdateApi(draft: UserEditDraft): Record<string, unknown> {
+  const normalized = normalizeUserEditDraft(draft)
+
+  return {
+    nome: normalized.nome,
+    sobrenome: normalized.sobrenome,
+    email: normalized.email,
+    bloqueado: normalized.bloqueado,
+  }
+}
+
+export function areUserDraftsEqual(a: UserEditDraft, b: UserEditDraft): boolean {
+  const normalizedA = normalizeUserEditDraft(a)
+  const normalizedB = normalizeUserEditDraft(b)
+
+  return (
+    normalizedA.nome === normalizedB.nome &&
+    normalizedA.sobrenome === normalizedB.sobrenome &&
+    normalizedA.email === normalizedB.email &&
+    normalizedA.bloqueado === normalizedB.bloqueado
+  )
+}
+
+export function mergeManagedUserAfterUpdate(
+  previous: ManagedUser,
+  updated: ManagedUser,
+): ManagedUser {
+  return {
+    ...previous,
+    ...updated,
+    regras: updated.regras.length > 0 ? updated.regras : previous.regras,
+    permissoes: updated.permissoes.length > 0 ? updated.permissoes : previous.permissoes,
+    permissoesDetalhadas:
+      updated.permissoesDetalhadas.length > 0
+        ? updated.permissoesDetalhadas
+        : previous.permissoesDetalhadas,
+    foto: updated.foto ?? previous.foto,
+  }
+}

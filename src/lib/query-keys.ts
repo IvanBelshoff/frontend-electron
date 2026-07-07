@@ -5,6 +5,8 @@ export const queryKeys = {
   user: {
     list: (params?: { limit?: number }) => ['user', 'list', params] as const,
     detail: (id?: number) => ['user', 'detail', id] as const,
+    roleCatalog: ['user', 'role-catalog'] as const,
+    dashboardAccess: (userId?: number) => ['user', 'dashboard-access', userId] as const,
   },
   dashboard: {
     list: (params?: { limit?: number }) => ['dashboard', 'list', params] as const,

@@ -1,5 +1,10 @@
-import { mapManagedUserFromApi, mapManagedUserListFromApi } from '@/features/user/user-mapper'
+import {
+  mapManagedUserFromApi,
+  mapManagedUserListFromApi,
+  mapUserDraftToUpdateApi,
+} from '@/features/user/user-mapper'
 import type { ManagedUser, ManagedUserApiRecord } from '@/features/user/user-list-types'
+import type { UpdateUserInput } from '@/features/user/user-edit-types'
 import { apiRequest, apiRequestWithResponse } from '@/lib/api-client'
 import type {
   AccessUser,
@@ -97,6 +102,31 @@ export async function getManagedUserById(id: number): Promise<ManagedUser> {
 
 export async function deleteUser(id: number): Promise<void> {
   await apiRequest<void>(`/user/${id}`, { method: 'DELETE' })
+}
+
+export async function updateUser(id: number, input: UpdateUserInput): Promise<ManagedUser> {
+  const data = await apiRequest<ManagedUserApiRecord>(`/user/${id}`, {
+    method: 'PATCH',
+    body: mapUserDraftToUpdateApi(input),
+  })
+
+  return mapManagedUserFromApi(data)
+}
+
+export async function updateUserPhoto(id: number, photo: Blob): Promise<ManagedUser> {
+  const formData = new FormData()
+  formData.append('foto', photo, 'usuario-foto.webp')
+
+  const data = await apiRequest<ManagedUserApiRecord>(`/user/${id}`, {
+    method: 'PATCH',
+    body: formData,
+  })
+
+  return mapManagedUserFromApi(data)
+}
+
+export async function deleteUserPhoto(id: number): Promise<void> {
+  await apiRequest<void>(`/user/photo/${id}`, { method: 'DELETE' })
 }
 
 export async function getUserById(id: number): Promise<UserDetail> {

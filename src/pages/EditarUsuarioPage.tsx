@@ -2,7 +2,8 @@ import { Link, useParams } from '@tanstack/react-router'
 import Alert from '@/components/ui/Alert'
 import UserDeleteConfirmDialog from '@/features/user/components/UserDeleteConfirmDialog'
 import UserEditHeader from '@/features/user/components/UserEditHeader'
-import UserEditPlaceholderTab from '@/features/user/components/UserEditPlaceholderTab'
+import UserAccessTab from '@/features/user/components/UserAccessTab'
+import UserPermissionsTab from '@/features/user/components/UserPermissionsTab'
 import UserEditTabs from '@/features/user/components/UserEditTabs'
 import UserInfoSection from '@/features/user/components/UserInfoSection'
 import UserProfileSection from '@/features/user/components/UserProfileSection'
@@ -21,10 +22,16 @@ export default function EditarUsuarioPage() {
     activeTab,
     setActiveTab,
     updateDraft,
+    isDirty,
+    fieldErrors,
+    saveSuccess,
+    saveEdit,
+    cancelEdit,
     refresh,
     isLoading,
     isError,
     error,
+    isSaving,
     isRefreshing,
   } = useUserEditState(userId)
 
@@ -70,7 +77,13 @@ export default function EditarUsuarioPage() {
         <UserEditTabs activeTab={activeTab} onChange={setActiveTab} />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pt-4">
+      <div
+        className={
+          activeTab === 'access'
+            ? 'flex min-h-0 flex-1 flex-col overflow-hidden pt-4'
+            : 'min-h-0 flex-1 overflow-y-auto pt-4'
+        }
+      >
         {isLoading ? (
           <div className="flex items-center justify-center rounded-lg border border-vscode-border bg-vscode-sidebar px-6 py-16 text-sm text-vscode-text-muted">
             Carregando usuário...
@@ -86,20 +99,24 @@ export default function EditarUsuarioPage() {
           </div>
         ) : activeTab === 'user' ? (
           <div className="space-y-4">
-            <UserProfileSection user={user} draft={draft} updateDraft={updateDraft} />
+            <UserProfileSection
+              user={user}
+              draft={draft}
+              updateDraft={updateDraft}
+              isDirty={isDirty}
+              fieldErrors={fieldErrors}
+              isSaving={isSaving}
+              saveSuccess={saveSuccess}
+              onSave={() => void saveEdit()}
+              onCancel={cancelEdit}
+            />
             <UserInfoSection user={user} />
           </div>
         ) : activeTab === 'permissions' ? (
-          <UserEditPlaceholderTab
-            title="Permissões"
-            description="Em breve você poderá gerenciar regras e permissões do usuário nesta aba."
-          />
-        ) : (
-          <UserEditPlaceholderTab
-            title="Acessos"
-            description="Em breve você poderá gerenciar os acessos a dashboards nesta aba."
-          />
-        )}
+          <UserPermissionsTab user={user} />
+        ) : activeTab === 'access' ? (
+          <UserAccessTab user={user} enabled={activeTab === 'access'} />
+        ) : null}
       </div>
 
       <UserDeleteConfirmDialog

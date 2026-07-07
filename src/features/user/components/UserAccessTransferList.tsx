@@ -1,20 +1,21 @@
 import DashboardAccessMoveButtons from '@/features/dashboards/components/DashboardAccessMoveButtons'
-import DashboardAccessUserColumn from '@/features/dashboards/components/DashboardAccessUserColumn'
-import type { AccessUser } from '@/features/user/user-types'
+import UserAccessDashboardColumn from '@/features/user/components/UserAccessDashboardColumn'
+import type { AccessDashboard } from '@/features/user/user-dashboard-access-types'
 
-type DashboardAccessTransferListProps = {
-  availableUsers: AccessUser[]
-  grantedUsers: AccessUser[]
-  filteredAvailableUsers: AccessUser[]
-  filteredGrantedUsers: AccessUser[]
+type UserAccessTransferListProps = {
+  userId: number
+  availableDashboards: AccessDashboard[]
+  grantedDashboards: AccessDashboard[]
+  filteredAvailableDashboards: AccessDashboard[]
+  filteredGrantedDashboards: AccessDashboard[]
   selectedAvailableIds: number[]
   selectedGrantedIds: number[]
   availableSearch: string
   grantedSearch: string
   onAvailableSearchChange: (value: string) => void
   onGrantedSearchChange: (value: string) => void
-  onToggleAvailableUser: (userId: number) => void
-  onToggleGrantedUser: (userId: number) => void
+  onToggleAvailableDashboard: (dashboardId: number) => void
+  onToggleGrantedDashboard: (dashboardId: number) => void
   onToggleSelectAllAvailable: () => void
   onToggleSelectAllGranted: () => void
   isAllAvailableSelected: boolean
@@ -24,22 +25,22 @@ type DashboardAccessTransferListProps = {
   onMoveSelectedLeft: () => void
   onMoveAllLeft: () => void
   disabled?: boolean
-  ownerId?: number | null
 }
 
-export default function DashboardAccessTransferList({
-  availableUsers,
-  grantedUsers,
-  filteredAvailableUsers,
-  filteredGrantedUsers,
+export default function UserAccessTransferList({
+  userId,
+  availableDashboards,
+  grantedDashboards,
+  filteredAvailableDashboards,
+  filteredGrantedDashboards,
   selectedAvailableIds,
   selectedGrantedIds,
   availableSearch,
   grantedSearch,
   onAvailableSearchChange,
   onGrantedSearchChange,
-  onToggleAvailableUser,
-  onToggleGrantedUser,
+  onToggleAvailableDashboard,
+  onToggleGrantedDashboard,
   onToggleSelectAllAvailable,
   onToggleSelectAllGranted,
   isAllAvailableSelected,
@@ -49,19 +50,18 @@ export default function DashboardAccessTransferList({
   onMoveSelectedLeft,
   onMoveAllLeft,
   disabled = false,
-  ownerId = null,
-}: DashboardAccessTransferListProps) {
+}: UserAccessTransferListProps) {
   return (
     <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-stretch">
-      <DashboardAccessUserColumn
-        title="Usuários disponíveis"
-        count={availableUsers.length}
-        helper="Selecione um ou mais usuários para conceder acesso."
-        users={filteredAvailableUsers}
+      <UserAccessDashboardColumn
+        title="Dashboards disponíveis"
+        count={availableDashboards.length}
+        helper="Selecione um ou mais dashboards para conceder acesso ao usuário."
+        dashboards={filteredAvailableDashboards}
         selectedIds={selectedAvailableIds}
         search={availableSearch}
         onSearchChange={onAvailableSearchChange}
-        onToggleUser={onToggleAvailableUser}
+        onToggleDashboard={onToggleAvailableDashboard}
         onToggleSelectAll={onToggleSelectAllAvailable}
         isAllSelected={isAllAvailableSelected}
         disabled={disabled}
@@ -77,19 +77,19 @@ export default function DashboardAccessTransferList({
         onMoveAllLeft={onMoveAllLeft}
       />
 
-      <DashboardAccessUserColumn
-        title="Usuários com acesso"
-        count={grantedUsers.length}
-        helper="Selecione usuários para remover acesso, exceto o criador."
-        users={filteredGrantedUsers}
+      <UserAccessDashboardColumn
+        title="Dashboards com acesso"
+        count={grantedDashboards.length}
+        helper="Lista de dashboards atualmente vinculados ao usuário."
+        dashboards={filteredGrantedDashboards}
         selectedIds={selectedGrantedIds}
         search={grantedSearch}
         onSearchChange={onGrantedSearchChange}
-        onToggleUser={onToggleGrantedUser}
+        onToggleDashboard={onToggleGrantedDashboard}
         onToggleSelectAll={onToggleSelectAllGranted}
         isAllSelected={isAllGrantedSelected}
         disabled={disabled}
-        ownerId={ownerId}
+        userId={userId}
       />
     </div>
   )

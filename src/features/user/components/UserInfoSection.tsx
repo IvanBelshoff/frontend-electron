@@ -2,6 +2,7 @@ import SettingsCard from '@/components/settings/SettingsCard'
 import SettingsCardHeader from '@/components/settings/SettingsCardHeader'
 import SettingsInfoGrid from '@/components/settings/SettingsInfoGrid'
 import { InfoIcon } from '@/components/settings/SettingsIcons'
+import UserAccessFlow from '@/features/user/components/UserAccessFlow'
 import { formatUserDate } from '@/features/user/format-user-date'
 import type { ManagedUser } from '@/features/user/user-list-types'
 
@@ -23,7 +24,7 @@ export default function UserInfoSection({ user }: UserInfoSectionProps) {
       <SettingsCardHeader
         icon={<InfoIcon />}
         title="Informações do usuário"
-        description="Resumo de rastreabilidade do usuário."
+        description="Resumo de rastreabilidade e mapa de acesso do usuário."
       />
 
       <SettingsInfoGrid
@@ -50,6 +51,10 @@ export default function UserInfoSection({ user }: UserInfoSectionProps) {
           },
         ]}
       />
+
+      <div className="mt-4 border-t border-vscode-border pt-4">
+        <UserAccessFlow user={user} />
+      </div>
     </SettingsCard>
   )
 }

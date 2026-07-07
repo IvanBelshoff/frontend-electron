@@ -34,30 +34,15 @@ export function inferRoleFromPermission(
 }
 
 const NODE_MAX_WIDTH = 220
-const NODE_MIN_WIDTH = 160
-const LAYOUT_PADDING = 16
-const COLUMN_GAP = 36
+const ROLE_X = 30
+const PERMISSION_X = ROLE_X + NODE_MAX_WIDTH + 56
 
-function resolveLayout(containerWidth: number) {
-  const roleX = LAYOUT_PADDING
-
-  if (containerWidth <= 0) {
-    return { roleX, permissionX: 370 }
-  }
-
-  const permissionX = Math.max(
-    roleX + NODE_MIN_WIDTH + COLUMN_GAP,
-    containerWidth - NODE_MAX_WIDTH - LAYOUT_PADDING,
-  )
-
-  return { roleX, permissionX }
+function resolveLayout() {
+  return { roleX: ROLE_X, permissionX: PERMISSION_X }
 }
 
-export function buildUserAccessFlowGraph(
-  user: ManagedUser,
-  containerWidth = 0,
-): UserAccessFlowGraph {
-  const { roleX, permissionX } = resolveLayout(containerWidth)
+export function buildUserAccessFlowGraph(user: ManagedUser): UserAccessFlowGraph {
+  const { roleX, permissionX } = resolveLayout()
   const roleNames = Array.from(new Set(user.regras))
 
   const normalizedPermissionLinks = (() => {
