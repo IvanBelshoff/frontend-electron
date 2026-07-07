@@ -11,6 +11,7 @@ export type UserFieldErrors = {
   nome?: string
   sobrenome?: string
   email?: string
+  senha?: string
   general?: string
 }
 

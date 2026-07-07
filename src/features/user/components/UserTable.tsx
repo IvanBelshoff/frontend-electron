@@ -19,7 +19,7 @@ type UserTableProps = {
   users: ManagedUser[]
   onEdit: (user: ManagedUser) => void
   onDelete: (user: ManagedUser) => void
-  onClearSearch: () => void
+  onClearFilters: () => void
 }
 
 const TABLE_COLUMN_COUNT = 7
@@ -52,7 +52,7 @@ export default function UserTable({
   users,
   onEdit,
   onDelete,
-  onClearSearch,
+  onClearFilters,
 }: UserTableProps) {
   const [expandedRowIds, setExpandedRowIds] = useState<number[]>([])
 
@@ -65,7 +65,7 @@ export default function UserTable({
   }, [])
 
   if (users.length === 0) {
-    return <UserEmptyState onClearSearch={onClearSearch} />
+    return <UserEmptyState onClearFilters={onClearFilters} />
   }
 
   return (

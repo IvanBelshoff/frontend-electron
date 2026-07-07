@@ -1,6 +1,7 @@
 import Alert from '@/components/ui/Alert'
 import UserCardGrid from '@/features/user/components/UserCardGrid'
 import UserDeleteConfirmDialog from '@/features/user/components/UserDeleteConfirmDialog'
+import UserFiltersDialog from '@/features/user/components/UserFiltersDialog'
 import UserManagementHeader from '@/features/user/components/UserManagementHeader'
 import UserTable from '@/features/user/components/UserTable'
 import { useUserDeleteDialog } from '@/features/user/hooks/use-user-delete-dialog'
@@ -14,7 +15,11 @@ export default function GerenciarUsuariosPage() {
     filteredCount,
     search,
     setSearch,
-    clearSearch,
+    filters,
+    draftFilters,
+    setDraftFilters,
+    applyFilters,
+    clearFilters,
     viewMode,
     setViewMode,
     isLoading,
@@ -22,6 +27,9 @@ export default function GerenciarUsuariosPage() {
     error,
     isRefreshing,
     refresh,
+    filterDialogOpen,
+    openFilterDialog,
+    closeFilterDialog,
     handleCreate,
     handleEdit,
   } = useUserListState()
@@ -44,6 +52,8 @@ export default function GerenciarUsuariosPage() {
         onRefresh={refresh}
         search={search}
         onSearchChange={setSearch}
+        filters={filters}
+        onOpenFilters={openFilterDialog}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onCreate={handleCreate}
@@ -61,17 +71,26 @@ export default function GerenciarUsuariosPage() {
             users={filteredUsers}
             onEdit={handleEdit}
             onDelete={deleteDialog.requestDelete}
-            onClearSearch={clearSearch}
+            onClearFilters={clearFilters}
           />
         ) : (
           <UserTable
             users={filteredUsers}
             onEdit={handleEdit}
             onDelete={deleteDialog.requestDelete}
-            onClearSearch={clearSearch}
+            onClearFilters={clearFilters}
           />
         )}
       </div>
+
+      <UserFiltersDialog
+        isOpen={filterDialogOpen}
+        appliedFilters={filters}
+        draftFilters={draftFilters}
+        onDraftChange={setDraftFilters}
+        onApply={applyFilters}
+        onClose={closeFilterDialog}
+      />
 
       <UserDeleteConfirmDialog
         isOpen={deleteDialog.deleteTarget !== null}

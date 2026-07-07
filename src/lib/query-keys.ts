@@ -3,8 +3,15 @@ export const queryKeys = {
     profile: ['auth', 'profile'] as const,
   },
   user: {
-    list: (params?: { limit?: number }) => ['user', 'list', params] as const,
+    list: (params?: {
+      limit?: number
+      filter?: string
+      bloqueado?: boolean
+      regra?: string
+      permissao?: string
+    }) => ['user', 'list', params] as const,
     detail: (id?: number) => ['user', 'detail', id] as const,
+    ids: ['user', 'ids'] as const,
     roleCatalog: ['user', 'role-catalog'] as const,
     dashboardAccess: (userId?: number) => ['user', 'dashboard-access', userId] as const,
   },
@@ -14,5 +21,16 @@ export const queryKeys = {
     access: (id: number) => ['dashboard', 'access', id] as const,
     icons: (params: { page: number; limit: number; nome: string }) =>
       ['dashboard', 'icons', params] as const,
+  },
+  myDashboards: {
+    list: (params?: {
+      page?: number
+      limit?: number
+      nome?: string
+      favoritos?: boolean
+      privacidade?: string
+      temporario?: boolean
+    }) => ['my-dashboards', 'list', params] as const,
+    detail: (id: number) => ['my-dashboards', 'detail', id] as const,
   },
 } as const

@@ -6,17 +6,17 @@ type UserCardGridProps = {
   users: ManagedUser[]
   onEdit: (user: ManagedUser) => void
   onDelete: (user: ManagedUser) => void
-  onClearSearch: () => void
+  onClearFilters: () => void
 }
 
 export default function UserCardGrid({
   users,
   onEdit,
   onDelete,
-  onClearSearch,
+  onClearFilters,
 }: UserCardGridProps) {
   if (users.length === 0) {
-    return <UserEmptyState onClearSearch={onClearSearch} />
+    return <UserEmptyState onClearFilters={onClearFilters} />
   }
 
   return (

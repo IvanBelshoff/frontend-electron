@@ -1,3 +1,4 @@
+import type { UserCreateDraft, UserCreateFieldErrors } from '@/features/user/user-create-types'
 import type { UserEditDraft, UserFieldErrors } from '@/features/user/user-edit-types'
 import { ApiError } from '@/features/auth/auth-types'
 
@@ -42,8 +43,14 @@ export function parseUserFieldErrors(error: unknown): UserFieldErrors {
       if (typeof errors.nome === 'string') fieldErrors.nome = errors.nome
       if (typeof errors.sobrenome === 'string') fieldErrors.sobrenome = errors.sobrenome
       if (typeof errors.email === 'string') fieldErrors.email = errors.email
+      if (typeof errors.senha === 'string') fieldErrors.senha = errors.senha
 
-      if (!fieldErrors.nome && !fieldErrors.sobrenome && !fieldErrors.email) {
+      if (
+        !fieldErrors.nome &&
+        !fieldErrors.sobrenome &&
+        !fieldErrors.email &&
+        !fieldErrors.senha
+      ) {
         fieldErrors.general = formatValidationErrorMessage(errors) ?? error.message
       }
 
@@ -96,6 +103,44 @@ export function validateUserDraft(draft: UserEditDraft): UserFieldErrors {
     errors.email = 'E-mail é obrigatório.'
   } else if (!EMAIL_PATTERN.test(email)) {
     errors.email = 'E-mail inválido.'
+  }
+
+  return errors
+}
+
+export function parseUserCreateFieldErrors(error: unknown): UserCreateFieldErrors {
+  const baseErrors = parseUserFieldErrors(error) as UserCreateFieldErrors
+  return baseErrors
+}
+
+export function validateUserCreateDraft(draft: UserCreateDraft): UserCreateFieldErrors {
+  const errors: UserCreateFieldErrors = {}
+  const baseErrors = validateUserDraft({
+    nome: draft.nome,
+    sobrenome: draft.sobrenome,
+    email: draft.email,
+    bloqueado: false,
+  })
+
+  if (baseErrors.nome) errors.nome = baseErrors.nome
+  if (baseErrors.sobrenome) errors.sobrenome = baseErrors.sobrenome
+  if (baseErrors.email) errors.email = baseErrors.email
+  if (baseErrors.general) errors.general = baseErrors.general
+
+  const senha = draft.senha
+
+  if (!senha) {
+    errors.senha = 'Senha é obrigatória.'
+  } else if (senha.length < 8) {
+    errors.senha = 'A senha deve possuir no mínimo 8 caracteres.'
+  } else if (senha.length > 100) {
+    errors.senha = 'A senha deve possuir no máximo 100 caracteres.'
+  }
+
+  if (!draft.confirmarSenha) {
+    errors.confirmarSenha = 'Confirmação de senha é obrigatória.'
+  } else if (draft.confirmarSenha !== senha) {
+    errors.confirmarSenha = 'As senhas não coincidem.'
   }
 
   return errors

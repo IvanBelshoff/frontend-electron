@@ -1,5 +1,6 @@
 import UserPageHeader from '@/features/user/components/UserPageHeader'
 import UserToolbar from '@/features/user/components/UserToolbar'
+import type { UserFilters } from '@/features/user/user-list-filters'
 import type { UserViewMode } from '@/features/user/user-list-types'
 
 type UserManagementHeaderProps = {
@@ -9,6 +10,8 @@ type UserManagementHeaderProps = {
   onRefresh: () => void
   search: string
   onSearchChange: (value: string) => void
+  filters: UserFilters
+  onOpenFilters: () => void
   viewMode: UserViewMode
   onViewModeChange: (mode: UserViewMode) => void
   onCreate: () => void
@@ -21,6 +24,8 @@ export default function UserManagementHeader({
   onRefresh,
   search,
   onSearchChange,
+  filters,
+  onOpenFilters,
   viewMode,
   onViewModeChange,
   onCreate,
@@ -37,6 +42,8 @@ export default function UserManagementHeader({
       <UserToolbar
         search={search}
         onSearchChange={onSearchChange}
+        filters={filters}
+        onOpenFilters={onOpenFilters}
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
         onCreate={onCreate}

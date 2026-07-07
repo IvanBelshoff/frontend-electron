@@ -2,7 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useCallback, useMemo, useState } from 'react'
 import { listUsers } from '@/features/user/user-api'
-import { applyUserFilters } from '@/features/user/user-filters'
+import {
+  buildUserListQueryParams,
+  DEFAULT_USER_FILTERS,
+  type UserFilters,
+} from '@/features/user/user-list-filters'
 import type { ManagedUser, UserViewMode } from '@/features/user/user-list-types'
 import { queryKeys } from '@/lib/query-keys'
 
@@ -21,21 +25,23 @@ function readStoredViewMode(): UserViewMode {
 export function useUserListState() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState<UserFilters>(DEFAULT_USER_FILTERS)
+  const [draftFilters, setDraftFilters] = useState<UserFilters>(DEFAULT_USER_FILTERS)
   const [viewMode, setViewModeState] = useState<UserViewMode>(readStoredViewMode)
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false)
 
-  const usersQuery = useQuery({
-    queryKey: queryKeys.user.list({ limit: USERS_FETCH_LIMIT }),
-    queryFn: () => listUsers({ page: 1, limit: USERS_FETCH_LIMIT }),
-  })
-
-  const users = usersQuery.data?.items ?? []
-  const totalCount = usersQuery.data?.totalCount ?? 0
-
-  const filteredUsers = useMemo(
-    () => applyUserFilters(users, search),
-    [users, search],
+  const listParams = useMemo(
+    () => buildUserListQueryParams(search, filters, USERS_FETCH_LIMIT),
+    [filters, search],
   )
 
+  const usersQuery = useQuery({
+    queryKey: queryKeys.user.list(listParams),
+    queryFn: () => listUsers(listParams),
+  })
+
+  const filteredUsers = usersQuery.data?.items ?? []
+  const totalCount = usersQuery.data?.totalCount ?? 0
   const filteredCount = filteredUsers.length
 
   const setViewMode = useCallback((mode: UserViewMode) => {
@@ -43,8 +49,25 @@ export function useUserListState() {
     window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode)
   }, [])
 
-  const clearSearch = useCallback(() => {
+  const openFilterDialog = useCallback(() => {
+    setDraftFilters(filters)
+    setFilterDialogOpen(true)
+  }, [filters])
+
+  const closeFilterDialog = useCallback(() => {
+    setFilterDialogOpen(false)
+  }, [])
+
+  const applyFilters = useCallback((nextFilters: UserFilters) => {
+    setFilters(nextFilters)
+    setDraftFilters(nextFilters)
+    setFilterDialogOpen(false)
+  }, [])
+
+  const clearFilters = useCallback(() => {
     setSearch('')
+    setFilters(DEFAULT_USER_FILTERS)
+    setDraftFilters(DEFAULT_USER_FILTERS)
   }, [])
 
   const refresh = useCallback(async () => {
@@ -52,8 +75,8 @@ export function useUserListState() {
   }, [usersQuery])
 
   const handleCreate = useCallback(() => {
-    // TODO: navegar para criação de usuário
-  }, [])
+    void navigate({ to: '/usuarios/criar' })
+  }, [navigate])
 
   const handleEdit = useCallback(
     (user: ManagedUser) => {
@@ -66,13 +89,16 @@ export function useUserListState() {
   )
 
   return {
-    users,
     filteredUsers,
     totalCount,
     filteredCount,
     search,
     setSearch,
-    clearSearch,
+    filters,
+    draftFilters,
+    setDraftFilters,
+    applyFilters,
+    clearFilters,
     viewMode,
     setViewMode,
     isLoading: usersQuery.isLoading,
@@ -80,6 +106,9 @@ export function useUserListState() {
     error: usersQuery.error,
     isRefreshing: usersQuery.isFetching && !usersQuery.isLoading,
     refresh,
+    filterDialogOpen,
+    openFilterDialog,
+    closeFilterDialog,
     handleCreate,
     handleEdit,
   }

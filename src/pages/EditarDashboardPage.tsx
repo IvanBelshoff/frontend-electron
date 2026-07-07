@@ -116,7 +116,11 @@ export default function EditarDashboardPage() {
             enabled={activeTab === 'access'}
           />
         ) : (
-          <DashboardPreviewTab dashboardName={dashboard.nome} url={dashboard.url} />
+          <DashboardPreviewTab
+            dashboardName={dashboard.nome}
+            url={dashboard.url}
+            query={dashboard.query}
+          />
         )}
       </div>
 

@@ -3,6 +3,8 @@ import {
   mapManagedUserListFromApi,
   mapUserDraftToUpdateApi,
 } from '@/features/user/user-mapper'
+import type { CreateUserInput } from '@/features/user/user-create-types'
+import type { UserSummaryOption } from '@/features/user/user-create-types'
 import type { ManagedUser, ManagedUserApiRecord } from '@/features/user/user-list-types'
 import type { UpdateUserInput } from '@/features/user/user-edit-types'
 import { apiRequest, apiRequestWithResponse } from '@/lib/api-client'
@@ -17,6 +19,9 @@ export type ListUsersParams = {
   page?: number
   limit?: number
   filter?: string
+  bloqueado?: boolean
+  regra?: string
+  permissao?: string
 }
 
 export type ListUsersResult = {
@@ -32,6 +37,18 @@ function buildUsersQuery(params: ListUsersParams): string {
 
   if (params.filter) {
     searchParams.set('filter', params.filter)
+  }
+
+  if (params.bloqueado !== undefined) {
+    searchParams.set('bloqueado', String(params.bloqueado))
+  }
+
+  if (params.regra) {
+    searchParams.set('regra', params.regra)
+  }
+
+  if (params.permissao) {
+    searchParams.set('permissao', params.permissao)
   }
 
   return searchParams.toString()
@@ -139,4 +156,51 @@ export async function getUsersByDashboard(dashboardId: number): Promise<Dashboar
   )
 
   return mapDashboardAccessListsFromApi(data)
+}
+
+export async function listUserIds(): Promise<UserSummaryOption[]> {
+  const data = await apiRequest<{ id: number | string; nome: string }[]>('/user/ids', {
+    method: 'GET',
+  })
+
+  return data.map((record) => ({
+    id: Number(record.id),
+    nome: record.nome,
+  }))
+}
+
+export async function createUser(input: CreateUserInput): Promise<ManagedUser> {
+  const formData = new FormData()
+  formData.append('nome', input.nome)
+  formData.append('sobrenome', input.sobrenome)
+  formData.append('email', input.email)
+  formData.append('senha', input.senha)
+
+  if (input.photo) {
+    formData.append('foto', input.photo, 'usuario-foto.webp')
+  }
+
+  const data = await apiRequest<ManagedUserApiRecord>('/user/', {
+    method: 'POST',
+    body: formData,
+  })
+
+  return mapManagedUserFromApi(data)
+}
+
+export async function copyUserAuthentication(
+  idUsuario: number,
+  idCopiado: number,
+): Promise<void> {
+  await apiRequest<void>('/user/copy/authentication', {
+    method: 'PATCH',
+    body: { id_usuario: idUsuario, id_copiado: idCopiado },
+  })
+}
+
+export async function copyUserDashboards(idUsuario: number, idCopiado: number): Promise<void> {
+  await apiRequest<void>('/user/copy/dashboards', {
+    method: 'PATCH',
+    body: { id_usuario: idUsuario, id_copiado: idCopiado },
+  })
 }
