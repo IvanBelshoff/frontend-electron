@@ -6,6 +6,7 @@ export type UserCreateDraft = {
   confirmarSenha: string
   copyPermissionsFromId: number | null
   copyDashboardsFromId: number | null
+  copyRelatoriosFromId: number | null
 }
 
 export type UserCreateSaveMode = 'list' | 'edit'
@@ -32,6 +33,7 @@ export const INITIAL_USER_CREATE_DRAFT: UserCreateDraft = {
   confirmarSenha: '',
   copyPermissionsFromId: null,
   copyDashboardsFromId: null,
+  copyRelatoriosFromId: null,
 }
 
 export type CreateUserInput = {

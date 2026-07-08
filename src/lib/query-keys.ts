@@ -33,4 +33,30 @@ export const queryKeys = {
     }) => ['my-dashboards', 'list', params] as const,
     detail: (id: number) => ['my-dashboards', 'detail', id] as const,
   },
+  myReports: {
+    list: (params?: {
+      page?: number
+      limit?: number
+      nome?: string
+      favoritos?: boolean
+      privacidade?: string
+      temporario?: boolean
+    }) => ['my-reports', 'list', params] as const,
+    detail: (id: number) => ['my-reports', 'detail', id] as const,
+    data: (id: number, paramsKey?: string) => ['my-reports', 'data', id, paramsKey] as const,
+    status: (id: number) => ['my-reports', 'status', id] as const,
+  },
+  report: {
+    list: (params?: { limit?: number }) => ['report', 'list', params] as const,
+    detail: (id: number) => ['report', 'detail', id] as const,
+    access: (id: number) => ['report', 'access', id] as const,
+    filters: (params?: Record<string, unknown>) => ['report', 'filters', params] as const,
+    status: (id: number) => ['report', 'status', id] as const,
+    data: (id: number, paramsKey?: string) => ['report', 'data', id, paramsKey] as const,
+  },
+  connection: {
+    list: (params?: { limit?: number }) => ['connection', 'list', params] as const,
+    detail: (id: number) => ['connection', 'detail', id] as const,
+  },
+  userReportAccess: (userId?: number) => ['user', 'report-access', userId] as const,
 } as const

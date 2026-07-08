@@ -4,9 +4,12 @@ import {
   ChartBarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  DatabaseIcon,
   LayoutDashboardIcon,
+  MyReportsIcon,
   SettingsIcon,
   SignOutIcon,
+  TableChartIcon,
   UsersIcon,
 } from '@/components/layout/SidebarIcons'
 import SidebarNavItem from '@/components/layout/SidebarNavItem'
@@ -17,7 +20,10 @@ import { useNavigate } from '@tanstack/react-router'
 
 const MAIN_NAV = [
   { to: '/', label: 'Meus Dashboards', icon: <LayoutDashboardIcon />, exact: true },
+  { to: '/relatorios', label: 'Meus Relatórios', icon: <MyReportsIcon />, exact: true },
   { to: '/dashboards', label: 'Gerenciar Dashboards', icon: <ChartBarIcon /> },
+  { to: '/relatorios/gerenciar', label: 'Gerenciar Relatórios', icon: <TableChartIcon /> },
+  { to: '/conexoes', label: 'Gerenciar Conexões', icon: <DatabaseIcon /> },
   { to: '/usuarios', label: 'Gerenciar Usuários', icon: <UsersIcon /> },
 ] as const
 
