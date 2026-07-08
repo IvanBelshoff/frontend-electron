@@ -22,6 +22,7 @@ export default function ExecutarRelatorioPage() {
     setParamValues,
     paramErrors,
     reportData,
+    hasLoadedData,
     isLoadingData,
     isExecuting,
     executionError,
@@ -153,6 +154,8 @@ export default function ExecutarRelatorioPage() {
                 <ReportDataTable
                   colunas={reportData?.colunas ?? []}
                   dados={reportData?.dados ?? []}
+                  hasLoaded={hasLoadedData}
+                  totalLinhas={reportData?.totalLinhas}
                 />
               )}
             </section>

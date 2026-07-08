@@ -23,6 +23,7 @@ export default function ReportExecutionTab({
     parametros,
     setParametros,
     dataResult,
+    hasLoadedData,
     executionError,
     status,
     isGeneratingSnapshot,
@@ -98,11 +99,19 @@ export default function ReportExecutionTab({
       </div>
 
       <div className="min-h-0 flex-1">
-        <ReportDataTable
-          className="h-full min-h-0"
-          colunas={dataResult?.colunas ?? []}
-          dados={dataResult?.dados ?? []}
-        />
+        {isExecuting || isGeneratingSnapshot ? (
+          <div className="flex h-full min-h-[320px] items-center justify-center rounded-lg border border-vscode-border bg-vscode-sidebar px-6 py-16 text-sm text-vscode-text-muted">
+            {isGeneratingSnapshot ? 'Gerando snapshot...' : 'Carregando dados...'}
+          </div>
+        ) : (
+          <ReportDataTable
+            className="h-full min-h-0"
+            colunas={dataResult?.colunas ?? []}
+            dados={dataResult?.dados ?? []}
+            hasLoaded={hasLoadedData}
+            totalLinhas={dataResult?.totalLinhas}
+          />
+        )}
       </div>
     </div>
   )

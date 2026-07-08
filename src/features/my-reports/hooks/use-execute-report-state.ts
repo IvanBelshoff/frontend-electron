@@ -83,7 +83,9 @@ export function useExecuteReportState(relatorioId: number) {
   const [paramValues, setParamValues] = useState<ReportExecutionParams>({})
   const [paramErrors, setParamErrors] = useState<Record<string, string>>({})
   const [reportData, setReportData] = useState<ReportDataResult | null>(null)
+  const [hasLoadedData, setHasLoadedData] = useState(false)
   const [executionError, setExecutionError] = useState<string | null>(null)
+  const [isReloadingData, setIsReloadingData] = useState(false)
   const initializedReportIdRef = useRef<number | null>(null)
   const wasGeneratingRef = useRef(false)
 
@@ -120,6 +122,7 @@ export function useExecuteReportState(relatorioId: number) {
     setParamValues(formatReportParamDefaults(parametros))
     setParamErrors({})
     setReportData(null)
+    setHasLoadedData(false)
     setExecutionError(null)
   }, [parametros, report])
 
@@ -134,11 +137,13 @@ export function useExecuteReportState(relatorioId: number) {
   })
 
   const loadData = useCallback(async () => {
+    setIsReloadingData(true)
     setExecutionError(null)
 
     try {
       const data = await getMyReportData(relatorioId, paramValues)
       setReportData(data)
+      setHasLoadedData(true)
     } catch (error) {
       setExecutionError(
         error instanceof ApiError
@@ -147,6 +152,8 @@ export function useExecuteReportState(relatorioId: number) {
             ? error.message
             : 'Não foi possível carregar os dados do relatório.',
       )
+    } finally {
+      setIsReloadingData(false)
     }
   }, [paramValues, relatorioId])
 
@@ -165,26 +172,26 @@ export function useExecuteReportState(relatorioId: number) {
     wasGeneratingRef.current = isGenerating
   }, [loadData, queryClient, relatorioId, report?.estado, reportData?.estado, statusQuery.data?.estado])
 
-  useEffect(() => {
-    if (!report || initializedReportIdRef.current !== report.id) {
-      return
-    }
+  const fetchMutation = useMutation({
+    mutationFn: async (): Promise<ReportDataResult> => {
+      if (report?.estado === 'online') {
+        return executeMyReport(relatorioId, paramValues)
+      }
 
-    if (report.estado === 'online' || (report.estado === 'offline' && report.snapshotValido)) {
-      void loadData()
-    }
-  }, [loadData, report])
-
-  const executeMutation = useMutation({
-    mutationFn: () => executeMyReport(relatorioId, paramValues),
+      return getMyReportData(relatorioId, paramValues)
+    },
     onMutate: () => {
       setExecutionError(null)
       setParamErrors({})
     },
     onSuccess: async (data) => {
       setReportData(data)
-      await queryClient.invalidateQueries({ queryKey: queryKeys.myReports.detail(relatorioId) })
-      await queryClient.invalidateQueries({ queryKey: queryKeys.myReports.status(relatorioId) })
+      setHasLoadedData(true)
+
+      if (report?.estado === 'online') {
+        await queryClient.invalidateQueries({ queryKey: queryKeys.myReports.detail(relatorioId) })
+        await queryClient.invalidateQueries({ queryKey: queryKeys.myReports.status(relatorioId) })
+      }
     },
     onError: (error) => {
       setExecutionError(
@@ -205,8 +212,8 @@ export function useExecuteReportState(relatorioId: number) {
       return
     }
 
-    void executeMutation.mutateAsync()
-  }, [executeMutation, paramValues, parametros])
+    void fetchMutation.mutateAsync()
+  }, [fetchMutation, paramValues, parametros])
 
   const isFavorite = favoriteIds.includes(relatorioId)
 
@@ -277,6 +284,7 @@ export function useExecuteReportState(relatorioId: number) {
   )
 
   const currentEstado = reportData?.estado ?? report?.estado
+  const isLoadingData = fetchMutation.isPending || isReloadingData
 
   return {
     report,
@@ -287,8 +295,9 @@ export function useExecuteReportState(relatorioId: number) {
     setParamValues,
     paramErrors,
     reportData,
-    isLoadingData: executeMutation.isPending,
-    isExecuting: executeMutation.isPending,
+    hasLoadedData,
+    isLoadingData,
+    isExecuting: fetchMutation.isPending,
     executionError,
     execute,
     loadData,

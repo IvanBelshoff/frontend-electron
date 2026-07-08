@@ -21,6 +21,7 @@ export function useReportExecutionPreviewState(
   const queryClient = useQueryClient()
   const [parametros, setParametros] = useState<ReportExecutionParams>({})
   const [dataResult, setDataResult] = useState<ReportDataResult | null>(null)
+  const [hasLoadedData, setHasLoadedData] = useState(false)
   const [executionError, setExecutionError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -31,6 +32,12 @@ export function useReportExecutionPreviewState(
 
     setParametros(formatReportParamDefaults(report.parametros))
   }, [report?.id, report?.parametros])
+
+  useEffect(() => {
+    setDataResult(null)
+    setHasLoadedData(false)
+    setExecutionError(null)
+  }, [reportId])
 
   const statusQuery = useQuery({
     queryKey: queryKeys.report.status(reportId),
@@ -53,6 +60,7 @@ export function useReportExecutionPreviewState(
     },
     onSuccess: (result) => {
       setDataResult(result)
+      setHasLoadedData(true)
       setExecutionError(null)
     },
     onError: (error) => {
@@ -103,20 +111,12 @@ export function useReportExecutionPreviewState(
     return report.estado === 'offline' && report.snapshotValido
   }, [report])
 
-  useEffect(() => {
-    if (!enabled || !report || !canExecute || isGeneratingSnapshot) {
-      return
-    }
-
-    void loadDataMutation.mutateAsync(parametros)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, report?.id, canExecute, isGeneratingSnapshot])
-
   return {
     parametros,
     setParametros: setAllParametros,
     updateParametro,
     dataResult,
+    hasLoadedData,
     executionError,
     status,
     isGeneratingSnapshot,
