@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react'
 import {
   copyUserAuthentication,
   copyUserDashboards,
+  copyUserRelatorios,
   createUser,
   listUserIds,
 } from '@/features/user/user-api'
@@ -74,6 +75,10 @@ export function useUserCreateState() {
         await copyUserDashboards(createdUser.id, input.copyDashboardsFromId)
       }
 
+      if (input.copyRelatoriosFromId) {
+        await copyUserRelatorios(createdUser.id, input.copyRelatoriosFromId)
+      }
+
       return createdUser
     },
     onSuccess: async (createdUser, { mode }) => {
@@ -98,7 +103,9 @@ export function useUserCreateState() {
 
       if (
         createdUserIdRef.current &&
-        (variables.draft.copyPermissionsFromId || variables.draft.copyDashboardsFromId)
+        (variables.draft.copyPermissionsFromId ||
+          variables.draft.copyDashboardsFromId ||
+          variables.draft.copyRelatoriosFromId)
       ) {
         parsedErrors.general =
           parsedErrors.general ??

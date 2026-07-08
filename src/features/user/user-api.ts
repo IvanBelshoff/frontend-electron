@@ -204,3 +204,10 @@ export async function copyUserDashboards(idUsuario: number, idCopiado: number): 
     body: { id_usuario: idUsuario, id_copiado: idCopiado },
   })
 }
+
+export async function copyUserRelatorios(idUsuario: number, idCopiado: number): Promise<void> {
+  await apiRequest<void>('/user/copy/relatorios', {
+    method: 'PATCH',
+    body: { id_usuario: idUsuario, id_copiado: idCopiado },
+  })
+}

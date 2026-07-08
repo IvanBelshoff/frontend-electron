@@ -9,14 +9,22 @@ import {
 import { authStore } from '@/features/auth/auth-store'
 import AppShell from '@/layouts/AppShell'
 import ConfiguracoesPage from '@/pages/ConfiguracoesPage'
+import CriarConexaoPage from '@/pages/CriarConexaoPage'
 import CriarDashboardPage from '@/pages/CriarDashboardPage'
+import CriarRelatorioPage from '@/pages/CriarRelatorioPage'
 import CriarUsuarioPage from '@/pages/CriarUsuarioPage'
+import EditarConexaoPage from '@/pages/EditarConexaoPage'
 import EditarDashboardPage from '@/pages/EditarDashboardPage'
+import EditarRelatorioPage from '@/pages/EditarRelatorioPage'
+import GerenciarConexoesPage from '@/pages/GerenciarConexoesPage'
 import GerenciarDashboardsPage from '@/pages/GerenciarDashboardsPage'
+import GerenciarRelatoriosPage from '@/pages/GerenciarRelatoriosPage'
 import EditarUsuarioPage from '@/pages/EditarUsuarioPage'
 import GerenciarUsuariosPage from '@/pages/GerenciarUsuariosPage'
 import LoginPage from '@/pages/LoginPage'
+import ExecutarRelatorioPage from '@/pages/ExecutarRelatorioPage'
 import MeusDashboardsPage from '@/pages/MeusDashboardsPage'
+import MeusRelatoriosPage from '@/pages/MeusRelatoriosPage'
 import VisualizarDashboardPage from '@/pages/VisualizarDashboardPage'
 
 const rootRoute = createRootRoute({
@@ -68,6 +76,54 @@ const visualizarDashboardRoute = createRoute({
   component: VisualizarDashboardPage,
 })
 
+const meusRelatoriosRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/relatorios',
+  component: MeusRelatoriosPage,
+})
+
+const executarRelatorioRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/relatorios/$relatorioId/executar',
+  component: ExecutarRelatorioPage,
+})
+
+const gerenciarRelatoriosRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/relatorios/gerenciar',
+  component: GerenciarRelatoriosPage,
+})
+
+const criarRelatorioRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/relatorios/novo',
+  component: CriarRelatorioPage,
+})
+
+const editarRelatorioRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/relatorios/$relatorioId/editar',
+  component: EditarRelatorioPage,
+})
+
+const gerenciarConexoesRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/conexoes',
+  component: GerenciarConexoesPage,
+})
+
+const criarConexaoRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/conexoes/nova',
+  component: CriarConexaoPage,
+})
+
+const editarConexaoRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/conexoes/$conexaoId/editar',
+  component: EditarConexaoPage,
+})
+
 const gerenciarUsuariosRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/usuarios',
@@ -114,6 +170,14 @@ const routeTree = rootRoute.addChildren([
     criarDashboardRoute,
     editarDashboardRoute,
     visualizarDashboardRoute,
+    meusRelatoriosRoute,
+    executarRelatorioRoute,
+    gerenciarRelatoriosRoute,
+    criarRelatorioRoute,
+    editarRelatorioRoute,
+    gerenciarConexoesRoute,
+    criarConexaoRoute,
+    editarConexaoRoute,
     gerenciarUsuariosRoute,
     criarUsuarioRoute,
     editarUsuarioRoute,

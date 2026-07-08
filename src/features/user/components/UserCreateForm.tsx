@@ -163,6 +163,27 @@ export default function UserCreateForm({
                 ))}
               </SettingsSelect>
             </SettingsField>
+
+            <SettingsField label="Copiar relatórios de" htmlFor="userCreateCopyRelatorios">
+              <SettingsSelect
+                id="userCreateCopyRelatorios"
+                value={draft.copyRelatoriosFromId ?? ''}
+                disabled={isLoadingUserOptions || isSaving}
+                onChange={(event) => {
+                  const value = event.target.value
+                  updateDraft({
+                    copyRelatoriosFromId: value ? Number(value) : null,
+                  })
+                }}
+              >
+                <option value="">Nenhum</option>
+                {userOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.nome}
+                  </option>
+                ))}
+              </SettingsSelect>
+            </SettingsField>
           </div>
 
           {fieldErrors.general && (
