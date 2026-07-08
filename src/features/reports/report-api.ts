@@ -12,6 +12,7 @@ import type {
   ReportDataResult,
   ReportExecutionParams,
   ReportStatusResult,
+  SnapshotRefreshResponse,
   UpdateReportInput,
 } from '@/features/reports/report-types'
 import type {
@@ -250,12 +251,18 @@ export async function executeReport(
 export async function refreshReportSnapshot(
   id: number,
   parametrosSnapshot: Record<string, unknown> = {},
-): Promise<void> {
-  await apiRequest<void>(`/relatorios/${id}/snapshot/atualizar`, {
+): Promise<SnapshotRefreshResponse> {
+  return apiRequest<SnapshotRefreshResponse>(`/relatorios/${id}/snapshot/atualizar`, {
     method: 'POST',
     body: { parametros_snapshot: parametrosSnapshot },
   })
 }
+
+export {
+  downloadReportExport,
+  exportReport,
+  getReportJobStatus,
+} from '@/features/reports/report-job-api'
 
 export async function assignReportUsers(id: number, usuarios: number[]): Promise<void> {
   await apiRequest<void>(`/relatorios/users/${id}`, {

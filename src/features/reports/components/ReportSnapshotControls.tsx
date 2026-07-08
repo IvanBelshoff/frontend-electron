@@ -1,7 +1,8 @@
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import ReportJobProgress from '@/features/reports/components/ReportJobProgress'
 import { formatReportDate } from '@/features/reports/format-report-date'
-import type { EstadoRelatorio } from '@/features/reports/report-types'
+import type { EstadoRelatorio, ReportJobStatus } from '@/features/reports/report-types'
 
 type ReportSnapshotControlsProps = {
   estado: EstadoRelatorio
@@ -9,6 +10,8 @@ type ReportSnapshotControlsProps = {
   snapshotAtualizadoEm?: string | null
   onRefresh: () => void
   isRefreshing?: boolean
+  snapshotJobProgress?: number | null
+  snapshotJobStatus?: ReportJobStatus | null
 }
 
 function RefreshIcon() {
@@ -43,6 +46,8 @@ export default function ReportSnapshotControls({
   snapshotAtualizadoEm,
   onRefresh,
   isRefreshing = false,
+  snapshotJobProgress = null,
+  snapshotJobStatus = null,
 }: ReportSnapshotControlsProps) {
   const isGenerating = estado === 'gerando_snapshot'
 
@@ -72,12 +77,18 @@ export default function ReportSnapshotControls({
         </span>
       )}
 
-      {isGenerating && (
+      {isGenerating && snapshotJobStatus && snapshotJobProgress !== null ? (
+        <ReportJobProgress
+          status={snapshotJobStatus}
+          progress={snapshotJobProgress}
+          tipo="snapshot"
+        />
+      ) : isGenerating ? (
         <p className="w-full text-xs text-vscode-text-muted">
           Snapshot em geração. A página será atualizada automaticamente enquanto o status for
           monitorado.
         </p>
-      )}
+      ) : null}
     </div>
   )
 }

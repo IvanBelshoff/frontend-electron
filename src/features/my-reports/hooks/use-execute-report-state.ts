@@ -1,9 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { saveBlobAsFile } from '@/lib/api-client'
 import { useAuth } from '@/features/auth/use-auth'
 import { ApiError } from '@/features/auth/auth-types'
 import {
+  downloadReportExport,
   executeMyReport,
+  exportReport,
   getMyReport,
   getMyReportData,
   getMyReportStatus,
@@ -11,6 +14,7 @@ import {
 } from '@/features/my-reports/my-report-api'
 import type { MyReportListResult } from '@/features/my-reports/my-report-types'
 import { formatReportParamDefaults } from '@/features/reports/format-report-param-defaults'
+import { useReportJob } from '@/features/reports/hooks/use-report-job'
 import type {
   ParametroRelatorio,
   ReportDataResult,
@@ -86,6 +90,9 @@ export function useExecuteReportState(relatorioId: number) {
   const [hasLoadedData, setHasLoadedData] = useState(false)
   const [executionError, setExecutionError] = useState<string | null>(null)
   const [isReloadingData, setIsReloadingData] = useState(false)
+  const [activeExportJobId, setActiveExportJobId] = useState<string | null>(null)
+  const [exportError, setExportError] = useState<string | null>(null)
+  const [isDownloading, setIsDownloading] = useState(false)
   const initializedReportIdRef = useRef<number | null>(null)
   const wasGeneratingRef = useRef(false)
 
@@ -124,6 +131,8 @@ export function useExecuteReportState(relatorioId: number) {
     setReportData(null)
     setHasLoadedData(false)
     setExecutionError(null)
+    setActiveExportJobId(null)
+    setExportError(null)
   }, [parametros, report])
 
   const statusQuery = useQuery({
@@ -172,6 +181,27 @@ export function useExecuteReportState(relatorioId: number) {
     wasGeneratingRef.current = isGenerating
   }, [loadData, queryClient, relatorioId, report?.estado, reportData?.estado, statusQuery.data?.estado])
 
+  const exportJobState = useReportJob(activeExportJobId, { scope: 'myReports' })
+
+  const exportMutation = useMutation({
+    mutationFn: () => exportReport(relatorioId, paramValues),
+    onMutate: () => {
+      setExportError(null)
+    },
+    onSuccess: (result) => {
+      setActiveExportJobId(result.jobId)
+    },
+    onError: (error) => {
+      setExportError(
+        error instanceof ApiError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Não foi possível enfileirar a exportação.',
+      )
+    },
+  })
+
   const fetchMutation = useMutation({
     mutationFn: async (): Promise<ReportDataResult> => {
       if (report?.estado === 'online') {
@@ -214,6 +244,34 @@ export function useExecuteReportState(relatorioId: number) {
 
     void fetchMutation.mutateAsync()
   }, [fetchMutation, paramValues, parametros])
+
+  const exportCsv = useCallback(() => {
+    void exportMutation.mutateAsync()
+  }, [exportMutation])
+
+  const downloadExport = useCallback(async () => {
+    if (!activeExportJobId) {
+      return
+    }
+
+    setIsDownloading(true)
+    setExportError(null)
+
+    try {
+      const { blob, filename } = await downloadReportExport(activeExportJobId)
+      saveBlobAsFile(blob, filename)
+    } catch (error) {
+      setExportError(
+        error instanceof ApiError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Não foi possível baixar o arquivo exportado.',
+      )
+    } finally {
+      setIsDownloading(false)
+    }
+  }, [activeExportJobId])
 
   const isFavorite = favoriteIds.includes(relatorioId)
 
@@ -286,6 +344,29 @@ export function useExecuteReportState(relatorioId: number) {
   const currentEstado = reportData?.estado ?? report?.estado
   const isLoadingData = fetchMutation.isPending || isReloadingData
 
+  const exportJob = useMemo(() => {
+    if (!exportJobState.job) {
+      return null
+    }
+
+    return {
+      jobId: exportJobState.job.jobId,
+      tipo: exportJobState.job.tipo,
+      status: exportJobState.job.status,
+      progress: exportJobState.job.progress,
+      relatorioId: exportJobState.job.relatorioId,
+      errorMessage: exportJobState.job.errorMessage,
+      downloadAvailable: exportJobState.job.downloadAvailable,
+      createdAt: exportJobState.job.createdAt,
+      completedAt: exportJobState.job.completedAt,
+    }
+  }, [exportJobState.job])
+
+  const isExporting =
+    exportMutation.isPending ||
+    exportJobState.status === 'queued' ||
+    exportJobState.status === 'processing'
+
   return {
     report,
     isLoading: reportQuery.isLoading,
@@ -312,5 +393,11 @@ export function useExecuteReportState(relatorioId: number) {
     isTogglingFavorite: togglingFavorite,
     favoriteError,
     currentEstado,
+    exportCsv,
+    downloadExport,
+    isExporting,
+    isDownloading,
+    exportError,
+    exportJob,
   }
 }

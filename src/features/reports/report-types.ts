@@ -132,3 +132,30 @@ export type ReportStatusResult = {
 }
 
 export type ReportExecutionParams = Record<string, unknown>
+
+export type ReportJobStatus = 'queued' | 'processing' | 'completed' | 'failed'
+
+export type ReportJobTipo = 'snapshot' | 'export_csv'
+
+export type ReportJobStatusResult = {
+  jobId: string
+  tipo: ReportJobTipo
+  status: ReportJobStatus
+  progress: number
+  relatorioId: number
+  errorMessage: string | null
+  downloadAvailable: boolean
+  createdAt: string
+  completedAt: string | null
+}
+
+export type ExportReportResponse = {
+  jobId: string
+  status: 'queued'
+  message: string
+}
+
+export type SnapshotRefreshResponse = {
+  relatorio?: Report
+  jobId: string
+}

@@ -45,6 +45,7 @@ export const queryKeys = {
     detail: (id: number) => ['my-reports', 'detail', id] as const,
     data: (id: number, paramsKey?: string) => ['my-reports', 'data', id, paramsKey] as const,
     status: (id: number) => ['my-reports', 'status', id] as const,
+    job: (jobId: string) => ['my-reports', 'job', jobId] as const,
   },
   report: {
     list: (params?: { limit?: number }) => ['report', 'list', params] as const,
@@ -53,6 +54,7 @@ export const queryKeys = {
     filters: (params?: Record<string, unknown>) => ['report', 'filters', params] as const,
     status: (id: number) => ['report', 'status', id] as const,
     data: (id: number, paramsKey?: string) => ['report', 'data', id, paramsKey] as const,
+    job: (jobId: string) => ['report', 'job', jobId] as const,
   },
   connection: {
     list: (params?: { limit?: number }) => ['connection', 'list', params] as const,

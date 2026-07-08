@@ -2,6 +2,7 @@ import SettingsCard from '@/components/settings/SettingsCard'
 import Alert from '@/components/ui/Alert'
 import Button from '@/components/ui/Button'
 import ReportDataTable from '@/features/reports/components/ReportDataTable'
+import ReportExportControls from '@/features/reports/components/ReportExportControls'
 import ReportParamForm from '@/features/reports/components/ReportParamForm'
 import ReportSnapshotControls from '@/features/reports/components/ReportSnapshotControls'
 import ReportStatusBadges from '@/features/reports/components/ReportStatusBadges'
@@ -32,6 +33,14 @@ export default function ReportExecutionTab({
     canExecute,
     runPreview,
     refreshSnapshot,
+    exportCsv,
+    downloadExport,
+    isExporting,
+    isDownloading,
+    exportError,
+    exportJob,
+    snapshotJobProgress,
+    snapshotJobStatus,
   } = useReportExecutionPreviewState(reportId, report, enabled)
 
   const displayStatus = status ?? {
@@ -94,24 +103,49 @@ export default function ReportExecutionTab({
           snapshotValido={displayStatus.snapshotValido}
           snapshotAtualizadoEm={displayStatus.snapshotAtualizadoEm}
           isRefreshing={isRefreshingSnapshot}
+          snapshotJobProgress={snapshotJobProgress}
+          snapshotJobStatus={snapshotJobStatus}
           onRefresh={() => void refreshSnapshot()}
         />
       </div>
 
-      <div className="min-h-0 flex-1">
-        {isExecuting || isGeneratingSnapshot ? (
-          <div className="flex h-full min-h-[320px] items-center justify-center rounded-lg border border-vscode-border bg-vscode-sidebar px-6 py-16 text-sm text-vscode-text-muted">
-            {isGeneratingSnapshot ? 'Gerando snapshot...' : 'Carregando dados...'}
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="shrink-0 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-vscode-text">Resultados</h3>
+            {dataResult && (
+              <span className="text-xs text-vscode-text-muted">
+                {dataResult.totalLinhas} linha(s)
+              </span>
+            )}
           </div>
-        ) : (
-          <ReportDataTable
-            className="h-full min-h-0"
-            colunas={dataResult?.colunas ?? []}
-            dados={dataResult?.dados ?? []}
-            hasLoaded={hasLoadedData}
-            totalLinhas={dataResult?.totalLinhas}
+
+          <ReportExportControls
+            onExport={exportCsv}
+            onDownload={() => void downloadExport()}
+            isExporting={isExporting}
+            isDownloading={isDownloading}
+            activeJob={exportJob}
+            exportError={exportError}
+            disabled={isGeneratingSnapshot}
           />
-        )}
+        </div>
+
+        <div className="min-h-0 flex-1">
+          {isExecuting || isGeneratingSnapshot ? (
+            <div className="flex h-full min-h-[320px] items-center justify-center rounded-lg border border-vscode-border bg-vscode-sidebar px-6 py-16 text-sm text-vscode-text-muted">
+              {isGeneratingSnapshot ? 'Gerando snapshot...' : 'Carregando dados...'}
+            </div>
+          ) : (
+            <ReportDataTable
+              className="h-full min-h-0"
+              colunas={dataResult?.colunas ?? []}
+              dados={dataResult?.dados ?? []}
+              hasLoaded={hasLoadedData}
+              totalLinhas={dataResult?.totalLinhas}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

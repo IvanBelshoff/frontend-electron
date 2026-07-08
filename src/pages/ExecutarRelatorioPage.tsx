@@ -6,6 +6,7 @@ import MyReportInfoDrawer from '@/features/my-reports/components/MyReportInfoDra
 import MyReportViewerHeader from '@/features/my-reports/components/MyReportViewerHeader'
 import { useExecuteReportState } from '@/features/my-reports/hooks/use-execute-report-state'
 import ReportDataTable from '@/features/reports/components/ReportDataTable'
+import ReportExportControls from '@/features/reports/components/ReportExportControls'
 import ReportParamForm from '@/features/reports/components/ReportParamForm'
 import ReportStatusBadges from '@/features/reports/components/ReportStatusBadges'
 
@@ -36,6 +37,12 @@ export default function ExecutarRelatorioPage() {
     isTogglingFavorite,
     favoriteError,
     currentEstado,
+    exportCsv,
+    downloadExport,
+    isExporting,
+    isDownloading,
+    exportError,
+    exportJob,
   } = useExecuteReportState(relatorioId)
 
   if (!Number.isFinite(relatorioId) || relatorioId <= 0) {
@@ -145,6 +152,16 @@ export default function ExecutarRelatorioPage() {
                   </span>
                 )}
               </div>
+
+              <ReportExportControls
+                onExport={exportCsv}
+                onDownload={() => void downloadExport()}
+                isExporting={isExporting}
+                isDownloading={isDownloading}
+                activeJob={exportJob}
+                exportError={exportError}
+                disabled={isGenerating}
+              />
 
               {isLoadingData || isGenerating ? (
                 <div className="flex items-center justify-center rounded-lg border border-vscode-border bg-vscode-sidebar px-6 py-16 text-sm text-vscode-text-muted">

@@ -154,3 +154,9 @@ export async function executeMyReport(
 
   return mapReportDataFromApi(data)
 }
+
+export {
+  downloadReportExport,
+  exportReport,
+  getReportJobStatus,
+} from '@/features/reports/report-job-api'
