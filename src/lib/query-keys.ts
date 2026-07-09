@@ -43,7 +43,8 @@ export const queryKeys = {
       temporario?: boolean
     }) => ['my-reports', 'list', params] as const,
     detail: (id: number) => ['my-reports', 'detail', id] as const,
-    data: (id: number, paramsKey?: string) => ['my-reports', 'data', id, paramsKey] as const,
+    data: (id: number, page: number, pageSize: number, paramsKey?: string) =>
+      ['my-reports', 'data', id, page, pageSize, paramsKey] as const,
     status: (id: number) => ['my-reports', 'status', id] as const,
     job: (jobId: string) => ['my-reports', 'job', jobId] as const,
   },
@@ -53,7 +54,8 @@ export const queryKeys = {
     access: (id: number) => ['report', 'access', id] as const,
     filters: (params?: Record<string, unknown>) => ['report', 'filters', params] as const,
     status: (id: number) => ['report', 'status', id] as const,
-    data: (id: number, paramsKey?: string) => ['report', 'data', id, paramsKey] as const,
+    data: (id: number, page: number, pageSize: number, paramsKey?: string) =>
+      ['report', 'data', id, page, pageSize, paramsKey] as const,
     job: (jobId: string) => ['report', 'job', jobId] as const,
   },
   connection: {

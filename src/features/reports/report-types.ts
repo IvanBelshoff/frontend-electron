@@ -119,6 +119,8 @@ export type ReportDataResult = {
   colunas: string[]
   dados: Record<string, unknown>[]
   totalLinhas: number
+  page?: number
+  pageSize?: number
   snapshotAtualizadoEm?: string | null
   snapshotValido?: boolean
   parametrosUtilizados?: Record<string, unknown>
@@ -132,6 +134,12 @@ export type ReportStatusResult = {
 }
 
 export type ReportExecutionParams = Record<string, unknown>
+
+export type ReportDataQueryParams = {
+  parametros?: ReportExecutionParams
+  page?: number
+  pageSize?: number
+}
 
 export type ReportJobStatus = 'queued' | 'processing' | 'completed' | 'failed'
 

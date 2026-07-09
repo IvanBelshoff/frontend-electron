@@ -25,6 +25,7 @@ export default function ExecutarRelatorioPage() {
     reportData,
     hasLoadedData,
     isLoadingData,
+    isFetchingPage,
     isExecuting,
     executionError,
     execute,
@@ -43,6 +44,12 @@ export default function ExecutarRelatorioPage() {
     isDownloading,
     exportError,
     exportJob,
+    paginationMode,
+    pageIndex,
+    pageSize,
+    pageCount,
+    onPaginationChange,
+    snapshotInvalid,
   } = useExecuteReportState(relatorioId)
 
   if (!Number.isFinite(relatorioId) || relatorioId <= 0) {
@@ -68,6 +75,8 @@ export default function ExecutarRelatorioPage() {
         : error instanceof Error
           ? error.message
           : 'Não foi possível carregar o relatório.'
+
+  const showInitialLoading = (isLoadingData || isGenerating) && !reportData
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -121,7 +130,7 @@ export default function ExecutarRelatorioPage() {
                   size="sm"
                   onClick={execute}
                   loading={isExecuting}
-                  disabled={isGenerating}
+                  disabled={isGenerating || snapshotInvalid}
                 >
                   Executar relatório
                 </Button>
@@ -134,6 +143,13 @@ export default function ExecutarRelatorioPage() {
                 errors={paramErrors}
                 disabled={isExecuting || isGenerating}
               />
+
+              {snapshotInvalid && (
+                <Alert variant="info">
+                  Snapshot desatualizado — solicite ao gestor uma nova geração. Relatórios offline
+                  em formato antigo precisam ser regenerados antes da visualização.
+                </Alert>
+              )}
 
               {isGenerating && (
                 <p className="text-sm text-vscode-text-muted">
@@ -160,12 +176,21 @@ export default function ExecutarRelatorioPage() {
                 isDownloading={isDownloading}
                 activeJob={exportJob}
                 exportError={exportError}
-                disabled={isGenerating}
+                disabled={isGenerating || snapshotInvalid}
               />
 
-              {isLoadingData || isGenerating ? (
+              {showInitialLoading ? (
                 <div className="flex items-center justify-center rounded-lg border border-vscode-border bg-vscode-sidebar px-6 py-16 text-sm text-vscode-text-muted">
                   {isGenerating ? 'Gerando snapshot...' : 'Carregando dados...'}
+                </div>
+              ) : snapshotInvalid && !hasLoadedData ? (
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-vscode-border bg-vscode-sidebar/50 px-6 py-16 text-center">
+                  <h3 className="text-base font-semibold text-vscode-text">
+                    Snapshot desatualizado
+                  </h3>
+                  <p className="mt-1 max-w-md text-sm text-vscode-text-muted">
+                    Solicite ao gestor uma nova geração do snapshot para visualizar os dados.
+                  </p>
                 </div>
               ) : (
                 <ReportDataTable
@@ -173,6 +198,12 @@ export default function ExecutarRelatorioPage() {
                   dados={reportData?.dados ?? []}
                   hasLoaded={hasLoadedData}
                   totalLinhas={reportData?.totalLinhas}
+                  paginationMode={paginationMode}
+                  pageIndex={pageIndex}
+                  pageSize={pageSize}
+                  pageCount={pageCount}
+                  onPaginationChange={onPaginationChange}
+                  isFetching={isFetchingPage}
                 />
               )}
             </section>

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { OnChangeFn, PaginationState } from '@tanstack/react-table'
 import { saveBlobAsFile } from '@/lib/api-client'
 import { useAuth } from '@/features/auth/use-auth'
 import { ApiError } from '@/features/auth/auth-types'
@@ -13,6 +14,7 @@ import {
   updateMyReportFavorites,
 } from '@/features/my-reports/my-report-api'
 import type { MyReportListResult } from '@/features/my-reports/my-report-types'
+import { REPORT_DATA_PAGE_SIZE_OPTIONS } from '@/features/reports/components/ReportDataTablePagination'
 import { formatReportParamDefaults } from '@/features/reports/format-report-param-defaults'
 import { useReportJob } from '@/features/reports/hooks/use-report-job'
 import type {
@@ -23,6 +25,7 @@ import type {
 import { queryKeys } from '@/lib/query-keys'
 
 const POLL_INTERVAL_MS = 3000
+const DEFAULT_PAGE_SIZE = REPORT_DATA_PAGE_SIZE_OPTIONS[0]
 
 function readFavoriteIdsFromCache(
   queryClient: ReturnType<typeof useQueryClient>,
@@ -73,6 +76,10 @@ function isGeneratingSnapshot(
   )
 }
 
+function stableParamsKey(params: ReportExecutionParams): string {
+  return JSON.stringify(params)
+}
+
 export function useExecuteReportState(relatorioId: number) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
@@ -86,13 +93,15 @@ export function useExecuteReportState(relatorioId: number) {
   const [togglingFavorite, setTogglingFavorite] = useState(false)
   const [paramValues, setParamValues] = useState<ReportExecutionParams>({})
   const [paramErrors, setParamErrors] = useState<Record<string, string>>({})
-  const [reportData, setReportData] = useState<ReportDataResult | null>(null)
+  const [onlineData, setOnlineData] = useState<ReportDataResult | null>(null)
   const [hasLoadedData, setHasLoadedData] = useState(false)
   const [executionError, setExecutionError] = useState<string | null>(null)
-  const [isReloadingData, setIsReloadingData] = useState(false)
   const [activeExportJobId, setActiveExportJobId] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
+  const [offlineEnabled, setOfflineEnabled] = useState(false)
   const initializedReportIdRef = useRef<number | null>(null)
   const wasGeneratingRef = useRef(false)
 
@@ -111,6 +120,8 @@ export function useExecuteReportState(relatorioId: number) {
 
   const report = reportQuery.data ?? null
   const parametros = report?.parametros ?? []
+  const isOfflineMode = report?.estado === 'offline'
+  const paramsKey = useMemo(() => stableParamsKey(paramValues), [paramValues])
 
   useEffect(() => {
     const cachedFavoriteIds = readFavoriteIdsFromCache(queryClient)
@@ -128,48 +139,85 @@ export function useExecuteReportState(relatorioId: number) {
     initializedReportIdRef.current = report.id
     setParamValues(formatReportParamDefaults(parametros))
     setParamErrors({})
-    setReportData(null)
+    setOnlineData(null)
     setHasLoadedData(false)
     setExecutionError(null)
     setActiveExportJobId(null)
     setExportError(null)
+    setPage(1)
+    setPageSize(DEFAULT_PAGE_SIZE)
+    setOfflineEnabled(false)
   }, [parametros, report])
 
   const statusQuery = useQuery({
     queryKey: queryKeys.myReports.status(relatorioId),
     queryFn: () => getMyReportStatus(relatorioId),
-    enabled: Boolean(report) && isGeneratingSnapshot(report?.estado, reportData?.estado),
+    enabled: Boolean(report) && isGeneratingSnapshot(report?.estado, onlineData?.estado),
     refetchInterval: (query) =>
-      isGeneratingSnapshot(report?.estado, reportData?.estado, query.state.data?.estado)
+      isGeneratingSnapshot(report?.estado, onlineData?.estado, query.state.data?.estado)
         ? POLL_INTERVAL_MS
         : false,
   })
 
-  const loadData = useCallback(async () => {
-    setIsReloadingData(true)
-    setExecutionError(null)
+  const offlineQuery = useQuery({
+    queryKey: queryKeys.myReports.data(relatorioId, page, pageSize, paramsKey),
+    queryFn: () =>
+      getMyReportData(relatorioId, {
+        page,
+        pageSize,
+        parametros: paramValues,
+      }),
+    enabled:
+      offlineEnabled &&
+      isOfflineMode &&
+      Boolean(report) &&
+      report?.snapshotValido === true &&
+      !isGeneratingSnapshot(report?.estado),
+    retry: (failureCount, error) => {
+      if (error instanceof ApiError && (error.statusCode === 409 || error.statusCode === 403)) {
+        return false
+      }
 
-    try {
-      const data = await getMyReportData(relatorioId, paramValues)
-      setReportData(data)
+      return failureCount < 2
+    },
+  })
+
+  useEffect(() => {
+    if (offlineQuery.isSuccess && offlineQuery.data) {
       setHasLoadedData(true)
-    } catch (error) {
-      setExecutionError(
-        error instanceof ApiError
-          ? error.message
-          : error instanceof Error
-            ? error.message
-            : 'Não foi possível carregar os dados do relatório.',
-      )
-    } finally {
-      setIsReloadingData(false)
+      setExecutionError(null)
     }
-  }, [paramValues, relatorioId])
+  }, [offlineQuery.data, offlineQuery.isSuccess])
+
+  useEffect(() => {
+    if (!offlineQuery.isError || !offlineQuery.error) {
+      return
+    }
+
+    const error = offlineQuery.error
+    setExecutionError(
+      error instanceof ApiError
+        ? error.message
+        : error instanceof Error
+          ? error.message
+          : 'Não foi possível carregar os dados do relatório.',
+    )
+  }, [offlineQuery.error, offlineQuery.isError])
+
+  const loadData = useCallback(async () => {
+    setExecutionError(null)
+    setPage(1)
+    setOfflineEnabled(true)
+
+    await queryClient.invalidateQueries({
+      queryKey: ['my-reports', 'data', relatorioId],
+    })
+  }, [queryClient, relatorioId])
 
   useEffect(() => {
     const isGenerating = isGeneratingSnapshot(
       report?.estado,
-      reportData?.estado,
+      onlineData?.estado,
       statusQuery.data?.estado,
     )
 
@@ -179,7 +227,14 @@ export function useExecuteReportState(relatorioId: number) {
     }
 
     wasGeneratingRef.current = isGenerating
-  }, [loadData, queryClient, relatorioId, report?.estado, reportData?.estado, statusQuery.data?.estado])
+  }, [
+    loadData,
+    queryClient,
+    relatorioId,
+    report?.estado,
+    onlineData?.estado,
+    statusQuery.data?.estado,
+  ])
 
   const exportJobState = useReportJob(activeExportJobId, { scope: 'myReports' })
 
@@ -208,20 +263,33 @@ export function useExecuteReportState(relatorioId: number) {
         return executeMyReport(relatorioId, paramValues)
       }
 
-      return getMyReportData(relatorioId, paramValues)
+      return getMyReportData(relatorioId, {
+        page: 1,
+        pageSize,
+        parametros: paramValues,
+      })
     },
     onMutate: () => {
       setExecutionError(null)
       setParamErrors({})
     },
     onSuccess: async (data) => {
-      setReportData(data)
-      setHasLoadedData(true)
-
       if (report?.estado === 'online') {
+        setOnlineData(data)
+        setHasLoadedData(true)
+        setOfflineEnabled(false)
         await queryClient.invalidateQueries({ queryKey: queryKeys.myReports.detail(relatorioId) })
         await queryClient.invalidateQueries({ queryKey: queryKeys.myReports.status(relatorioId) })
+        return
       }
+
+      setPage(1)
+      setOfflineEnabled(true)
+      setHasLoadedData(true)
+      queryClient.setQueryData(
+        queryKeys.myReports.data(relatorioId, 1, pageSize, paramsKey),
+        data,
+      )
     },
     onError: (error) => {
       setExecutionError(
@@ -244,6 +312,16 @@ export function useExecuteReportState(relatorioId: number) {
 
     void fetchMutation.mutateAsync()
   }, [fetchMutation, paramValues, parametros])
+
+  const onPaginationChange: OnChangeFn<PaginationState> = useCallback((updater) => {
+    const current: PaginationState = {
+      pageIndex: page - 1,
+      pageSize,
+    }
+    const next = typeof updater === 'function' ? updater(current) : updater
+    setPage(next.pageIndex + 1)
+    setPageSize(next.pageSize)
+  }, [page, pageSize])
 
   const exportCsv = useCallback(() => {
     void exportMutation.mutateAsync()
@@ -337,12 +415,22 @@ export function useExecuteReportState(relatorioId: number) {
 
   const isGenerating = isGeneratingSnapshot(
     report?.estado,
-    reportData?.estado,
+    onlineData?.estado,
     statusQuery.data?.estado,
   )
 
+  const reportData = isOfflineMode ? (offlineQuery.data ?? null) : onlineData
   const currentEstado = reportData?.estado ?? report?.estado
-  const isLoadingData = fetchMutation.isPending || isReloadingData
+  const isLoadingData =
+    fetchMutation.isPending ||
+    (isOfflineMode && offlineEnabled && offlineQuery.isLoading && !offlineQuery.data)
+  const isFetchingPage = isOfflineMode && offlineQuery.isFetching && !offlineQuery.isLoading
+
+  const totalLinhas = reportData?.totalLinhas ?? 0
+  const pageCount = Math.max(1, Math.ceil(totalLinhas / pageSize) || 1)
+
+  const snapshotInvalid =
+    report?.estado === 'offline' && report.snapshotValido === false
 
   const exportJob = useMemo(() => {
     if (!exportJobState.job) {
@@ -378,6 +466,7 @@ export function useExecuteReportState(relatorioId: number) {
     reportData,
     hasLoadedData,
     isLoadingData,
+    isFetchingPage,
     isExecuting: fetchMutation.isPending,
     executionError,
     execute,
@@ -399,5 +488,11 @@ export function useExecuteReportState(relatorioId: number) {
     isDownloading,
     exportError,
     exportJob,
+    paginationMode: (isOfflineMode ? 'server' : 'client') as 'server' | 'client',
+    pageIndex: page - 1,
+    pageSize,
+    pageCount,
+    onPaginationChange,
+    snapshotInvalid,
   }
 }

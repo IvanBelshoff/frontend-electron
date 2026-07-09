@@ -4,6 +4,7 @@ import {
   getPaginationRowModel,
   useReactTable,
   type ColumnDef,
+  type OnChangeFn,
   type PaginationState,
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -23,6 +24,14 @@ type ReportDataTableProps = {
   className?: string
   hasLoaded?: boolean
   totalLinhas?: number
+  /** Server-side pagination (offline snapshots). When set, parent controls page state. */
+  paginationMode?: 'client' | 'server'
+  pageIndex?: number
+  pageSize?: number
+  pageCount?: number
+  onPaginationChange?: OnChangeFn<PaginationState>
+  isFetching?: boolean
+  emptyMessage?: string
 }
 
 function ReportDataEmptyState({ message }: { message: string }) {
@@ -40,12 +49,28 @@ export default function ReportDataTable({
   className,
   hasLoaded = true,
   totalLinhas,
+  paginationMode = 'client',
+  pageIndex: controlledPageIndex,
+  pageSize: controlledPageSize,
+  pageCount: controlledPageCount,
+  onPaginationChange,
+  isFetching = false,
+  emptyMessage = 'Nenhum dado retornado pela consulta.',
 }: ReportDataTableProps) {
   const tableContainerRef = useRef<HTMLDivElement>(null)
-  const [pagination, setPagination] = useState<PaginationState>({
+  const isServer = paginationMode === 'server'
+
+  const [clientPagination, setClientPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: REPORT_DATA_PAGE_SIZE_OPTIONS[1],
+    pageSize: REPORT_DATA_PAGE_SIZE_OPTIONS[0],
   })
+
+  const pagination: PaginationState = isServer
+    ? {
+        pageIndex: controlledPageIndex ?? 0,
+        pageSize: controlledPageSize ?? REPORT_DATA_PAGE_SIZE_OPTIONS[0],
+      }
+    : clientPagination
 
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(
     () =>
@@ -57,13 +82,24 @@ export default function ReportDataTable({
     [colunas],
   )
 
+  const pageCount = isServer
+    ? Math.max(controlledPageCount ?? 1, 1)
+    : undefined
+
   const table = useReactTable({
     data: dados,
     columns,
     state: { pagination },
-    onPaginationChange: setPagination,
+    onPaginationChange: isServer ? onPaginationChange : setClientPagination,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(isServer
+      ? {
+          manualPagination: true as const,
+          pageCount,
+        }
+      : {
+          getPaginationRowModel: getPaginationRowModel(),
+        }),
     autoResetPageIndex: false,
   })
 
@@ -77,8 +113,10 @@ export default function ReportDataTable({
   })
 
   useEffect(() => {
-    setPagination((current) => ({ ...current, pageIndex: 0 }))
-  }, [dados, colunas])
+    if (!isServer) {
+      setClientPagination((current) => ({ ...current, pageIndex: 0 }))
+    }
+  }, [dados, colunas, isServer])
 
   if (!hasLoaded) {
     return (
@@ -86,21 +124,31 @@ export default function ReportDataTable({
     )
   }
 
-  if (colunas.length === 0 || dados.length === 0) {
-    return (
-      <ReportDataEmptyState message="Nenhum dado retornado pela consulta." />
-    )
+  if (colunas.length === 0 || (dados.length === 0 && (totalLinhas ?? 0) === 0)) {
+    return <ReportDataEmptyState message={emptyMessage} />
   }
 
-  const columnWidth = `${100 / colunas.length}%`
+  const columnWidth = `${100 / Math.max(colunas.length, 1)}%`
 
   return (
-    <div className={clsx('flex min-h-0 flex-col gap-3', className)}>
-      <ReportDataTablePagination table={table} totalLinhas={totalLinhas} />
+    <div className={clsx('relative flex min-h-0 flex-col gap-3', className)}>
+      <ReportDataTablePagination
+        table={table}
+        totalLinhas={totalLinhas}
+        manual={isServer}
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        pageCount={pageCount}
+        onPaginationChange={onPaginationChange}
+        isFetching={isFetching}
+      />
 
       <div
         ref={tableContainerRef}
-        className="min-h-[320px] flex-1 overflow-auto rounded-lg border border-vscode-border"
+        className={clsx(
+          'min-h-[320px] flex-1 overflow-auto rounded-lg border border-vscode-border',
+          isFetching && 'opacity-70',
+        )}
         style={{ minHeight: TABLE_MIN_HEIGHT }}
       >
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
@@ -133,7 +181,10 @@ export default function ReportDataTable({
               return (
                 <tr
                   key={row.id}
-                  className={clsx('absolute left-0 top-0 flex w-full border-b border-vscode-border', rowClassName)}
+                  className={clsx(
+                    'absolute left-0 top-0 flex w-full border-b border-vscode-border',
+                    rowClassName,
+                  )}
                   style={{
                     height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,

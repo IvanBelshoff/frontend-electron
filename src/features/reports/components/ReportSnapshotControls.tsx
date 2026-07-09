@@ -1,3 +1,4 @@
+import Alert from '@/components/ui/Alert'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import ReportJobProgress from '@/features/reports/components/ReportJobProgress'
@@ -8,6 +9,7 @@ type ReportSnapshotControlsProps = {
   estado: EstadoRelatorio
   snapshotValido: boolean
   snapshotAtualizadoEm?: string | null
+  erroUltimaGeracao?: string | null
   onRefresh: () => void
   isRefreshing?: boolean
   snapshotJobProgress?: number | null
@@ -40,55 +42,83 @@ function InvalidSnapshotIcon() {
   )
 }
 
+function isLegacySnapshotError(message?: string | null): boolean {
+  if (!message) {
+    return false
+  }
+
+  const normalized = message.toLowerCase()
+  return (
+    normalized.includes('formato antigo') ||
+    normalized.includes('gere o snapshot novamente') ||
+    normalized.includes('gere novamente') ||
+    normalized.includes('checksum') ||
+    normalized.includes('regener')
+  )
+}
+
 export default function ReportSnapshotControls({
   estado,
   snapshotValido,
   snapshotAtualizadoEm,
+  erroUltimaGeracao = null,
   onRefresh,
   isRefreshing = false,
   snapshotJobProgress = null,
   snapshotJobStatus = null,
 }: ReportSnapshotControlsProps) {
   const isGenerating = estado === 'gerando_snapshot'
+  const needsRegeneration = !snapshotValido && !isGenerating
+  const highlightRefresh = needsRegeneration || isLegacySnapshotError(erroUltimaGeracao)
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={onRefresh}
-        loading={isRefreshing || isGenerating}
-        disabled={isGenerating}
-      >
-        <RefreshIcon />
-        Atualizar snapshot
-      </Button>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          variant={highlightRefresh ? 'primary' : 'secondary'}
+          size="sm"
+          onClick={onRefresh}
+          loading={isRefreshing || isGenerating}
+          disabled={isGenerating}
+        >
+          <RefreshIcon />
+          Atualizar snapshot
+        </Button>
 
-      <Badge
-        variant={snapshotValido ? 'success' : 'danger'}
-        icon={snapshotValido ? <ValidSnapshotIcon /> : <InvalidSnapshotIcon />}
-      >
-        {snapshotValido ? 'Snapshot válido' : 'Snapshot inválido'}
-      </Badge>
+        <Badge
+          variant={snapshotValido ? 'success' : 'danger'}
+          icon={snapshotValido ? <ValidSnapshotIcon /> : <InvalidSnapshotIcon />}
+        >
+          {snapshotValido ? 'Snapshot válido' : 'Snapshot inválido'}
+        </Badge>
 
-      {snapshotAtualizadoEm && (
-        <span className="text-xs text-vscode-text-muted">
-          Atualizado em {formatReportDate(snapshotAtualizadoEm)}
-        </span>
+        {snapshotAtualizadoEm && (
+          <span className="text-xs text-vscode-text-muted">
+            Atualizado em {formatReportDate(snapshotAtualizadoEm)}
+          </span>
+        )}
+
+        {isGenerating && snapshotJobStatus && snapshotJobProgress !== null ? (
+          <ReportJobProgress
+            status={snapshotJobStatus}
+            progress={snapshotJobProgress}
+            tipo="snapshot"
+          />
+        ) : isGenerating ? (
+          <p className="w-full text-xs text-vscode-text-muted">
+            Snapshot em geração. A página será atualizada automaticamente enquanto o status for
+            monitorado.
+          </p>
+        ) : null}
+      </div>
+
+      {needsRegeneration && (
+        <Alert variant="info">
+          {erroUltimaGeracao
+            ? erroUltimaGeracao
+            : 'Snapshot desatualizado ou em formato antigo. Clique em Atualizar snapshot para regenerar.'}
+        </Alert>
       )}
-
-      {isGenerating && snapshotJobStatus && snapshotJobProgress !== null ? (
-        <ReportJobProgress
-          status={snapshotJobStatus}
-          progress={snapshotJobProgress}
-          tipo="snapshot"
-        />
-      ) : isGenerating ? (
-        <p className="w-full text-xs text-vscode-text-muted">
-          Snapshot em geração. A página será atualizada automaticamente enquanto o status for
-          monitorado.
-        </p>
-      ) : null}
     </div>
   )
 }

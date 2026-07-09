@@ -11,9 +11,12 @@ mac:
     - dmg
     - zip
   category: public.app-category.business
+# Evita download/extração do winCodeSign (symlinks macOS) em builds locais sem certificado.
+forceCodeSigning: false
 win:
   target:
     - nsis
+  signAndEditExecutable: false
 linux:
   target:
     - AppImage

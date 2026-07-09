@@ -29,6 +29,7 @@ export default function ReportExecutionTab({
     status,
     isGeneratingSnapshot,
     isExecuting,
+    isFetchingPage,
     isRefreshingSnapshot,
     canExecute,
     runPreview,
@@ -41,6 +42,12 @@ export default function ReportExecutionTab({
     exportJob,
     snapshotJobProgress,
     snapshotJobStatus,
+    paginationMode,
+    pageIndex,
+    pageSize,
+    pageCount,
+    onPaginationChange,
+    needsSnapshotRegeneration,
   } = useReportExecutionPreviewState(reportId, report, enabled)
 
   const displayStatus = status ?? {
@@ -49,6 +56,8 @@ export default function ReportExecutionTab({
     snapshotAtualizadoEm: report.snapshotAtualizadoEm,
     erroUltimaGeracao: report.erroUltimaGeracao,
   }
+
+  const showInitialLoading = (isExecuting || isGeneratingSnapshot) && !dataResult
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
@@ -89,9 +98,9 @@ export default function ReportExecutionTab({
 
           {executionError && <Alert variant="error">{executionError}</Alert>}
 
-          {report.erroUltimaGeracao && (
+          {displayStatus.erroUltimaGeracao && displayStatus.snapshotValido && (
             <Alert variant="info">
-              Última geração de snapshot falhou: {report.erroUltimaGeracao}
+              Última geração de snapshot falhou: {displayStatus.erroUltimaGeracao}
             </Alert>
           )}
         </div>
@@ -102,6 +111,7 @@ export default function ReportExecutionTab({
           estado={displayStatus.estado}
           snapshotValido={displayStatus.snapshotValido}
           snapshotAtualizadoEm={displayStatus.snapshotAtualizadoEm}
+          erroUltimaGeracao={displayStatus.erroUltimaGeracao}
           isRefreshing={isRefreshingSnapshot}
           snapshotJobProgress={snapshotJobProgress}
           snapshotJobStatus={snapshotJobStatus}
@@ -132,9 +142,17 @@ export default function ReportExecutionTab({
         </div>
 
         <div className="min-h-0 flex-1">
-          {isExecuting || isGeneratingSnapshot ? (
+          {showInitialLoading ? (
             <div className="flex h-full min-h-[320px] items-center justify-center rounded-lg border border-vscode-border bg-vscode-sidebar px-6 py-16 text-sm text-vscode-text-muted">
               {isGeneratingSnapshot ? 'Gerando snapshot...' : 'Carregando dados...'}
+            </div>
+          ) : needsSnapshotRegeneration && !hasLoadedData ? (
+            <div className="flex h-full min-h-[320px] flex-col items-center justify-center rounded-lg border border-dashed border-vscode-border bg-vscode-sidebar/50 px-6 py-16 text-center">
+              <h3 className="text-base font-semibold text-vscode-text">Snapshot desatualizado</h3>
+              <p className="mt-1 max-w-md text-sm text-vscode-text-muted">
+                Este relatório está offline, mas o snapshot precisa ser regenerado (formato antigo
+                ou inválido). Use Atualizar snapshot acima.
+              </p>
             </div>
           ) : (
             <ReportDataTable
@@ -143,6 +161,12 @@ export default function ReportExecutionTab({
               dados={dataResult?.dados ?? []}
               hasLoaded={hasLoadedData}
               totalLinhas={dataResult?.totalLinhas}
+              paginationMode={paginationMode}
+              pageIndex={pageIndex}
+              pageSize={pageSize}
+              pageCount={pageCount}
+              onPaginationChange={onPaginationChange}
+              isFetching={isFetchingPage}
             />
           )}
         </div>

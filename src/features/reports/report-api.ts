@@ -9,6 +9,7 @@ import type {
   CreateReportInput,
   EstadoRelatorio,
   Report,
+  ReportDataQueryParams,
   ReportDataResult,
   ReportExecutionParams,
   ReportStatusResult,
@@ -53,6 +54,8 @@ type ReportDataApiRecord = {
   colunas: string[]
   dados: Record<string, unknown>[]
   total_linhas: number
+  page?: number
+  page_size?: number
   snapshot_atualizado_em?: string | null
   snapshot_valido?: boolean
   parametros_utilizados?: Record<string, unknown>
@@ -154,6 +157,8 @@ function mapReportDataFromApi(record: ReportDataApiRecord): ReportDataResult {
     colunas: record.colunas,
     dados: record.dados,
     totalLinhas: record.total_linhas,
+    page: record.page,
+    pageSize: record.page_size,
     snapshotAtualizadoEm: record.snapshot_atualizado_em,
     snapshotValido: record.snapshot_valido,
     parametrosUtilizados: record.parametros_utilizados,
@@ -222,17 +227,22 @@ export async function getReportStatus(id: number): Promise<ReportStatusResult> {
 
 export async function getReportData(
   id: number,
-  parametros?: ReportExecutionParams,
+  queryParams: ReportDataQueryParams = {},
 ): Promise<ReportDataResult> {
   const searchParams = new URLSearchParams()
+  const page = queryParams.page ?? 1
+  const pageSize = queryParams.pageSize ?? 50
 
-  if (parametros && Object.keys(parametros).length > 0) {
-    searchParams.set('parametros', JSON.stringify(parametros))
+  searchParams.set('page', String(page))
+  searchParams.set('page_size', String(pageSize))
+
+  if (queryParams.parametros && Object.keys(queryParams.parametros).length > 0) {
+    searchParams.set('parametros', JSON.stringify(queryParams.parametros))
   }
 
-  const query = searchParams.toString()
-  const path = query ? `/relatorios/${id}/dados?${query}` : `/relatorios/${id}/dados`
-  const data = await apiRequest<ReportDataApiRecord>(path)
+  const data = await apiRequest<ReportDataApiRecord>(
+    `/relatorios/${id}/dados?${searchParams.toString()}`,
+  )
   return mapReportDataFromApi(data)
 }
 
