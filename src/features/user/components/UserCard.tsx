@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import IconButton from '@/components/ui/IconButton'
-import UserCountBadges from '@/features/user/components/UserCountBadges'
+import UserBadges from '@/features/user/components/UserBadges'
 import UserExpandedDetails from '@/features/user/components/UserExpandedDetails'
-import UserStatusBadge from '@/features/user/components/UserStatusBadge'
 import type { ManagedUser } from '@/features/user/user-list-types'
 import { getUserDisplayName } from '@/features/user/user-list-types'
 import UserAvatar from '@/features/user/UserAvatar'
@@ -43,17 +42,12 @@ export default function UserCard({
             className="h-9 w-9 text-sm"
           />
 
-          <div className="min-w-0">
-            <h3
-              className="truncate text-sm font-semibold leading-tight text-vscode-text"
-              title={displayName}
-            >
-              {displayName}
-            </h3>
-            <p className="truncate text-xs text-vscode-text-muted" title={user.email}>
-              {user.email}
-            </p>
-          </div>
+          <h3
+            className="min-w-0 truncate text-sm font-semibold leading-none text-vscode-text"
+            title={displayName}
+          >
+            {displayName}
+          </h3>
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
@@ -91,10 +85,7 @@ export default function UserCard({
         </div>
       </div>
 
-      <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
-        <UserStatusBadge bloqueado={user.bloqueado} />
-        <UserCountBadges user={user} />
-      </div>
+      <UserBadges user={user} />
 
       {expanded && <UserExpandedDetails user={user} />}
     </article>

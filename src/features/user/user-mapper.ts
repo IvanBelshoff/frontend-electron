@@ -112,6 +112,22 @@ export function areUserDraftsEqual(a: UserEditDraft, b: UserEditDraft): boolean 
   )
 }
 
+export function isUnblockOnlyDraftChange(
+  draft: UserEditDraft,
+  original: UserEditDraft,
+): boolean {
+  const normalizedDraft = normalizeUserEditDraft(draft)
+  const normalizedOriginal = normalizeUserEditDraft(original)
+
+  return (
+    normalizedOriginal.bloqueado === true &&
+    normalizedDraft.bloqueado === false &&
+    normalizedDraft.nome === normalizedOriginal.nome &&
+    normalizedDraft.sobrenome === normalizedOriginal.sobrenome &&
+    normalizedDraft.email === normalizedOriginal.email
+  )
+}
+
 export function mergeManagedUserAfterUpdate(
   previous: ManagedUser,
   updated: ManagedUser,
@@ -119,6 +135,7 @@ export function mergeManagedUserAfterUpdate(
   return {
     ...previous,
     ...updated,
+    bloqueado: updated.bloqueado,
     regras: updated.regras.length > 0 ? updated.regras : previous.regras,
     permissoes: updated.permissoes.length > 0 ? updated.permissoes : previous.permissoes,
     permissoesDetalhadas:

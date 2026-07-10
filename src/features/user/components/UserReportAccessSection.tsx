@@ -1,8 +1,11 @@
 import SettingsCard from '@/components/settings/SettingsCard'
 import Alert from '@/components/ui/Alert'
+import UserAccessReadOnlyList from '@/features/user/components/UserAccessReadOnlyList'
 import UserReportAccessTransferList from '@/features/user/components/UserReportAccessTransferList'
 import { useUserReportAccessState } from '@/features/user/hooks/use-user-report-access-state'
 import type { ManagedUser } from '@/features/user/user-list-types'
+import { BLOCKED_USER_REPORT_ACCESS_MESSAGE } from '@/features/user/user-blocked-messages'
+import { isManagedUserBlocked } from '@/features/user/user-blocked-utils'
 import { ApiError } from '@/features/auth/auth-types'
 
 type UserReportAccessSectionProps = {
@@ -12,6 +15,7 @@ type UserReportAccessSectionProps = {
 
 export default function UserReportAccessSection({ user, enabled }: UserReportAccessSectionProps) {
   const accessState = useUserReportAccessState(user, enabled)
+  const isUserBlocked = isManagedUserBlocked(user)
 
   const loadErrorMessage =
     accessState.loadError instanceof ApiError
@@ -38,9 +42,9 @@ export default function UserReportAccessSection({ user, enabled }: UserReportAcc
         </span>
       </header>
 
-      {user.bloqueado && (
+      {isUserBlocked && (
         <Alert variant="info" className="mb-4 shrink-0">
-          Usuário bloqueado. Não é possível alterar os acessos a relatórios.
+          {BLOCKED_USER_REPORT_ACCESS_MESSAGE}
         </Alert>
       )}
 
@@ -60,6 +64,13 @@ export default function UserReportAccessSection({ user, enabled }: UserReportAcc
             ? 'Você não possui permissão para gerenciar acessos a relatórios deste usuário.'
             : loadErrorMessage}
         </Alert>
+      ) : isUserBlocked ? (
+        <div className="min-h-0 flex-1">
+          <UserAccessReadOnlyList
+            items={accessState.grantedReports}
+            emptyMessage="Nenhum relatório com acesso concedido."
+          />
+        </div>
       ) : (
         <div className="min-h-0 flex-1">
           <UserReportAccessTransferList

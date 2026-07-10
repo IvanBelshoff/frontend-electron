@@ -4,6 +4,7 @@ import { notify } from '@/features/notifications/notification-api'
 import { getManagedUserById, updateUser } from '@/features/user/user-api'
 import {
   areUserDraftsEqual,
+  isUnblockOnlyDraftChange,
   mapManagedUserToEditDraft,
   mergeManagedUserAfterUpdate,
   normalizeUserEditDraft,
@@ -11,6 +12,7 @@ import {
 import type { UserEditDraft, UserEditTab, UserFieldErrors } from '@/features/user/user-edit-types'
 import type { ManagedUser } from '@/features/user/user-list-types'
 import { parseUserFieldErrors, validateUserDraft } from '@/features/user/user-validation'
+import { isManagedUserBlocked } from '@/features/user/user-blocked-utils'
 import { queryKeys } from '@/lib/query-keys'
 
 const USERS_FETCH_LIMIT = 100
@@ -44,6 +46,16 @@ export function useUserEditState(userId: number) {
     () => (user ? mapManagedUserToEditDraft(user) : null),
     [user],
   )
+
+  const isUserBlocked = isManagedUserBlocked(user, originalDraft)
+
+  const canSaveBlockedUser = useMemo(() => {
+    if (!draft || !originalDraft || !isUserBlocked) {
+      return true
+    }
+
+    return isUnblockOnlyDraftChange(draft, originalDraft)
+  }, [draft, isUserBlocked, originalDraft])
 
   const isDirty = useMemo(() => {
     if (!draft || !originalDraft) {
@@ -80,17 +92,27 @@ export function useUserEditState(userId: number) {
     },
   })
 
-  const updateDraft = useCallback((patch: Partial<UserEditDraft>) => {
-    setDraft((current) => {
-      if (!current) {
-        return current
+  const updateDraft = useCallback(
+    (patch: Partial<UserEditDraft>) => {
+      if (isUserBlocked) {
+        const allowedKeys = Object.keys(patch)
+        if (allowedKeys.length !== 1 || allowedKeys[0] !== 'bloqueado') {
+          return
+        }
       }
 
-      return { ...current, ...patch }
-    })
-    setFieldErrors({})
-    setSaveSuccess(false)
-  }, [])
+      setDraft((current) => {
+        if (!current) {
+          return current
+        }
+
+        return { ...current, ...patch }
+      })
+      setFieldErrors({})
+      setSaveSuccess(false)
+    },
+    [isUserBlocked],
+  )
 
   const cancelEdit = useCallback(() => {
     if (!originalDraft) {
@@ -103,7 +125,7 @@ export function useUserEditState(userId: number) {
   }, [originalDraft])
 
   const saveEdit = useCallback(async () => {
-    if (!draft) {
+    if (!draft || !canSaveBlockedUser) {
       return
     }
 
@@ -122,7 +144,7 @@ export function useUserEditState(userId: number) {
     }
 
     await saveMutation.mutateAsync(normalizedDraft)
-  }, [draft, saveMutation])
+  }, [canSaveBlockedUser, draft, saveMutation])
 
   const refresh = useCallback(async () => {
     await userQuery.refetch()
@@ -135,6 +157,8 @@ export function useUserEditState(userId: number) {
     setActiveTab,
     updateDraft,
     isDirty,
+    isUserBlocked,
+    canSaveBlockedUser,
     fieldErrors,
     saveSuccess,
     saveEdit,

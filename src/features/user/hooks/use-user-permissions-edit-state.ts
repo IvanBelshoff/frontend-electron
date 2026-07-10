@@ -18,6 +18,7 @@ const USERS_FETCH_LIMIT = 100
 export function useUserPermissionsEditState(user: ManagedUser | undefined) {
   const queryClient = useQueryClient()
   const userId = user?.id ?? 0
+  const isUserBlocked = Boolean(user?.bloqueado)
 
   const [selectedRuleIds, setSelectedRuleIds] = useState<number[]>([])
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<number[]>([])
@@ -100,6 +101,10 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
 
   const toggleRule = useCallback(
     (rule: UserRuleOption, checked: boolean) => {
+      if (isUserBlocked) {
+        return
+      }
+
       setSaveSuccess(false)
       setSaveError(null)
 
@@ -129,11 +134,15 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
         current.filter((permissionId) => !permissionIds.has(permissionId)),
       )
     },
-    [adminRuleIdSet, isAdminLockActive],
+    [adminRuleIdSet, isAdminLockActive, isUserBlocked],
   )
 
   const togglePermission = useCallback(
     (ruleId: number, permissionId: number, checked: boolean) => {
+      if (isUserBlocked) {
+        return
+      }
+
       setSaveSuccess(false)
       setSaveError(null)
 
@@ -157,7 +166,7 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
 
       setSelectedPermissionIds((current) => current.filter((id) => id !== permissionId))
     },
-    [adminRuleIdSet, isAdminLockActive],
+    [adminRuleIdSet, isAdminLockActive, isUserBlocked],
   )
 
   const resetSelection = useCallback(() => {
@@ -205,8 +214,12 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
   })
 
   const saveSelection = useCallback(async () => {
+    if (isUserBlocked) {
+      return
+    }
+
     await saveMutation.mutateAsync()
-  }, [saveMutation])
+  }, [isUserBlocked, saveMutation])
 
   const refreshCatalog = useCallback(async () => {
     await catalogQuery.refetch()
@@ -221,6 +234,7 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
     expandedRuleIds,
     isDirty,
     isAdminLockActive,
+    isUserBlocked,
     isAdminRuleName,
     saveSuccess,
     saveError,
@@ -234,6 +248,6 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
     resetSelection,
     saveSelection,
     refreshCatalog,
-    canEdit: catalogQuery.isSuccess,
+    canEdit: catalogQuery.isSuccess && !isUserBlocked,
   }
 }

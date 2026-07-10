@@ -25,7 +25,11 @@ function getPhotoActionErrorMessage(error: unknown): string {
   return 'Não foi possível atualizar a foto do usuário.'
 }
 
-export function useUserPhotoActions(userId: number) {
+export function useUserPhotoActions(
+  userId: number,
+  options: { disabled?: boolean } = {},
+) {
+  const { disabled = false } = options
   const queryClient = useQueryClient()
   const cropState = useUserPhotoCropState()
   const [photoVersion, setPhotoVersion] = useState(() => Date.now())
@@ -77,20 +81,28 @@ export function useUserPhotoActions(userId: number) {
   })
 
   const confirmEdit = useCallback(async () => {
+    if (disabled) {
+      return
+    }
+
     try {
       await uploadMutation.mutateAsync()
     } catch {
       // Error state is handled by the mutation onError callback.
     }
-  }, [uploadMutation])
+  }, [disabled, uploadMutation])
 
   const deletePhoto = useCallback(async () => {
+    if (disabled) {
+      return
+    }
+
     try {
       await deleteMutation.mutateAsync()
     } catch {
       // Error state is handled by the mutation onError callback.
     }
-  }, [deleteMutation])
+  }, [deleteMutation, disabled])
 
   return {
     isDialogOpen: cropState.isDialogOpen,

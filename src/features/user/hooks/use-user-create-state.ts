@@ -161,6 +161,7 @@ export function useUserCreateState() {
     fieldErrors,
     photoPreviewUrl,
     handlePhotoChange,
+  // GET /user/ids returns only active users (bloqueado === false) from the backend.
     userOptions: userIdsQuery.data ?? [],
     isLoadingUserOptions: userIdsQuery.isLoading,
     saveToList,

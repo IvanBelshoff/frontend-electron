@@ -2,10 +2,13 @@ import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import SettingsCard from '@/components/settings/SettingsCard'
 import Alert from '@/components/ui/Alert'
+import UserAccessReadOnlyList from '@/features/user/components/UserAccessReadOnlyList'
 import UserAccessTransferList from '@/features/user/components/UserAccessTransferList'
 import UserReportAccessSection from '@/features/user/components/UserReportAccessSection'
 import { useUserDashboardAccessState } from '@/features/user/hooks/use-user-dashboard-access-state'
 import type { ManagedUser } from '@/features/user/user-list-types'
+import { BLOCKED_USER_DASHBOARD_ACCESS_MESSAGE } from '@/features/user/user-blocked-messages'
+import { isManagedUserBlocked } from '@/features/user/user-blocked-utils'
 import { ApiError } from '@/features/auth/auth-types'
 
 type UserAccessTabProps = {
@@ -30,6 +33,7 @@ export default function UserAccessTab({
       : 'dashboards'
 
   const [activeSection, setActiveSection] = useState<AccessSection>(defaultSection)
+  const isUserBlocked = isManagedUserBlocked(user)
 
   useEffect(() => {
     if (activeSection === 'dashboards' && !canManageDashboardAccess && canManageReportAccess) {
@@ -120,9 +124,9 @@ export default function UserAccessTab({
             </span>
           </header>
 
-          {user.bloqueado && (
+          {isUserBlocked && (
             <Alert variant="info" className="mb-4 shrink-0">
-              Usuário bloqueado. Não é possível alterar os acessos a dashboards.
+              {BLOCKED_USER_DASHBOARD_ACCESS_MESSAGE}
             </Alert>
           )}
 
@@ -142,6 +146,13 @@ export default function UserAccessTab({
                 ? 'Você não possui permissão para gerenciar acessos a dashboards deste usuário.'
                 : loadErrorMessage}
             </Alert>
+          ) : isUserBlocked ? (
+            <div className="min-h-0 flex-1">
+              <UserAccessReadOnlyList
+                items={accessState.grantedDashboards}
+                emptyMessage="Nenhum dashboard com acesso concedido."
+              />
+            </div>
           ) : (
             <div className="min-h-0 flex-1">
               <UserAccessTransferList

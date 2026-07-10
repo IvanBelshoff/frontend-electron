@@ -3,6 +3,7 @@ import Alert from '@/components/ui/Alert'
 import Button from '@/components/ui/Button'
 import UserPermissionsRuleAccordion from '@/features/user/components/UserPermissionsRuleAccordion'
 import { isAdminRuleName } from '@/features/user/user-permissions-mapper'
+import { BLOCKED_USER_PERMISSIONS_MESSAGE } from '@/features/user/user-blocked-messages'
 import type { UserRuleOption } from '@/features/user/user-permissions-types'
 
 type UserPermissionsEditorSectionProps = {
@@ -12,6 +13,7 @@ type UserPermissionsEditorSectionProps = {
   expandedRuleIds: number[]
   isDirty: boolean
   isAdminLockActive: boolean
+  isUserBlocked?: boolean
   isSaving: boolean
   saveSuccess: boolean
   saveError: string | null
@@ -33,6 +35,7 @@ export default function UserPermissionsEditorSection({
   expandedRuleIds,
   isDirty,
   isAdminLockActive,
+  isUserBlocked = false,
   isSaving,
   saveSuccess,
   saveError,
@@ -59,7 +62,7 @@ export default function UserPermissionsEditorSection({
           </p>
         </div>
 
-        {(isDirty || isSaving) && (
+        {(isDirty || isSaving) && !isUserBlocked && (
           <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
@@ -80,6 +83,10 @@ export default function UserPermissionsEditorSection({
       </div>
 
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+        {isUserBlocked && (
+          <Alert variant="info">{BLOCKED_USER_PERMISSIONS_MESSAGE}</Alert>
+        )}
+
         {saveError && <Alert variant="error">{saveError}</Alert>}
 
         {saveSuccess && !isDirty && (
@@ -107,7 +114,8 @@ export default function UserPermissionsEditorSection({
               const isExpanded = expandedRuleIds.includes(rule.id)
               const isRuleSelected = selectedRuleIds.includes(rule.id)
               const isAdminRule = isAdminRuleName(rule.nome)
-              const shouldDisableRuleSelection = isAdminLockActive && !isAdminRule
+              const shouldDisableRuleSelection =
+                isUserBlocked || (isAdminLockActive && !isAdminRule)
 
               return (
                 <UserPermissionsRuleAccordion

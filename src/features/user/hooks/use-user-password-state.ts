@@ -12,7 +12,8 @@ import {
   validateUserPasswordDraft,
 } from '@/features/user/user-validation'
 
-export function useUserPasswordState(userId: number) {
+export function useUserPasswordState(userId: number, options: { disabled?: boolean } = {}) {
+  const { disabled = false } = options
   const [draft, setDraft] = useState<UserPasswordDraft>(EMPTY_USER_PASSWORD_DRAFT)
   const [fieldErrors, setFieldErrors] = useState<UserPasswordFieldErrors>({})
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -40,10 +41,14 @@ export function useUserPasswordState(userId: number) {
   })
 
   const updateDraft = useCallback((patch: Partial<UserPasswordDraft>) => {
+    if (disabled) {
+      return
+    }
+
     setDraft((current) => ({ ...current, ...patch }))
     setFieldErrors({})
     setSaveSuccess(false)
-  }, [])
+  }, [disabled])
 
   const cancelPassword = useCallback(() => {
     setDraft(EMPTY_USER_PASSWORD_DRAFT)
@@ -52,6 +57,10 @@ export function useUserPasswordState(userId: number) {
   }, [])
 
   const savePassword = useCallback(async () => {
+    if (disabled) {
+      return
+    }
+
     const validationErrors = validateUserPasswordDraft(draft)
 
     if (validationErrors.senha || validationErrors.confirmarSenha) {
@@ -61,7 +70,7 @@ export function useUserPasswordState(userId: number) {
     }
 
     await saveMutation.mutateAsync(draft.senha)
-  }, [draft, saveMutation])
+  }, [disabled, draft, saveMutation])
 
   return {
     draft,
@@ -72,5 +81,6 @@ export function useUserPasswordState(userId: number) {
     savePassword,
     cancelPassword,
     isSaving: saveMutation.isPending,
+    disabled,
   }
 }

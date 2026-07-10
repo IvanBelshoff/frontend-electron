@@ -10,12 +10,13 @@ import { PlusIcon, TrashIcon } from '@/features/dashboards/icons/DashboardIcons'
 
 type UserPhotoPanelProps = {
   user: ManagedUser
+  disabled?: boolean
 }
 
-export default function UserPhotoPanel({ user }: UserPhotoPanelProps) {
+export default function UserPhotoPanel({ user, disabled = false }: UserPhotoPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const displayName = getUserDisplayName(user)
-  const photoActions = useUserPhotoActions(user.id)
+  const photoActions = useUserPhotoActions(user.id, { disabled })
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     photoActions.selectPhoto(event.target.files?.[0] ?? null)
@@ -46,33 +47,36 @@ export default function UserPhotoPanel({ user }: UserPhotoPanelProps) {
         accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={handleFileChange}
+        disabled={disabled}
       />
 
-      <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          loading={photoActions.isDeleting}
-          disabled={photoActions.isSaving}
-          onClick={() => void photoActions.deletePhoto()}
-          className="border-red-400/40 text-red-400"
-        >
-          <TrashIcon />
-          Excluir foto
-        </Button>
+      {!disabled && (
+        <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            loading={photoActions.isDeleting}
+            disabled={photoActions.isSaving}
+            onClick={() => void photoActions.deletePhoto()}
+            className="border-red-400/40 text-red-400"
+          >
+            <TrashIcon />
+            Excluir foto
+          </Button>
 
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          disabled={photoActions.isDeleting || photoActions.isSaving}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <PlusIcon />
-          Alterar foto
-        </Button>
-      </div>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            disabled={photoActions.isDeleting || photoActions.isSaving}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <PlusIcon />
+            Alterar foto
+          </Button>
+        </div>
+      )}
 
       {photoActions.error && !photoActions.isDialogOpen && (
         <div className="mt-3 w-full">
@@ -80,9 +84,11 @@ export default function UserPhotoPanel({ user }: UserPhotoPanelProps) {
         </div>
       )}
 
-      <p className="mt-3 text-xs text-vscode-text-muted">
-        Formatos aceitos: JPG, PNG ou WebP (até 4 MB).
-      </p>
+      {!disabled && (
+        <p className="mt-3 text-xs text-vscode-text-muted">
+          Formatos aceitos: JPG, PNG ou WebP (até 4 MB).
+        </p>
+      )}
 
       <UserPhotoEditDialog
         isOpen={photoActions.isDialogOpen}

@@ -6,12 +6,15 @@ import Input from '@/components/ui/Input'
 import UserPhotoPanel from '@/features/user/components/UserPhotoPanel'
 import type { UserEditDraft, UserFieldErrors } from '@/features/user/user-edit-types'
 import type { ManagedUser } from '@/features/user/user-list-types'
+import { BLOCKED_USER_EDIT_MESSAGE } from '@/features/user/user-blocked-messages'
 
 type UserProfileSectionProps = {
   user: ManagedUser
   draft: UserEditDraft
   updateDraft: (patch: Partial<UserEditDraft>) => void
   isDirty: boolean
+  isUserBlocked?: boolean
+  canSaveBlockedUser?: boolean
   fieldErrors: UserFieldErrors
   isSaving: boolean
   saveSuccess: boolean
@@ -25,6 +28,8 @@ export default function UserProfileSection({
   draft,
   updateDraft,
   isDirty,
+  isUserBlocked = false,
+  canSaveBlockedUser = true,
   fieldErrors,
   isSaving,
   saveSuccess,
@@ -32,12 +37,17 @@ export default function UserProfileSection({
   onCancel,
   canUpdate = true,
 }: UserProfileSectionProps) {
+  const canEditProfileFields = canUpdate && !isUserBlocked
+  const canSave = canUpdate && canSaveBlockedUser
+
   return (
     <SettingsCard>
       <div className="grid gap-6 lg:grid-cols-[minmax(12rem,16rem)_minmax(0,1fr)] lg:items-start">
-        <UserPhotoPanel user={user} />
+        <UserPhotoPanel user={user} disabled={isUserBlocked} />
 
         <div className="space-y-4">
+          {isUserBlocked && <Alert variant="info">{BLOCKED_USER_EDIT_MESSAGE}</Alert>}
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <SettingsField label="Nome" htmlFor="userEditNome">
               <Input
@@ -45,7 +55,8 @@ export default function UserProfileSection({
                 value={draft.nome}
                 onChange={(event) => updateDraft({ nome: event.target.value })}
                 hasError={Boolean(fieldErrors.nome)}
-                disabled={!canUpdate}
+                disabled={!canEditProfileFields}
+                readOnly={isUserBlocked}
               />
               {fieldErrors.nome && (
                 <p className="text-xs text-vscode-error">{fieldErrors.nome}</p>
@@ -58,7 +69,8 @@ export default function UserProfileSection({
                 value={draft.sobrenome}
                 onChange={(event) => updateDraft({ sobrenome: event.target.value })}
                 hasError={Boolean(fieldErrors.sobrenome)}
-                disabled={!canUpdate}
+                disabled={!canEditProfileFields}
+                readOnly={isUserBlocked}
               />
               {fieldErrors.sobrenome && (
                 <p className="text-xs text-vscode-error">{fieldErrors.sobrenome}</p>
@@ -73,7 +85,8 @@ export default function UserProfileSection({
               value={draft.email}
               onChange={(event) => updateDraft({ email: event.target.value })}
               hasError={Boolean(fieldErrors.email)}
-              disabled={!canUpdate}
+              disabled={!canEditProfileFields}
+              readOnly={isUserBlocked}
             />
             {fieldErrors.email && (
               <p className="text-xs text-vscode-error">{fieldErrors.email}</p>
@@ -97,7 +110,7 @@ export default function UserProfileSection({
             <Alert variant="success">Usuário salvo com sucesso.</Alert>
           )}
 
-          {isDirty && canUpdate && (
+          {isDirty && canSave && (
             <div className="flex flex-wrap gap-2 border-t border-vscode-border pt-4">
               <Button type="button" loading={isSaving} onClick={onSave}>
                 Salvar

@@ -44,6 +44,8 @@ export default function EditarUsuarioPage() {
     saveEdit,
     cancelEdit,
     refresh,
+    isUserBlocked,
+    canSaveBlockedUser,
     isLoading,
     isError,
     error,
@@ -51,7 +53,9 @@ export default function EditarUsuarioPage() {
     isRefreshing,
   } = useUserEditState(userId)
 
-  const passwordState = useUserPasswordState(userId)
+  const passwordState = useUserPasswordState(userId, {
+    disabled: isUserBlocked,
+  })
 
   const deleteDialog = useUserDeleteDialog({ redirectToListOnSuccess: true })
 
@@ -128,6 +132,8 @@ export default function EditarUsuarioPage() {
               draft={draft}
               updateDraft={updateDraft}
               isDirty={isDirty}
+              isUserBlocked={isUserBlocked}
+              canSaveBlockedUser={canSaveBlockedUser}
               fieldErrors={fieldErrors}
               isSaving={isSaving}
               saveSuccess={saveSuccess}
@@ -135,7 +141,7 @@ export default function EditarUsuarioPage() {
               onCancel={cancelEdit}
               canUpdate={canUpdate}
             />
-            {canChangePassword && (
+            {canChangePassword && !isUserBlocked && (
               <UserPasswordSection
                 draft={passwordState.draft}
                 updateDraft={passwordState.updateDraft}
