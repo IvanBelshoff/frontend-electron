@@ -1,13 +1,14 @@
-import { useState } from 'react'
 import SettingsCard from '@/components/settings/SettingsCard'
 import SettingsCardHeader from '@/components/settings/SettingsCardHeader'
 import SettingsField from '@/components/settings/SettingsField'
 import { LanguageIcon } from '@/components/settings/SettingsIcons'
 import SettingsSelect from '@/components/settings/SettingsSelect'
 import type { AppLanguage } from '@/features/settings/settings-types'
+import { scheduleUserPreferencesPersist } from '@/features/settings/user-preferences-sync'
+import { useUserPreferences } from '@/features/settings/use-user-preferences'
 
 export default function LanguageSection() {
-  const [language, setLanguage] = useState<AppLanguage>('pt-BR')
+  const { language } = useUserPreferences()
 
   return (
     <SettingsCard className="h-full">
@@ -21,7 +22,9 @@ export default function LanguageSection() {
         <SettingsSelect
           id="settingsLanguage"
           value={language}
-          onChange={(event) => setLanguage(event.target.value as AppLanguage)}
+          onChange={(event) =>
+            scheduleUserPreferencesPersist({ language: event.target.value as AppLanguage })
+          }
         >
           <option value="pt-BR">Português (Brasil)</option>
           <option value="en-US">English (US)</option>

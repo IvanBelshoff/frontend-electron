@@ -8,10 +8,7 @@ import { MonitorIcon, MoonIcon, PaletteIcon, RefreshIcon, SunIcon } from '@/comp
 import IconButton from '@/components/ui/IconButton'
 import NotificationSettingsModal from '@/features/notifications/components/NotificationSettingsModal'
 import { getNotificationPlacementLabel } from '@/features/notifications/notification-placement-utils'
-import {
-  getNotificationPlacement,
-  getNotificationStyle,
-} from '@/features/notifications/notification-preferences'
+import { useUserPreferences } from '@/features/settings/use-user-preferences'
 import { getNotificationVariant } from '@/features/notifications/notification-variants-catalog'
 import { DEFAULT_ACCENT_COLOR } from '@/features/settings/accent-colors'
 import { useTheme } from '@/features/settings/theme/theme-provider'
@@ -19,16 +16,13 @@ import type { ThemePreference } from '@/features/settings/settings-types'
 
 export default function ThemeSection() {
   const { theme, setTheme, accentColor, setAccentColor, resetAccentColor } = useTheme()
+  const { notification } = useUserPreferences()
   const isDefaultAccent = accentColor.toUpperCase() === DEFAULT_ACCENT_COLOR.toUpperCase()
   const [modalOpen, setModalOpen] = useState(false)
-  const [notificationStyle, setNotificationStyle] = useState(getNotificationStyle)
-  const [notificationPlacement, setNotificationPlacement] = useState(getNotificationPlacement)
-  const variant = getNotificationVariant(notificationStyle)
+  const variant = getNotificationVariant(notification.style)
 
   const handleCloseModal = () => {
     setModalOpen(false)
-    setNotificationStyle(getNotificationStyle())
-    setNotificationPlacement(getNotificationPlacement())
   }
 
   return (
@@ -72,7 +66,7 @@ export default function ThemeSection() {
 
           <SettingsField label="Notificações">
             <p className="text-xs text-vscode-text-muted">
-              {variant.name} · {getNotificationPlacementLabel(notificationPlacement).toLowerCase()}.{' '}
+              {variant.name} · {getNotificationPlacementLabel(notification.placement).toLowerCase()}.{' '}
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}

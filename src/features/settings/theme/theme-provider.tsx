@@ -10,9 +10,8 @@ import {
 import { DEFAULT_ACCENT_COLOR } from '@/features/settings/accent-colors'
 import { computeAccentHover, hexToRgbChannels, normalizeHexColor } from '@/features/settings/theme/accent-utils'
 import type { ResolvedTheme, ThemePreference } from '@/features/settings/settings-types'
-
-const THEME_STORAGE_KEY = 'datadash.theme'
-const ACCENT_STORAGE_KEY = 'datadash.accentColor'
+import { scheduleUserPreferencesPersist } from '@/features/settings/user-preferences-sync'
+import { useUserPreferences } from '@/features/settings/use-user-preferences'
 
 type ThemeContextValue = {
   theme: ThemePreference
@@ -31,36 +30,6 @@ function getSystemTheme(): ResolvedTheme {
   }
 
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
-function normalizeThemePreference(value: string | null): ThemePreference {
-  return value === 'light' || value === 'dark' || value === 'system' ? value : 'system'
-}
-
-function readStoredTheme(): ThemePreference {
-  if (typeof window === 'undefined') {
-    return 'system'
-  }
-
-  return normalizeThemePreference(window.localStorage.getItem(THEME_STORAGE_KEY))
-}
-
-function readStoredAccentColor(): string {
-  if (typeof window === 'undefined') {
-    return DEFAULT_ACCENT_COLOR
-  }
-
-  const stored = window.localStorage.getItem(ACCENT_STORAGE_KEY)
-
-  if (!stored) {
-    return DEFAULT_ACCENT_COLOR
-  }
-
-  try {
-    return normalizeHexColor(stored)
-  } catch {
-    return DEFAULT_ACCENT_COLOR
-  }
 }
 
 function applyThemeToDocument(theme: ThemePreference, accentColor: string) {
@@ -83,26 +52,22 @@ function applyThemeToDocument(theme: ThemePreference, accentColor: string) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemePreference>(readStoredTheme)
-  const [accentColor, setAccentColorState] = useState<string>(readStoredAccentColor)
+  const { theme, accentColor } = useUserPreferences()
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
     theme === 'system' ? getSystemTheme() : theme,
   )
 
   const setTheme = useCallback((nextTheme: ThemePreference) => {
-    setThemeState(nextTheme)
-    window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme)
+    scheduleUserPreferencesPersist({ theme: nextTheme })
   }, [])
 
   const setAccentColor = useCallback((color: string) => {
     const normalized = normalizeHexColor(color)
-    setAccentColorState(normalized)
-    window.localStorage.setItem(ACCENT_STORAGE_KEY, normalized)
+    scheduleUserPreferencesPersist({ accentColor: normalized })
   }, [])
 
   const resetAccentColor = useCallback(() => {
-    setAccentColorState(DEFAULT_ACCENT_COLOR)
-    window.localStorage.setItem(ACCENT_STORAGE_KEY, DEFAULT_ACCENT_COLOR)
+    scheduleUserPreferencesPersist({ accentColor: DEFAULT_ACCENT_COLOR })
   }, [])
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { userPreferencesStore } from '@/features/settings/user-preferences-store'
 import {
   loginRequest,
   logoutRequest,
@@ -38,6 +39,12 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 function applySession(profile: UserProfile) {
   authStore.setUser(profile)
   authStore.setRbac(toUserRbac(profile.regras, profile.permissoes))
+  userPreferencesStore.hydrate(profile.preferencias_ui)
+}
+
+function clearSession() {
+  authStore.reset()
+  userPreferencesStore.clear()
 }
 
 async function loadProfileWithToken(token: string): Promise<UserProfile | null> {
@@ -56,7 +63,7 @@ async function loadProfileWithToken(token: string): Promise<UserProfile | null> 
       applySession(profile)
       return profile
     } catch {
-      authStore.reset()
+      clearSession()
       await clearPersistedToken()
       return null
     }
@@ -113,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore network errors during logout
     } finally {
-      authStore.reset()
+      clearSession()
       await clearPersistedToken()
     }
   }, [])

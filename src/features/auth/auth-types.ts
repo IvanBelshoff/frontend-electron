@@ -1,3 +1,5 @@
+import type { UserPreferencesUi } from '@/features/settings/user-preferences-types'
+
 export type LoginResponse = {
   access_token: string
   expires_in: number
@@ -12,6 +14,7 @@ export type UserProfile = {
   exp: number
   regras: string[]
   permissoes: string[]
+  preferencias_ui?: UserPreferencesUi | null
 }
 
 export type ApiErrorBody = {

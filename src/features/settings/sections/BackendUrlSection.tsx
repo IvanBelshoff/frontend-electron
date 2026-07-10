@@ -10,7 +10,6 @@ import { useBackendUrlSettings } from '@/features/settings/hooks/use-backend-url
 
 export default function BackendUrlSection() {
   const {
-    baseUrl,
     draftUrl,
     setDraftUrl,
     isEditing,
@@ -92,10 +91,10 @@ export default function BackendUrlSection() {
       ) : (
         <SettingsField
           label="URL base da API"
-          hint="Use o ícone de edição para alterar. Após validar e salvar, o campo volta ao modo protegido."
+          hint="Use o ícone de edição para visualizar ou alterar. Após validar e salvar, o campo volta ao modo protegido."
         >
-          <p className="truncate rounded border border-vscode-border bg-vscode-bg/40 px-3 py-2 text-sm text-vscode-text">
-            {baseUrl}
+          <p className="rounded border border-vscode-border bg-vscode-bg/40 px-3 py-2 text-sm text-vscode-text-muted">
+            ••••••••••••••••
           </p>
         </SettingsField>
       )}

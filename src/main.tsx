@@ -34,17 +34,17 @@ function BootstrapGate({ children }: { children: React.ReactNode }) {
 
 function RootApp() {
   return (
-    <ThemeProvider>
-      <NotificationProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <NotificationProvider>
+          <QueryClientProvider client={queryClient}>
             <BootstrapGate>
               <AppRouter />
             </BootstrapGate>
-          </AuthProvider>
-        </QueryClientProvider>
-      </NotificationProvider>
-    </ThemeProvider>
+          </QueryClientProvider>
+        </NotificationProvider>
+      </ThemeProvider>
+    </AuthProvider>
   )
 }
 

@@ -40,7 +40,7 @@ export default function GeneralInfoSection() {
       <SettingsInfoGrid
         items={[
           { label: 'Versão do sistema', value: 'v0.1.0' },
-          { label: 'Desenvolvido por', value: 'Silexcode' },
+          { label: 'Desenvolvido por', value: 'SilexCode' },
           { label: 'Ambiente', value: environmentLabel },
           { label: 'Plataforma', value: 'Desktop (Electron)' },
         ]}
