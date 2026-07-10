@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { useState, type ReactNode } from 'react'
 import {
+  ActivityIcon,
   ChartBarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -24,6 +25,7 @@ import {
   REPORT_RBAC,
   USER_RBAC,
 } from '@/features/auth/rbac-requirements'
+import { isAdmin } from '@/features/auth/rbac'
 import { useNavigate } from '@tanstack/react-router'
 
 type MainNavItem = {
@@ -161,6 +163,15 @@ export default function Sidebar() {
           icon={<SettingsIcon />}
           expanded={expanded}
         />
+
+        {isAdmin(rbac) && (
+          <SidebarNavItem
+            to="/metricas"
+            label="Métricas"
+            icon={<ActivityIcon />}
+            expanded={expanded}
+          />
+        )}
 
         <button
           type="button"

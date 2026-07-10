@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
 import IconButton from '@/components/ui/IconButton'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import Label from '@/components/ui/Label'
 import SettingsIcon from '@/components/ui/SettingsIcon'
 import { ApiError } from '@/features/auth/auth-types'
@@ -133,9 +134,8 @@ export default function LoginPage() {
 
         <div>
           <Label htmlFor="senha">Senha</Label>
-          <Input
+          <PasswordInput
             id="senha"
-            type="password"
             autoComplete="current-password"
             placeholder="Digite sua senha"
             value={senha}

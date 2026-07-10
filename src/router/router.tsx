@@ -10,11 +10,13 @@ import { authStore } from '@/features/auth/auth-store'
 import {
   CONNECTION_RBAC,
   DASHBOARD_RBAC,
+  METRICS_RBAC,
   REPORT_RBAC,
   USER_RBAC,
 } from '@/features/auth/rbac-requirements'
 import { requirePermission, requireRole } from '@/features/auth/route-guards'
 import AppShell from '@/layouts/AppShell'
+import MetricasPage from '@/pages/MetricasPage'
 import ConfiguracoesPage from '@/pages/ConfiguracoesPage'
 import CriarConexaoPage from '@/pages/CriarConexaoPage'
 import CriarDashboardPage from '@/pages/CriarDashboardPage'
@@ -199,6 +201,15 @@ const configuracoesRoute = createRoute({
   component: ConfiguracoesPage,
 })
 
+const metricasRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/metricas',
+  component: MetricasPage,
+  beforeLoad: () => {
+    requireRole(METRICS_RBAC.menuRole)
+  },
+})
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
@@ -233,6 +244,7 @@ const routeTree = rootRoute.addChildren([
     criarUsuarioRoute,
     editarUsuarioRoute,
     configuracoesRoute,
+    metricasRoute,
   ]),
   loginRoute,
 ])

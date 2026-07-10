@@ -59,3 +59,7 @@ export const CONNECTION_RBAC = {
   update: RBAC_PERMISSIONS.ATUALIZAR_CONEXAO,
   delete: RBAC_PERMISSIONS.EXCLUIR_CONEXAO,
 } as const
+
+export const METRICS_RBAC = {
+  menuRole: RBAC_ROLES.ADMIN,
+} as const

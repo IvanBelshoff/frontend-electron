@@ -1,5 +1,10 @@
 import type { UserCreateDraft, UserCreateFieldErrors } from '@/features/user/user-create-types'
-import type { UserEditDraft, UserFieldErrors } from '@/features/user/user-edit-types'
+import type {
+  UserEditDraft,
+  UserFieldErrors,
+  UserPasswordDraft,
+  UserPasswordFieldErrors,
+} from '@/features/user/user-edit-types'
 import { ApiError } from '@/features/auth/auth-types'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -108,6 +113,48 @@ export function validateUserDraft(draft: UserEditDraft): UserFieldErrors {
   return errors
 }
 
+export function validatePasswordFields(
+  senha: string,
+  confirmarSenha: string,
+): Pick<UserPasswordFieldErrors, 'senha' | 'confirmarSenha'> {
+  const errors: Pick<UserPasswordFieldErrors, 'senha' | 'confirmarSenha'> = {}
+
+  if (!senha) {
+    errors.senha = 'Senha é obrigatória.'
+  } else if (senha.length < 8) {
+    errors.senha = 'A senha deve possuir no mínimo 8 caracteres.'
+  } else if (senha.length > 100) {
+    errors.senha = 'A senha deve possuir no máximo 100 caracteres.'
+  }
+
+  if (!confirmarSenha) {
+    errors.confirmarSenha = 'Confirmação de senha é obrigatória.'
+  } else if (confirmarSenha !== senha) {
+    errors.confirmarSenha = 'As senhas não coincidem.'
+  }
+
+  return errors
+}
+
+export function parseUserPasswordFieldErrors(error: unknown): UserPasswordFieldErrors {
+  const baseErrors = parseUserFieldErrors(error)
+
+  return {
+    senha: baseErrors.senha,
+    confirmarSenha: undefined,
+    general: baseErrors.general,
+  }
+}
+
+export function validateUserPasswordDraft(draft: UserPasswordDraft): UserPasswordFieldErrors {
+  const passwordErrors = validatePasswordFields(draft.senha, draft.confirmarSenha)
+
+  return {
+    senha: passwordErrors.senha,
+    confirmarSenha: passwordErrors.confirmarSenha,
+  }
+}
+
 export function parseUserCreateFieldErrors(error: unknown): UserCreateFieldErrors {
   const baseErrors = parseUserFieldErrors(error) as UserCreateFieldErrors
   return baseErrors
@@ -127,21 +174,9 @@ export function validateUserCreateDraft(draft: UserCreateDraft): UserCreateField
   if (baseErrors.email) errors.email = baseErrors.email
   if (baseErrors.general) errors.general = baseErrors.general
 
-  const senha = draft.senha
-
-  if (!senha) {
-    errors.senha = 'Senha é obrigatória.'
-  } else if (senha.length < 8) {
-    errors.senha = 'A senha deve possuir no mínimo 8 caracteres.'
-  } else if (senha.length > 100) {
-    errors.senha = 'A senha deve possuir no máximo 100 caracteres.'
-  }
-
-  if (!draft.confirmarSenha) {
-    errors.confirmarSenha = 'Confirmação de senha é obrigatória.'
-  } else if (draft.confirmarSenha !== senha) {
-    errors.confirmarSenha = 'As senhas não coincidem.'
-  }
+  const passwordErrors = validatePasswordFields(draft.senha, draft.confirmarSenha)
+  if (passwordErrors.senha) errors.senha = passwordErrors.senha
+  if (passwordErrors.confirmarSenha) errors.confirmarSenha = passwordErrors.confirmarSenha
 
   return errors
 }

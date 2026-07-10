@@ -21,3 +21,19 @@ export type UserDeleteTarget = {
   id: number
   displayName: string
 }
+
+export type UserPasswordDraft = {
+  senha: string
+  confirmarSenha: string
+}
+
+export type UserPasswordFieldErrors = {
+  senha?: string
+  confirmarSenha?: string
+  general?: string
+}
+
+export const EMPTY_USER_PASSWORD_DRAFT: UserPasswordDraft = {
+  senha: '',
+  confirmarSenha: '',
+}

@@ -10,10 +10,21 @@ import {
   DEFAULT_CONNECTION_FILTERS,
   type ConnectionFilters,
 } from '@/features/connections/connection-filters'
+import type { ConnectionViewMode } from '@/features/connections/connection-list-types'
 import type { Connection } from '@/features/connections/connection-types'
 import { queryKeys } from '@/lib/query-keys'
 
+const VIEW_MODE_STORAGE_KEY = 'datadash.connections.viewMode'
 const CONNECTIONS_FETCH_LIMIT = 100
+
+function readStoredViewMode(): ConnectionViewMode {
+  if (typeof window === 'undefined') {
+    return 'grid'
+  }
+
+  const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY)
+  return stored === 'table' ? 'table' : 'grid'
+}
 
 export function useConnectionListState() {
   const navigate = useNavigate()
@@ -23,6 +34,9 @@ export function useConnectionListState() {
   const canDelete = hasPermission(rbac, CONNECTION_RBAC.delete)
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<ConnectionFilters>(DEFAULT_CONNECTION_FILTERS)
+  const [draftFilters, setDraftFilters] = useState<ConnectionFilters>(DEFAULT_CONNECTION_FILTERS)
+  const [viewMode, setViewModeState] = useState<ConnectionViewMode>(readStoredViewMode)
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false)
 
   const connectionsQuery = useQuery({
     queryKey: queryKeys.connection.list({ limit: CONNECTIONS_FETCH_LIMIT }),
@@ -39,9 +53,30 @@ export function useConnectionListState() {
 
   const filteredCount = filteredConnections.length
 
+  const setViewMode = useCallback((mode: ConnectionViewMode) => {
+    setViewModeState(mode)
+    window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode)
+  }, [])
+
+  const openFilterDialog = useCallback(() => {
+    setDraftFilters(filters)
+    setFilterDialogOpen(true)
+  }, [filters])
+
+  const closeFilterDialog = useCallback(() => {
+    setFilterDialogOpen(false)
+  }, [])
+
+  const applyFilters = useCallback((nextFilters: ConnectionFilters) => {
+    setFilters(nextFilters)
+    setDraftFilters(nextFilters)
+    setFilterDialogOpen(false)
+  }, [])
+
   const clearFilters = useCallback(() => {
-    setFilters(DEFAULT_CONNECTION_FILTERS)
     setSearch('')
+    setFilters(DEFAULT_CONNECTION_FILTERS)
+    setDraftFilters(DEFAULT_CONNECTION_FILTERS)
   }, [])
 
   const refresh = useCallback(async () => {
@@ -75,13 +110,20 @@ export function useConnectionListState() {
     search,
     setSearch,
     filters,
-    setFilters,
+    draftFilters,
+    setDraftFilters,
+    applyFilters,
     clearFilters,
+    viewMode,
+    setViewMode,
     isLoading: connectionsQuery.isLoading,
     isError: connectionsQuery.isError,
     error: connectionsQuery.error,
     isRefreshing: connectionsQuery.isFetching && !connectionsQuery.isLoading,
     refresh,
+    filterDialogOpen,
+    openFilterDialog,
+    closeFilterDialog,
     handleCreate,
     handleEdit,
   }

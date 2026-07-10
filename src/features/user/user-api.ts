@@ -130,6 +130,13 @@ export async function updateUser(id: number, input: UpdateUserInput): Promise<Ma
   return mapManagedUserFromApi(data)
 }
 
+export async function updateUserPassword(id: number, senha: string): Promise<void> {
+  await apiRequest<void>(`/user/password/${id}`, {
+    method: 'PATCH',
+    body: { senha },
+  })
+}
+
 export async function updateUserPhoto(id: number, photo: Blob): Promise<ManagedUser> {
   const formData = new FormData()
   formData.append('foto', photo, 'usuario-foto.webp')

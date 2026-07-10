@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { Fragment, useCallback, useState } from 'react'
 import IconButton from '@/components/ui/IconButton'
 import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
+import ConnectionEmptyState from '@/features/connections/components/ConnectionEmptyState'
 import type { Connection, TipoConexao } from '@/features/connections/connection-types'
 import { formatDashboardDate } from '@/features/dashboards/format-dashboard-date'
 import {
@@ -21,7 +21,7 @@ type ConnectionTableProps = {
   canDelete?: boolean
 }
 
-const TABLE_COLUMN_COUNT = 7
+const TABLE_COLUMN_COUNT = 5
 
 const TIPO_LABELS: Record<TipoConexao, string> = {
   postgres: 'PostgreSQL',
@@ -53,21 +53,6 @@ function ConnectionTableDetailsRow({ connection }: { connection: Connection }) {
   )
 }
 
-function ConnectionEmptyState({ onClearFilters }: { onClearFilters: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-vscode-border bg-vscode-sidebar/50 px-6 py-16 text-center">
-      <h3 className="text-base font-semibold text-vscode-text">Nenhuma conexão encontrada</h3>
-      <p className="mt-1 max-w-sm text-sm text-vscode-text-muted">
-        Ajuste a busca ou os filtros para encontrar conexões, ou limpe os filtros ativos.
-      </p>
-
-      <Button variant="secondary" size="sm" className="mt-5" onClick={onClearFilters}>
-        Limpar filtros
-      </Button>
-    </div>
-  )
-}
-
 export default function ConnectionTable({
   connections,
   onEdit,
@@ -92,7 +77,7 @@ export default function ConnectionTable({
 
   return (
     <div className="overflow-x-auto rounded-lg border border-vscode-border">
-      <table className="w-full min-w-[960px] border-collapse text-left text-sm">
+      <table className="w-full min-w-[720px] border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-vscode-border bg-vscode-activity-bar">
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
@@ -100,12 +85,6 @@ export default function ConnectionTable({
             </th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
               Tipo
-            </th>
-            <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
-              Host
-            </th>
-            <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
-              Porta
             </th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
               Database
@@ -136,12 +115,6 @@ export default function ConnectionTable({
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant="info">{TIPO_LABELS[connection.tipo]}</Badge>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-vscode-text-muted">
-                    {connection.host}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-vscode-text-muted">
-                    {connection.porta}
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-vscode-text-muted">
                     {connection.database}

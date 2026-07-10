@@ -1,6 +1,7 @@
 import { Link, useParams } from '@tanstack/react-router'
 import Alert from '@/components/ui/Alert'
-import { hasAnyPermission, hasPermission, hasRole } from '@/features/auth/rbac'
+import { useAuth } from '@/features/auth/use-auth'
+import { canChangeUserPassword, hasAnyPermission, hasPermission, hasRole, isAdmin } from '@/features/auth/rbac'
 import { USER_RBAC } from '@/features/auth/rbac-requirements'
 import { useRbac } from '@/features/auth/use-rbac'
 import UserDeleteConfirmDialog from '@/features/user/components/UserDeleteConfirmDialog'
@@ -9,15 +10,18 @@ import UserAccessTab from '@/features/user/components/UserAccessTab'
 import UserPermissionsTab from '@/features/user/components/UserPermissionsTab'
 import UserEditTabs from '@/features/user/components/UserEditTabs'
 import UserInfoSection from '@/features/user/components/UserInfoSection'
+import UserPasswordSection from '@/features/user/components/UserPasswordSection'
 import UserProfileSection from '@/features/user/components/UserProfileSection'
 import { useUserDeleteDialog } from '@/features/user/hooks/use-user-delete-dialog'
 import { useUserEditState } from '@/features/user/hooks/use-user-edit-state'
+import { useUserPasswordState } from '@/features/user/hooks/use-user-password-state'
 import { getUserDisplayName } from '@/features/user/user-list-types'
 import { ApiError } from '@/features/auth/auth-types'
 
 export default function EditarUsuarioPage() {
   const { userId: userIdParam } = useParams({ strict: false })
   const userId = Number(userIdParam)
+  const { user: authUser } = useAuth()
   const rbac = useRbac()
 
   const canUpdate = hasPermission(rbac, USER_RBAC.update)
@@ -26,6 +30,7 @@ export default function EditarUsuarioPage() {
   const canManageDashboardAccess = hasPermission(rbac, USER_RBAC.grantDashboardAccess)
   const canManageReportAccess = hasPermission(rbac, USER_RBAC.grantReportAccess)
   const canManageAccess = hasAnyPermission(rbac, [...USER_RBAC.grantAccessPermissions])
+  const canChangePassword = canChangeUserPassword(rbac, authUser?.sub, userId)
 
   const {
     user,
@@ -45,6 +50,8 @@ export default function EditarUsuarioPage() {
     isSaving,
     isRefreshing,
   } = useUserEditState(userId)
+
+  const passwordState = useUserPasswordState(userId)
 
   const deleteDialog = useUserDeleteDialog({ redirectToListOnSuccess: true })
 
@@ -128,6 +135,19 @@ export default function EditarUsuarioPage() {
               onCancel={cancelEdit}
               canUpdate={canUpdate}
             />
+            {canChangePassword && (
+              <UserPasswordSection
+                draft={passwordState.draft}
+                updateDraft={passwordState.updateDraft}
+                isDirty={passwordState.isDirty}
+                fieldErrors={passwordState.fieldErrors}
+                isSaving={passwordState.isSaving}
+                saveSuccess={passwordState.saveSuccess}
+                onSave={() => void passwordState.savePassword()}
+                onCancel={passwordState.cancelPassword}
+                isAdminEditingOther={isAdmin(rbac) && authUser?.sub !== userId}
+              />
+            )}
             <UserInfoSection user={user} />
           </div>
         ) : activeTab === 'permissions' ? (

@@ -1,5 +1,7 @@
 import Alert from '@/components/ui/Alert'
+import ConnectionCardGrid from '@/features/connections/components/ConnectionCardGrid'
 import ConnectionDeleteConfirmDialog from '@/features/connections/components/ConnectionDeleteConfirmDialog'
+import ConnectionFiltersDialog from '@/features/connections/components/ConnectionFiltersDialog'
 import ConnectionManagementHeader from '@/features/connections/components/ConnectionManagementHeader'
 import ConnectionTable from '@/features/connections/components/ConnectionTable'
 import { useConnectionDeleteDialog } from '@/features/connections/hooks/use-connection-delete-dialog'
@@ -14,13 +16,20 @@ export default function GerenciarConexoesPage() {
     search,
     setSearch,
     filters,
-    setFilters,
+    draftFilters,
+    setDraftFilters,
+    applyFilters,
     clearFilters,
+    viewMode,
+    setViewMode,
     isLoading,
     isError,
     error,
     isRefreshing,
     refresh,
+    filterDialogOpen,
+    openFilterDialog,
+    closeFilterDialog,
     handleCreate,
     handleEdit,
     canCreate,
@@ -47,7 +56,9 @@ export default function GerenciarConexoesPage() {
         search={search}
         onSearchChange={setSearch}
         filters={filters}
-        onFiltersChange={setFilters}
+        onOpenFilters={openFilterDialog}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
         onCreate={handleCreate}
         canCreate={canCreate}
       />
@@ -59,6 +70,15 @@ export default function GerenciarConexoesPage() {
           </div>
         ) : isError ? (
           <Alert variant="error">{errorMessage}</Alert>
+        ) : viewMode === 'grid' ? (
+          <ConnectionCardGrid
+            connections={filteredConnections}
+            onEdit={handleEdit}
+            onDelete={deleteDialog.requestDelete}
+            onClearFilters={clearFilters}
+            canEdit={canEdit}
+            canDelete={canDelete}
+          />
         ) : (
           <ConnectionTable
             connections={filteredConnections}
@@ -70,6 +90,15 @@ export default function GerenciarConexoesPage() {
           />
         )}
       </div>
+
+      <ConnectionFiltersDialog
+        isOpen={filterDialogOpen}
+        appliedFilters={filters}
+        draftFilters={draftFilters}
+        onDraftChange={setDraftFilters}
+        onApply={applyFilters}
+        onClose={closeFilterDialog}
+      />
 
       <ConnectionDeleteConfirmDialog
         isOpen={deleteDialog.deleteTarget !== null}

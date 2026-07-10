@@ -38,6 +38,14 @@ export function hasAllPermissions(rbac: UserRbac | null, permissions: string[]):
   return permissions.every((permission) => hasPermission(rbac, permission))
 }
 
+export function canChangeUserPassword(
+  rbac: UserRbac | null,
+  currentUserId: number | undefined,
+  targetUserId: number,
+): boolean {
+  return isAdmin(rbac) || currentUserId === targetUserId
+}
+
 export function toUserRbac(regras: string[], permissoes: string[]): UserRbac {
   return { regras, permissoes }
 }
