@@ -9,7 +9,7 @@ export default function ConfiguracoesPage() {
     <div className="h-full min-h-0 space-y-6 overflow-y-auto">
       <SettingsPageHeader title="Configurações" />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
         <BackendUrlSection />
         <ThemeSection />
         <LanguageSection />

@@ -17,6 +17,8 @@ type ConnectionTableProps = {
   onEdit: (connection: Connection) => void
   onDelete: (connection: Connection) => void
   onClearFilters: () => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 const TABLE_COLUMN_COUNT = 7
@@ -71,6 +73,8 @@ export default function ConnectionTable({
   onEdit,
   onDelete,
   onClearFilters,
+  canEdit = true,
+  canDelete = true,
 }: ConnectionTableProps) {
   const [expandedRowIds, setExpandedRowIds] = useState<number[]>([])
 
@@ -160,16 +164,26 @@ export default function ConnectionTable({
                       <IconButton
                         icon={<PencilIcon />}
                         label={`Editar ${connection.nome}`}
-                        title="Editar"
+                        title={
+                          canEdit
+                            ? 'Editar'
+                            : 'Você não possui permissão para editar conexões.'
+                        }
                         onClick={() => onEdit(connection)}
-                        className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300"
+                        disabled={!canEdit}
+                        className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300 disabled:opacity-40"
                       />
                       <IconButton
                         icon={<TrashIcon />}
                         label={`Excluir ${connection.nome}`}
-                        title="Excluir"
+                        title={
+                          canDelete
+                            ? 'Excluir'
+                            : 'Você não possui permissão para excluir conexões.'
+                        }
                         onClick={() => onDelete(connection)}
-                        className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
+                        disabled={!canDelete}
+                        className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-40"
                       />
                     </div>
                   </td>

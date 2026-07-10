@@ -1,8 +1,14 @@
+import { hasPermission } from '@/features/auth/rbac'
+import { USER_RBAC } from '@/features/auth/rbac-requirements'
+import { useRbac } from '@/features/auth/use-rbac'
 import UserCreateForm from '@/features/user/components/UserCreateForm'
 import UserCreateHeader from '@/features/user/components/UserCreateHeader'
 import { useUserCreateState } from '@/features/user/hooks/use-user-create-state'
 
 export default function CriarUsuarioPage() {
+  const rbac = useRbac()
+  const canCopyFromUser = hasPermission(rbac, USER_RBAC.create)
+
   const {
     draft,
     updateDraft,
@@ -36,6 +42,7 @@ export default function CriarUsuarioPage() {
           createdUserId={createdUserId}
           onSaveToList={() => void saveToList()}
           onSaveAndEdit={() => void saveAndEdit()}
+          canCopyFromUser={canCopyFromUser}
         />
       </div>
     </div>

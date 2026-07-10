@@ -14,7 +14,9 @@ import {
   refreshRequest,
 } from './auth-api'
 import { authStore } from './auth-store'
+import { toUserRbac } from './rbac'
 import type { UserProfile } from './auth-types'
+import type { UserRbac } from './rbac-types'
 import {
   clearPersistedToken,
   loadPersistedToken,
@@ -23,6 +25,7 @@ import {
 
 type AuthContextValue = {
   user: UserProfile | null
+  rbac: UserRbac | null
   accessToken: string | null
   isAuthenticated: boolean
   isBootstrapping: boolean
@@ -32,12 +35,17 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
+function applySession(profile: UserProfile) {
+  authStore.setUser(profile)
+  authStore.setRbac(toUserRbac(profile.regras, profile.permissoes))
+}
+
 async function loadProfileWithToken(token: string): Promise<UserProfile | null> {
   authStore.setAccessToken(token)
 
   try {
     const profile = await profileRequest()
-    authStore.setUser(profile)
+    applySession(profile)
     return profile
   } catch {
     try {
@@ -45,7 +53,7 @@ async function loadProfileWithToken(token: string): Promise<UserProfile | null> 
       authStore.setAccessToken(refreshed.access_token)
       await persistToken(refreshed.access_token)
       const profile = await profileRequest()
-      authStore.setUser(profile)
+      applySession(profile)
       return profile
     } catch {
       authStore.reset()
@@ -96,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await persistToken(session.access_token)
 
     const profile = await profileRequest()
-    authStore.setUser(profile)
+    applySession(profile)
   }, [])
 
   const logout = useCallback(async () => {
@@ -113,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       user: authStore.getUser(),
+      rbac: authStore.getRbac(),
       accessToken: authStore.getAccessToken(),
       isAuthenticated: authStore.isAuthenticated(),
       isBootstrapping: authStore.getIsBootstrapping(),

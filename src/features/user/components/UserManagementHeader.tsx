@@ -15,6 +15,9 @@ type UserManagementHeaderProps = {
   viewMode: UserViewMode
   onViewModeChange: (mode: UserViewMode) => void
   onCreate: () => void
+  canCreate?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 export default function UserManagementHeader({
@@ -29,6 +32,7 @@ export default function UserManagementHeader({
   viewMode,
   onViewModeChange,
   onCreate,
+  canCreate = true,
 }: UserManagementHeaderProps) {
   return (
     <header className="shrink-0 space-y-4 border-b border-vscode-border bg-vscode-bg pb-4">
@@ -47,6 +51,7 @@ export default function UserManagementHeader({
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
         onCreate={onCreate}
+        canCreate={canCreate}
       />
     </header>
   )

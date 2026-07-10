@@ -18,6 +18,7 @@ type DashboardToolbarProps = {
   viewMode: DashboardViewMode
   onViewModeChange: (mode: DashboardViewMode) => void
   onCreate: () => void
+  canCreate?: boolean
 }
 
 export default function DashboardToolbar({
@@ -28,6 +29,7 @@ export default function DashboardToolbar({
   viewMode,
   onViewModeChange,
   onCreate,
+  canCreate = true,
 }: DashboardToolbarProps) {
   const hasActiveFilters = hasActiveDashboardFilters(filters)
 
@@ -66,7 +68,17 @@ export default function DashboardToolbar({
         <div className="flex flex-wrap items-center gap-2 md:justify-end">
           <ViewModeToggle value={viewMode} onChange={onViewModeChange} />
 
-          <Button variant="primary" size="md" onClick={onCreate}>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={onCreate}
+            disabled={!canCreate}
+            title={
+              canCreate
+                ? 'Criar dashboard'
+                : 'Você não possui permissão para criar dashboards.'
+            }
+          >
             <PlusIcon />
             Criar
           </Button>

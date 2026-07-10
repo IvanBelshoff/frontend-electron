@@ -1,5 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router'
 import Alert from '@/components/ui/Alert'
+import { hasPermission } from '@/features/auth/rbac'
+import { DASHBOARD_RBAC } from '@/features/auth/rbac-requirements'
+import { useRbac } from '@/features/auth/use-rbac'
 import DashboardAccessTab from '@/features/dashboards/components/DashboardAccessTab'
 import DashboardDeleteConfirmDialog from '@/features/dashboards/components/DashboardDeleteConfirmDialog'
 import DashboardEditForm from '@/features/dashboards/components/DashboardEditForm'
@@ -14,6 +17,10 @@ import { ApiError } from '@/features/auth/auth-types'
 export default function EditarDashboardPage() {
   const { dashboardId: dashboardIdParam } = useParams({ strict: false })
   const dashboardId = Number(dashboardIdParam)
+  const rbac = useRbac()
+  const canUpdate = hasPermission(rbac, DASHBOARD_RBAC.update)
+  const canDelete = hasPermission(rbac, DASHBOARD_RBAC.delete)
+  const canManageAccess = hasPermission(rbac, DASHBOARD_RBAC.grantAccess)
 
   const {
     dashboard,
@@ -69,9 +76,14 @@ export default function EditarDashboardPage() {
               deleteDialog.requestDelete(dashboard)
             }
           }}
+          canDelete={canDelete}
         />
 
-        <DashboardEditTabs activeTab={activeTab} onChange={setActiveTab} />
+        <DashboardEditTabs
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          disabledTabs={canManageAccess ? [] : ['access']}
+        />
       </div>
 
       <div
@@ -106,15 +118,22 @@ export default function EditarDashboardPage() {
               saveSuccess={saveSuccess}
               onSave={saveEdit}
               onCancel={cancelEdit}
+              canUpdate={canUpdate}
             />
             <DashboardInfoSection dashboard={dashboard} />
           </div>
         ) : activeTab === 'access' ? (
-          <DashboardAccessTab
-            dashboardId={dashboardId}
-            dashboard={dashboard}
-            enabled={activeTab === 'access'}
-          />
+          canManageAccess ? (
+            <DashboardAccessTab
+              dashboardId={dashboardId}
+              dashboard={dashboard}
+              enabled={activeTab === 'access'}
+            />
+          ) : (
+            <Alert variant="error">
+              Você não possui permissão para gerenciar acessos deste dashboard.
+            </Alert>
+          )
         ) : (
           <DashboardPreviewTab
             dashboardName={dashboard.nome}

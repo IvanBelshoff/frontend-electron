@@ -18,6 +18,8 @@ type ReportTableProps = {
   onEdit: (report: Report) => void
   onDelete: (report: Report) => void
   onClearFilters: () => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 const TABLE_COLUMN_COUNT = 7
@@ -54,6 +56,8 @@ export default function ReportTable({
   onEdit,
   onDelete,
   onClearFilters,
+  canEdit = true,
+  canDelete = true,
 }: ReportTableProps) {
   const [expandedRowIds, setExpandedRowIds] = useState<number[]>([])
 
@@ -145,16 +149,26 @@ export default function ReportTable({
                       <IconButton
                         icon={<PencilIcon />}
                         label={`Editar ${report.nome}`}
-                        title="Editar"
+                        title={
+                          canEdit
+                            ? 'Editar'
+                            : 'Você não possui permissão para editar relatórios.'
+                        }
                         onClick={() => onEdit(report)}
-                        className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300"
+                        disabled={!canEdit}
+                        className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300 disabled:opacity-40"
                       />
                       <IconButton
                         icon={<TrashIcon />}
                         label={`Excluir ${report.nome}`}
-                        title="Excluir"
+                        title={
+                          canDelete
+                            ? 'Excluir'
+                            : 'Você não possui permissão para excluir relatórios.'
+                        }
                         onClick={() => onDelete(report)}
-                        className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
+                        disabled={!canDelete}
+                        className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-40"
                       />
                     </div>
                   </td>

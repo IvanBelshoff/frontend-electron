@@ -15,9 +15,17 @@ type DashboardCardProps = {
   dashboard: Dashboard
   onEdit: (dashboard: Dashboard) => void
   onDelete: (dashboard: Dashboard) => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
-export default function DashboardCard({ dashboard, onEdit, onDelete }: DashboardCardProps) {
+export default function DashboardCard({
+  dashboard,
+  onEdit,
+  onDelete,
+  canEdit = true,
+  canDelete = true,
+}: DashboardCardProps) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -37,16 +45,22 @@ export default function DashboardCard({ dashboard, onEdit, onDelete }: Dashboard
           <IconButton
             icon={<PencilIcon />}
             label={`Editar ${dashboard.nome}`}
-            title="Editar"
+            title={
+              canEdit ? 'Editar' : 'Você não possui permissão para editar dashboards.'
+            }
             onClick={() => onEdit(dashboard)}
-            className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300"
+            disabled={!canEdit}
+            className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300 disabled:opacity-40"
           />
           <IconButton
             icon={<TrashIcon />}
             label={`Excluir ${dashboard.nome}`}
-            title="Excluir"
+            title={
+              canDelete ? 'Excluir' : 'Você não possui permissão para excluir dashboards.'
+            }
             onClick={() => onDelete(dashboard)}
-            className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
+            disabled={!canDelete}
+            className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-40"
           />
           <IconButton
             icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}

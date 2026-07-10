@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { notify } from '@/features/notifications/notification-api'
 import { getManagedUserById, updateUser } from '@/features/user/user-api'
 import {
   areUserDraftsEqual,
@@ -68,10 +69,14 @@ export function useUserEditState(userId: number) {
       setDraft(mapManagedUserToEditDraft(updatedUser))
       setFieldErrors({})
       setSaveSuccess(true)
+      notify.success('Usuário salvo com sucesso.')
     },
     onError: (error) => {
       setFieldErrors(parseUserFieldErrors(error))
       setSaveSuccess(false)
+      const message =
+        error instanceof Error ? error.message : 'Não foi possível salvar o usuário.'
+      notify.error(message)
     },
   })
 

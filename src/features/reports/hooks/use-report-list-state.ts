@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useCallback, useMemo, useState } from 'react'
+import { hasPermission } from '@/features/auth/rbac'
+import { REPORT_RBAC } from '@/features/auth/rbac-requirements'
+import { useRbac } from '@/features/auth/use-rbac'
 import { listReports } from '@/features/reports/report-api'
 import {
   applyReportFilters,
@@ -23,6 +26,10 @@ function readStoredViewMode(): ReportViewMode {
 
 export function useReportListState() {
   const navigate = useNavigate()
+  const rbac = useRbac()
+  const canCreate = hasPermission(rbac, REPORT_RBAC.create)
+  const canEdit = hasPermission(rbac, REPORT_RBAC.update)
+  const canDelete = hasPermission(rbac, REPORT_RBAC.delete)
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<ReportFilters>(DEFAULT_REPORT_FILTERS)
   const [draftFilters, setDraftFilters] = useState<ReportFilters>(DEFAULT_REPORT_FILTERS)
@@ -74,17 +81,19 @@ export function useReportListState() {
   }, [reportsQuery])
 
   const handleCreate = useCallback(() => {
+    if (!canCreate) return
     void navigate({ to: '/relatorios/novo' })
-  }, [navigate])
+  }, [canCreate, navigate])
 
   const handleEdit = useCallback(
     (report: Report) => {
+      if (!canEdit) return
       void navigate({
         to: '/relatorios/$relatorioId/editar',
         params: { relatorioId: String(report.id) },
       })
     },
-    [navigate],
+    [canEdit, navigate],
   )
 
   return {
@@ -92,6 +101,9 @@ export function useReportListState() {
     filteredReports,
     totalCount,
     filteredCount,
+    canCreate,
+    canEdit,
+    canDelete,
     search,
     setSearch,
     filters,

@@ -10,7 +10,7 @@ export default function LanguageSection() {
   const [language, setLanguage] = useState<AppLanguage>('pt-BR')
 
   return (
-    <SettingsCard>
+    <SettingsCard className="h-full">
       <SettingsCardHeader
         icon={<LanguageIcon />}
         title="Idioma"

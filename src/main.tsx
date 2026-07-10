@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AuthProvider, useAuth } from '@/features/auth/use-auth'
+import { NotificationProvider } from '@/features/notifications/NotificationProvider'
 import { ThemeProvider } from '@/features/settings/theme/theme-provider'
 import { queryClient } from '@/lib/query-client'
 import AppRouter from '@/router'
@@ -34,13 +35,15 @@ function BootstrapGate({ children }: { children: React.ReactNode }) {
 function RootApp() {
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <BootstrapGate>
-            <AppRouter />
-          </BootstrapGate>
-        </AuthProvider>
-      </QueryClientProvider>
+      <NotificationProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <BootstrapGate>
+              <AppRouter />
+            </BootstrapGate>
+          </AuthProvider>
+        </QueryClientProvider>
+      </NotificationProvider>
     </ThemeProvider>
   )
 }

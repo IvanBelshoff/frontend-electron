@@ -32,6 +32,9 @@ export default function GerenciarDashboardsPage() {
     closeFilterDialog,
     handleCreate,
     handleEdit,
+    canCreate,
+    canEdit,
+    canDelete,
   } = useDashboardListState()
 
   const deleteDialog = useDashboardDeleteDialog()
@@ -57,6 +60,7 @@ export default function GerenciarDashboardsPage() {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onCreate={handleCreate}
+        canCreate={canCreate}
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto pt-4">
@@ -72,6 +76,8 @@ export default function GerenciarDashboardsPage() {
             onEdit={handleEdit}
             onDelete={deleteDialog.requestDelete}
             onClearFilters={clearFilters}
+            canEdit={canEdit}
+            canDelete={canDelete}
           />
         ) : (
           <DashboardTable
@@ -79,6 +85,8 @@ export default function GerenciarDashboardsPage() {
             onEdit={handleEdit}
             onDelete={deleteDialog.requestDelete}
             onClearFilters={clearFilters}
+            canEdit={canEdit}
+            canDelete={canDelete}
           />
         )}
       </div>

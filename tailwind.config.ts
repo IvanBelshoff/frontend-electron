@@ -17,6 +17,7 @@ const config: Config = {
           'input-bg': 'var(--vscode-input-bg)',
           error: 'var(--vscode-error)',
           success: 'var(--vscode-success)',
+          warning: 'var(--vscode-warning)',
         },
       },
       fontFamily: {

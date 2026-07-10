@@ -1,5 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router'
 import Alert from '@/components/ui/Alert'
+import { hasPermission } from '@/features/auth/rbac'
+import { REPORT_RBAC } from '@/features/auth/rbac-requirements'
+import { useRbac } from '@/features/auth/use-rbac'
 import ReportAccessTab from '@/features/reports/components/ReportAccessTab'
 import ReportDeleteConfirmDialog from '@/features/reports/components/ReportDeleteConfirmDialog'
 import ReportEditForm from '@/features/reports/components/ReportEditForm'
@@ -14,6 +17,10 @@ import { ApiError } from '@/features/auth/auth-types'
 export default function EditarRelatorioPage() {
   const { relatorioId: relatorioIdParam } = useParams({ strict: false })
   const relatorioId = Number(relatorioIdParam)
+  const rbac = useRbac()
+  const canUpdate = hasPermission(rbac, REPORT_RBAC.update)
+  const canDelete = hasPermission(rbac, REPORT_RBAC.delete)
+  const canManageAccess = hasPermission(rbac, REPORT_RBAC.grantAccess)
 
   const {
     report,
@@ -69,9 +76,14 @@ export default function EditarRelatorioPage() {
               deleteDialog.requestDelete(report)
             }
           }}
+          canDelete={canDelete}
         />
 
-        <ReportEditTabs activeTab={activeTab} onChange={setActiveTab} />
+        <ReportEditTabs
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          disabledTabs={canManageAccess ? [] : ['access']}
+        />
       </div>
 
       <div
@@ -106,11 +118,18 @@ export default function EditarRelatorioPage() {
               saveSuccess={saveSuccess}
               onSave={saveEdit}
               onCancel={cancelEdit}
+              canUpdate={canUpdate}
             />
             <ReportInfoSection report={report} />
           </div>
         ) : activeTab === 'access' ? (
-          <ReportAccessTab reportId={relatorioId} report={report} enabled={activeTab === 'access'} />
+          canManageAccess ? (
+            <ReportAccessTab reportId={relatorioId} report={report} enabled={activeTab === 'access'} />
+          ) : (
+            <Alert variant="warning">
+              Você não possui permissão para gerenciar acessos deste relatório.
+            </Alert>
+          )
         ) : (
           <ReportExecutionTab
             reportId={relatorioId}

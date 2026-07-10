@@ -19,6 +19,7 @@ type ConnectionManagementHeaderProps = {
   filters: ConnectionFilters
   onFiltersChange: (filters: ConnectionFilters) => void
   onCreate: () => void
+  canCreate?: boolean
 }
 
 const TIPO_OPTIONS: Array<{ value: TipoConexao | 'all'; label: string }> = [
@@ -39,6 +40,7 @@ export default function ConnectionManagementHeader({
   filters,
   onFiltersChange,
   onCreate,
+  canCreate = true,
 }: ConnectionManagementHeaderProps) {
   const hasActiveFilters = hasActiveConnectionFilters(filters)
 
@@ -106,7 +108,15 @@ export default function ConnectionManagementHeader({
             </SettingsSelect>
           </div>
 
-          <Button variant="primary" size="md" onClick={onCreate}>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={onCreate}
+            disabled={!canCreate}
+            title={
+              canCreate ? 'Criar conexão' : 'Você não possui permissão para criar conexões.'
+            }
+          >
             <PlusIcon />
             Criar
           </Button>

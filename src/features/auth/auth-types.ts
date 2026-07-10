@@ -1,6 +1,8 @@
 export type LoginResponse = {
   access_token: string
   expires_in: number
+  regras: string[]
+  permissoes: string[]
 }
 
 export type UserProfile = {
@@ -8,6 +10,8 @@ export type UserProfile = {
   email: string
   iat: number
   exp: number
+  regras: string[]
+  permissoes: string[]
 }
 
 export type ApiErrorBody = {

@@ -19,6 +19,7 @@ type UserToolbarProps = {
   viewMode: UserViewMode
   onViewModeChange: (mode: UserViewMode) => void
   onCreate: () => void
+  canCreate?: boolean
 }
 
 export default function UserToolbar({
@@ -29,6 +30,7 @@ export default function UserToolbar({
   viewMode,
   onViewModeChange,
   onCreate,
+  canCreate = true,
 }: UserToolbarProps) {
   const hasActiveFilters = hasActiveUserFilters(filters)
 
@@ -67,7 +69,17 @@ export default function UserToolbar({
         <div className="flex flex-wrap items-center gap-2 md:justify-end">
           <ViewModeToggle value={viewMode} onChange={onViewModeChange} />
 
-          <Button variant="primary" size="md" onClick={onCreate}>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={onCreate}
+            disabled={!canCreate}
+            title={
+              canCreate
+                ? 'Criar usuário'
+                : 'Você não possui permissão para criar usuários.'
+            }
+          >
             <PlusIcon />
             Criar
           </Button>

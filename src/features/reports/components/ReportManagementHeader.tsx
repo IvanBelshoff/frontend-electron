@@ -24,6 +24,7 @@ type ReportManagementHeaderProps = {
   viewMode: ReportViewMode
   onViewModeChange: (mode: ReportViewMode) => void
   onCreate: () => void
+  canCreate?: boolean
 }
 
 export default function ReportManagementHeader({
@@ -38,6 +39,7 @@ export default function ReportManagementHeader({
   viewMode,
   onViewModeChange,
   onCreate,
+  canCreate = true,
 }: ReportManagementHeaderProps) {
   const hasActiveFilters = hasActiveReportFilters(filters)
 
@@ -104,7 +106,17 @@ export default function ReportManagementHeader({
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
             <ViewModeToggle value={viewMode} onChange={onViewModeChange} />
 
-            <Button variant="primary" size="md" onClick={onCreate}>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={onCreate}
+              disabled={!canCreate}
+              title={
+                canCreate
+                  ? 'Criar relatório'
+                  : 'Você não possui permissão para criar relatórios.'
+              }
+            >
               <PlusIcon />
               Criar
             </Button>

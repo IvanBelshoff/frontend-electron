@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import SettingsCard from '@/components/settings/SettingsCard'
 import Alert from '@/components/ui/Alert'
 import UserAccessTransferList from '@/features/user/components/UserAccessTransferList'
@@ -11,13 +11,40 @@ import { ApiError } from '@/features/auth/auth-types'
 type UserAccessTabProps = {
   user: ManagedUser
   enabled: boolean
+  canManageDashboardAccess?: boolean
+  canManageReportAccess?: boolean
 }
 
 type AccessSection = 'dashboards' | 'reports'
 
-export default function UserAccessTab({ user, enabled }: UserAccessTabProps) {
-  const [activeSection, setActiveSection] = useState<AccessSection>('dashboards')
-  const accessState = useUserDashboardAccessState(user, enabled && activeSection === 'dashboards')
+export default function UserAccessTab({
+  user,
+  enabled,
+  canManageDashboardAccess = true,
+  canManageReportAccess = true,
+}: UserAccessTabProps) {
+  const defaultSection: AccessSection = canManageDashboardAccess
+    ? 'dashboards'
+    : canManageReportAccess
+      ? 'reports'
+      : 'dashboards'
+
+  const [activeSection, setActiveSection] = useState<AccessSection>(defaultSection)
+
+  useEffect(() => {
+    if (activeSection === 'dashboards' && !canManageDashboardAccess && canManageReportAccess) {
+      setActiveSection('reports')
+    }
+
+    if (activeSection === 'reports' && !canManageReportAccess && canManageDashboardAccess) {
+      setActiveSection('dashboards')
+    }
+  }, [activeSection, canManageDashboardAccess, canManageReportAccess])
+
+  const accessState = useUserDashboardAccessState(
+    user,
+    enabled && activeSection === 'dashboards' && canManageDashboardAccess,
+  )
 
   const loadErrorMessage =
     accessState.loadError instanceof ApiError
@@ -39,8 +66,8 @@ export default function UserAccessTab({ user, enabled }: UserAccessTabProps) {
         >
           {(
             [
-              { id: 'dashboards' as const, label: 'Dashboards' },
-              { id: 'reports' as const, label: 'Relatórios' },
+              { id: 'dashboards' as const, label: 'Dashboards', enabled: canManageDashboardAccess },
+              { id: 'reports' as const, label: 'Relatórios', enabled: canManageReportAccess },
             ] as const
           ).map((section) => (
             <button
@@ -48,12 +75,20 @@ export default function UserAccessTab({ user, enabled }: UserAccessTabProps) {
               type="button"
               role="tab"
               aria-selected={activeSection === section.id}
+              disabled={!section.enabled}
               onClick={() => setActiveSection(section.id)}
+              title={
+                section.enabled
+                  ? undefined
+                  : 'Você não possui permissão para gerenciar este tipo de acesso.'
+              }
               className={clsx(
                 'rounded-md px-4 py-2 text-sm font-medium transition-colors',
                 activeSection === section.id
                   ? 'border border-vscode-accent bg-vscode-accent/10 text-vscode-text shadow-sm'
                   : 'border border-transparent text-vscode-text-muted hover:bg-vscode-sidebar hover:text-vscode-text',
+                !section.enabled &&
+                  'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-vscode-text-muted',
               )}
             >
               {section.label}
@@ -63,8 +98,14 @@ export default function UserAccessTab({ user, enabled }: UserAccessTabProps) {
       </div>
 
       {activeSection === 'reports' ? (
-        <UserReportAccessSection user={user} enabled={enabled} />
-      ) : (
+        canManageReportAccess ? (
+          <UserReportAccessSection user={user} enabled={enabled} />
+        ) : (
+          <Alert variant="warning">
+            Você não possui permissão para gerenciar acessos a relatórios deste usuário.
+          </Alert>
+        )
+      ) : canManageDashboardAccess ? (
         <SettingsCard className="flex h-full min-h-0 flex-col">
           <header className="mb-5 flex shrink-0 flex-wrap items-start justify-between gap-3">
             <div>
@@ -134,6 +175,10 @@ export default function UserAccessTab({ user, enabled }: UserAccessTabProps) {
             </div>
           )}
         </SettingsCard>
+      ) : (
+        <Alert variant="warning">
+          Você não possui permissão para gerenciar acessos a dashboards deste usuário.
+        </Alert>
       )}
     </div>
   )

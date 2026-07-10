@@ -17,6 +17,7 @@
   --vscode-input-bg: #3c3c3c;
   --vscode-error: #f48771;
   --vscode-success: #89d185;
+  --vscode-warning: #cca700;
 }
 
 [data-theme='light'] {
@@ -31,6 +32,7 @@
   --vscode-input-bg: #ffffff;
   --vscode-error: #a1260d;
   --vscode-success: #388a34;
+  --vscode-warning: #bf8803;
 }
 
 @layer base {
@@ -63,5 +65,493 @@
     font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+@keyframes notification-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes notification-slide-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes notification-fade-right-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes notification-fade-right-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+@keyframes notification-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes notification-scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+@keyframes notification-slide-left-in {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes notification-slide-left-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+@keyframes notification-pill-expand {
+  from {
+    opacity: 0;
+    transform: scaleX(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes notification-pill-collapse {
+  from {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  to {
+    opacity: 0;
+    transform: scaleX(0.6);
+  }
+}
+
+@keyframes notification-border-grow {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes notification-shrink-width {
+  from {
+    opacity: 1;
+    max-width: 22rem;
+  }
+  to {
+    opacity: 0;
+    max-width: 0;
+  }
+}
+
+@keyframes notification-stack-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes notification-stack-shrink {
+  from {
+    opacity: 1;
+    max-height: 8rem;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes notification-bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes notification-bounce-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+  }
+}
+
+@keyframes notification-flip-in {
+  from {
+    opacity: 0;
+    transform: rotateX(-70deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0);
+  }
+}
+
+@keyframes notification-flip-out {
+  from {
+    opacity: 1;
+    transform: rotateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: rotateX(70deg);
+  }
+}
+
+@keyframes notification-blur-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes notification-blur-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(4px);
+  }
+}
+
+@keyframes notification-banner-down {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes notification-banner-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes notification-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes notification-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes notification-split-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes notification-split-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+}
+
+@keyframes notification-timeline-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes notification-timeline-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+
+@keyframes notification-split-text-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.notification-enter-slide-up {
+  animation: notification-slide-up 0.3s ease-out forwards;
+}
+
+.notification-exit-slide-down {
+  animation: notification-slide-down 0.25s ease-in forwards;
+}
+
+.notification-enter-fade-right {
+  animation: notification-fade-right-in 0.28s ease-out forwards;
+}
+
+.notification-exit-fade-right {
+  animation: notification-fade-right-out 0.22s ease-in forwards;
+}
+
+.notification-enter-scale {
+  animation: notification-scale-in 0.28s ease-out forwards;
+}
+
+.notification-exit-scale {
+  animation: notification-scale-out 0.22s ease-in forwards;
+}
+
+.notification-enter-slide-left {
+  animation: notification-slide-left-in 0.3s ease-out forwards;
+}
+
+.notification-exit-slide-left {
+  animation: notification-slide-left-out 0.25s ease-in forwards;
+}
+
+.notification-enter-pill-expand {
+  animation: notification-pill-expand 0.3s ease-out forwards;
+  transform-origin: center;
+}
+
+.notification-exit-pill-collapse {
+  animation: notification-pill-collapse 0.22s ease-in forwards;
+  transform-origin: center;
+}
+
+.notification-enter-border-grow {
+  animation: notification-border-grow 0.32s ease-out forwards;
+}
+
+.notification-exit-shrink-width {
+  animation: notification-shrink-width 0.25s ease-in forwards;
+  overflow: hidden;
+}
+
+.notification-enter-stack {
+  animation: notification-stack-in 0.3s ease-out forwards;
+}
+
+.notification-exit-stack-shrink {
+  animation: notification-stack-shrink 0.28s ease-in forwards;
+  overflow: hidden;
+}
+
+.notification-enter-bounce {
+  animation: notification-bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.notification-exit-bounce {
+  animation: notification-bounce-out 0.25s ease-in forwards;
+}
+
+.notification-enter-flip {
+  animation: notification-flip-in 0.35s ease-out forwards;
+  transform-origin: top center;
+}
+
+.notification-exit-flip {
+  animation: notification-flip-out 0.28s ease-in forwards;
+  transform-origin: top center;
+}
+
+.notification-enter-blur-panel {
+  animation: notification-blur-in 0.32s ease-out forwards;
+}
+
+.notification-exit-blur-panel {
+  animation: notification-blur-out 0.24s ease-in forwards;
+}
+
+.notification-enter-banner-down {
+  animation: notification-banner-down 0.3s ease-out forwards;
+}
+
+.notification-exit-banner-up {
+  animation: notification-banner-up 0.25s ease-in forwards;
+}
+
+.notification-enter-fade {
+  animation: notification-fade-in 0.25s ease-out forwards;
+}
+
+.notification-exit-fade {
+  animation: notification-fade-out 0.2s ease-in forwards;
+}
+
+.notification-enter-split {
+  animation: notification-split-in 0.3s ease-out forwards;
+}
+
+.notification-exit-split {
+  animation: notification-split-out 0.22s ease-in forwards;
+}
+
+.notification-enter-timeline {
+  animation: notification-timeline-in 0.3s ease-out forwards;
+}
+
+.notification-exit-timeline {
+  animation: notification-timeline-out 0.25s ease-in forwards;
+}
+
+.notification-split-icon {
+  animation: notification-split-in 0.28s ease-out forwards;
+}
+
+.notification-split-content {
+  animation: notification-split-text-in 0.28s ease-out 0.08s both;
+}
+
+.notification-timeline-item {
+  position: relative;
+}
+
+.notification-timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 1.35rem;
+  top: -0.65rem;
+  width: 2px;
+  height: 0.65rem;
+  background: var(--vscode-border);
+}
+
+.notification-timeline-item:first-child::before {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*='notification-enter-'] {
+    animation: notification-fade-in 0.15s ease-out forwards !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
+  }
+
+  [class*='notification-exit-'] {
+    animation: notification-fade-out 0.12s ease-in forwards !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
+  }
+
+  .notification-split-icon,
+  .notification-split-content {
+    animation: none !important;
   }
 }

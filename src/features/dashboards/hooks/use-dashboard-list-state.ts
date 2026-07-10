@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useCallback, useMemo, useState } from 'react'
+import { hasPermission } from '@/features/auth/rbac'
+import { DASHBOARD_RBAC } from '@/features/auth/rbac-requirements'
+import { useRbac } from '@/features/auth/use-rbac'
 import { listDashboards } from '@/features/dashboards/dashboard-api'
 import {
   applyDashboardFilters,
@@ -27,6 +30,10 @@ function readStoredViewMode(): DashboardViewMode {
 
 export function useDashboardListState() {
   const navigate = useNavigate()
+  const rbac = useRbac()
+  const canCreate = hasPermission(rbac, DASHBOARD_RBAC.create)
+  const canEdit = hasPermission(rbac, DASHBOARD_RBAC.update)
+  const canDelete = hasPermission(rbac, DASHBOARD_RBAC.delete)
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<DashboardFilters>(DEFAULT_DASHBOARD_FILTERS)
   const [draftFilters, setDraftFilters] = useState<DashboardFilters>(DEFAULT_DASHBOARD_FILTERS)
@@ -78,17 +85,19 @@ export function useDashboardListState() {
   }, [dashboardsQuery])
 
   const handleCreate = useCallback(() => {
+    if (!canCreate) return
     void navigate({ to: '/dashboards/novo' })
-  }, [navigate])
+  }, [canCreate, navigate])
 
   const handleEdit = useCallback(
     (dashboard: Dashboard) => {
+      if (!canEdit) return
       void navigate({
         to: '/dashboards/$dashboardId/editar',
         params: { dashboardId: String(dashboard.id) },
       })
     },
-    [navigate],
+    [canEdit, navigate],
   )
 
   return {
@@ -96,6 +105,9 @@ export function useDashboardListState() {
     filteredDashboards,
     totalCount,
     filteredCount,
+    canCreate,
+    canEdit,
+    canDelete,
     search,
     setSearch,
     filters,

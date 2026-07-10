@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { notify } from '@/features/notifications/notification-api'
 import { listRoleCatalog, updateUserAuthentication } from '@/features/user/user-permissions-api'
 import {
   areSameIdCollections,
@@ -192,10 +193,14 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
       setSelectedPermissionIds(savedPermissionIds)
       setSaveSuccess(true)
       setSaveError(null)
+      notify.success('Permissões salvas com sucesso.')
     },
     onError: (error) => {
       setSaveSuccess(false)
-      setSaveError(error instanceof Error ? error.message : 'Não foi possível salvar as permissões.')
+      const message =
+        error instanceof Error ? error.message : 'Não foi possível salvar as permissões.'
+      setSaveError(message)
+      notify.error(message)
     },
   })
 

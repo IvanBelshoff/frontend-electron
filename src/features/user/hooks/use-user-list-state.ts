@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useCallback, useMemo, useState } from 'react'
+import { hasPermission } from '@/features/auth/rbac'
+import { USER_RBAC } from '@/features/auth/rbac-requirements'
+import { useRbac } from '@/features/auth/use-rbac'
 import { listUsers } from '@/features/user/user-api'
 import {
   buildUserListQueryParams,
@@ -24,6 +27,10 @@ function readStoredViewMode(): UserViewMode {
 
 export function useUserListState() {
   const navigate = useNavigate()
+  const rbac = useRbac()
+  const canCreate = hasPermission(rbac, USER_RBAC.create)
+  const canEdit = hasPermission(rbac, USER_RBAC.update)
+  const canDelete = hasPermission(rbac, USER_RBAC.delete)
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<UserFilters>(DEFAULT_USER_FILTERS)
   const [draftFilters, setDraftFilters] = useState<UserFilters>(DEFAULT_USER_FILTERS)
@@ -75,23 +82,34 @@ export function useUserListState() {
   }, [usersQuery])
 
   const handleCreate = useCallback(() => {
+    if (!canCreate) {
+      return
+    }
+
     void navigate({ to: '/usuarios/criar' })
-  }, [navigate])
+  }, [canCreate, navigate])
 
   const handleEdit = useCallback(
     (user: ManagedUser) => {
+      if (!canEdit) {
+        return
+      }
+
       void navigate({
         to: '/usuarios/$userId/editar',
         params: { userId: String(user.id) },
       })
     },
-    [navigate],
+    [canEdit, navigate],
   )
 
   return {
     filteredUsers,
     totalCount,
     filteredCount,
+    canCreate,
+    canEdit,
+    canDelete,
     search,
     setSearch,
     filters,

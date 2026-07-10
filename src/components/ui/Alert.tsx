@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import type { HTMLAttributes } from 'react'
 
-type AlertVariant = 'error' | 'success' | 'info'
+type AlertVariant = 'error' | 'success' | 'info' | 'warning'
 
 type AlertProps = HTMLAttributes<HTMLDivElement> & {
   variant?: AlertVariant
@@ -11,6 +11,7 @@ const variantClasses: Record<AlertVariant, string> = {
   error: 'border-vscode-error/40 bg-vscode-error/10 text-vscode-error',
   success: 'border-vscode-success/40 bg-vscode-success/10 text-vscode-success',
   info: 'border-vscode-accent/40 bg-vscode-accent/10 text-vscode-text',
+  warning: 'border-vscode-warning/40 bg-vscode-warning/10 text-vscode-warning',
 }
 
 export default function Alert({

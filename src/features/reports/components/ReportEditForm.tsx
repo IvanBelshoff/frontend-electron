@@ -32,6 +32,7 @@ type ReportEditFormEditProps = ReportEditFormBaseProps & {
   saveSuccess: boolean
   onSave: () => void
   onCancel: () => void
+  canUpdate?: boolean
 }
 
 type ReportEditFormCreateProps = ReportEditFormBaseProps & {
@@ -330,7 +331,8 @@ export default function ReportEditForm(props: ReportEditFormProps) {
               </Button>
             </div>
           ) : (
-            props.isDirty && (
+            props.isDirty &&
+            (props.mode === 'create' || (props.canUpdate ?? true)) && (
               <div className="flex flex-wrap gap-2 border-t border-vscode-border pt-4">
                 <Button type="button" loading={isSaving} onClick={props.onSave}>
                   Salvar

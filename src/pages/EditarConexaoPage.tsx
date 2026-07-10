@@ -6,6 +6,9 @@ import SettingsInfoGrid from '@/components/settings/SettingsInfoGrid'
 import { InfoIcon } from '@/components/settings/SettingsIcons'
 import Alert from '@/components/ui/Alert'
 import IconButton from '@/components/ui/IconButton'
+import { hasPermission } from '@/features/auth/rbac'
+import { CONNECTION_RBAC } from '@/features/auth/rbac-requirements'
+import { useRbac } from '@/features/auth/use-rbac'
 import ConnectionDeleteConfirmDialog from '@/features/connections/components/ConnectionDeleteConfirmDialog'
 import ConnectionForm from '@/features/connections/components/ConnectionForm'
 import ConnectionTestButton from '@/features/connections/components/ConnectionTestButton'
@@ -18,6 +21,9 @@ import { TrashIcon } from '@/features/dashboards/icons/DashboardIcons'
 export default function EditarConexaoPage() {
   const { conexaoId: conexaoIdParam } = useParams({ strict: false })
   const connectionId = Number(conexaoIdParam)
+  const rbac = useRbac()
+  const canUpdate = hasPermission(rbac, CONNECTION_RBAC.update)
+  const canDelete = hasPermission(rbac, CONNECTION_RBAC.delete)
 
   const {
     connection,
@@ -101,13 +107,16 @@ export default function EditarConexaoPage() {
             <IconButton
               icon={<TrashIcon className="h-4 w-4" />}
               label="Excluir conexão"
-              title="Excluir conexão"
+              title={
+                canDelete ? 'Excluir conexão' : 'Você não possui permissão para excluir conexões.'
+              }
               onClick={() => {
                 if (connection) {
                   deleteDialog.requestDelete(connection)
                 }
               }}
-              className="h-9 w-9 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
+              disabled={!canDelete}
+              className="h-9 w-9 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-40"
             />
           </div>
         </header>
@@ -138,6 +147,7 @@ export default function EditarConexaoPage() {
               saveSuccess={saveSuccess}
               onSave={() => void saveEdit()}
               onCancel={cancelEdit}
+              canUpdate={canUpdate}
             />
 
             <SettingsCard>

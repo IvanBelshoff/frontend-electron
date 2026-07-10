@@ -23,6 +23,9 @@ export default function GerenciarConexoesPage() {
     refresh,
     handleCreate,
     handleEdit,
+    canCreate,
+    canEdit,
+    canDelete,
   } = useConnectionListState()
 
   const deleteDialog = useConnectionDeleteDialog()
@@ -46,6 +49,7 @@ export default function GerenciarConexoesPage() {
         filters={filters}
         onFiltersChange={setFilters}
         onCreate={handleCreate}
+        canCreate={canCreate}
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto pt-4">
@@ -61,6 +65,8 @@ export default function GerenciarConexoesPage() {
             onEdit={handleEdit}
             onDelete={deleteDialog.requestDelete}
             onClearFilters={clearFilters}
+            canEdit={canEdit}
+            canDelete={canDelete}
           />
         )}
       </div>

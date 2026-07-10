@@ -8,6 +8,7 @@ type DashboardEditHeaderProps = {
   isRefreshing: boolean
   onRefresh: () => void
   onDelete: () => void
+  canDelete?: boolean
 }
 
 export default function DashboardEditHeader({
@@ -15,6 +16,7 @@ export default function DashboardEditHeader({
   isRefreshing,
   onRefresh,
   onDelete,
+  canDelete = true,
 }: DashboardEditHeaderProps) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-3">
@@ -45,9 +47,12 @@ export default function DashboardEditHeader({
         <IconButton
           icon={<TrashIcon className="h-4 w-4" />}
           label="Excluir dashboard"
-          title="Excluir dashboard"
+          title={
+            canDelete ? 'Excluir dashboard' : 'Você não possui permissão para excluir dashboards.'
+          }
           onClick={onDelete}
-          className="h-9 w-9 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
+          disabled={!canDelete}
+          className="h-9 w-9 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-40"
         />
       </div>
     </header>

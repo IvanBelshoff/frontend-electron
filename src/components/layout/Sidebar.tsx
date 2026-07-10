@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   ChartBarIcon,
   ChevronLeftIcon,
@@ -16,21 +16,60 @@ import SidebarNavItem from '@/components/layout/SidebarNavItem'
 import SidebarProfile from '@/components/layout/SidebarProfile'
 import { readSidebarExpanded, writeSidebarExpanded } from '@/components/layout/sidebar-utils'
 import { useAuth } from '@/features/auth/use-auth'
+import { hasRole } from '@/features/auth/rbac'
+import {
+  CONNECTION_RBAC,
+  DASHBOARD_RBAC,
+  REPORT_RBAC,
+  USER_RBAC,
+} from '@/features/auth/rbac-requirements'
 import { useNavigate } from '@tanstack/react-router'
 
-const MAIN_NAV = [
+type MainNavItem = {
+  to: string
+  label: string
+  icon: ReactNode
+  exact?: boolean
+  requiredRole?: string
+}
+
+const MAIN_NAV: MainNavItem[] = [
   { to: '/', label: 'Meus Dashboards', icon: <LayoutDashboardIcon />, exact: true },
   { to: '/relatorios', label: 'Meus Relatórios', icon: <MyReportsIcon />, exact: true },
-  { to: '/dashboards', label: 'Gerenciar Dashboards', icon: <ChartBarIcon /> },
-  { to: '/relatorios/gerenciar', label: 'Gerenciar Relatórios', icon: <TableChartIcon /> },
-  { to: '/conexoes', label: 'Gerenciar Conexões', icon: <DatabaseIcon /> },
-  { to: '/usuarios', label: 'Gerenciar Usuários', icon: <UsersIcon /> },
-] as const
+  {
+    to: '/dashboards',
+    label: 'Gerenciar Dashboards',
+    icon: <ChartBarIcon />,
+    requiredRole: DASHBOARD_RBAC.menuRole,
+  },
+  {
+    to: '/relatorios/gerenciar',
+    label: 'Gerenciar Relatórios',
+    icon: <TableChartIcon />,
+    requiredRole: REPORT_RBAC.menuRole,
+  },
+  {
+    to: '/conexoes',
+    label: 'Gerenciar Conexões',
+    icon: <DatabaseIcon />,
+    requiredRole: CONNECTION_RBAC.menuRole,
+  },
+  {
+    to: '/usuarios',
+    label: 'Gerenciar Usuários',
+    icon: <UsersIcon />,
+    requiredRole: USER_RBAC.menuRole,
+  },
+]
 
 export default function Sidebar() {
-  const { logout } = useAuth()
+  const { logout, rbac } = useAuth()
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState(readSidebarExpanded)
+
+  const visibleNavItems = MAIN_NAV.filter(
+    (item) => !item.requiredRole || hasRole(rbac, item.requiredRole),
+  )
 
   function toggleExpanded() {
     setExpanded((current) => {
@@ -76,7 +115,7 @@ export default function Sidebar() {
         className={clsx('flex flex-1 flex-col gap-1 py-1', expanded ? 'px-2' : 'px-1')}
         aria-label="Navegação principal"
       >
-        {MAIN_NAV.map((item) => (
+        {visibleNavItems.map((item) => (
           <SidebarNavItem
             key={item.to}
             to={item.to}

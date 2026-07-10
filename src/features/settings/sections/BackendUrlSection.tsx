@@ -25,7 +25,7 @@ export default function BackendUrlSection() {
   } = useBackendUrlSettings()
 
   return (
-    <SettingsCard>
+    <SettingsCard className="h-full">
       <SettingsCardHeader
         icon={<LinkIcon />}
         title="URL do backend"

@@ -14,6 +14,7 @@ type DashboardManagementHeaderProps = {
   viewMode: DashboardViewMode
   onViewModeChange: (mode: DashboardViewMode) => void
   onCreate: () => void
+  canCreate?: boolean
 }
 
 export default function DashboardManagementHeader({
@@ -28,6 +29,7 @@ export default function DashboardManagementHeader({
   viewMode,
   onViewModeChange,
   onCreate,
+  canCreate = true,
 }: DashboardManagementHeaderProps) {
   return (
     <header className="shrink-0 space-y-4 border-b border-vscode-border bg-vscode-bg pb-4">
@@ -46,6 +48,7 @@ export default function DashboardManagementHeader({
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
         onCreate={onCreate}
+        canCreate={canCreate}
       />
     </header>
   )

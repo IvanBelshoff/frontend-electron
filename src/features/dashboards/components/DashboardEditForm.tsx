@@ -29,6 +29,7 @@ type DashboardEditFormEditProps = DashboardEditFormBaseProps & {
   saveSuccess: boolean
   onSave: () => void
   onCancel: () => void
+  canUpdate?: boolean
 }
 
 type DashboardEditFormCreateProps = DashboardEditFormBaseProps & {
@@ -43,6 +44,7 @@ export default function DashboardEditForm(props: DashboardEditFormProps) {
   const { draft, defaultIcon, updateDraft, fieldErrors, isSaving } = props
   const [iconPickerOpen, setIconPickerOpen] = useState(false)
   const isCreateMode = props.mode === 'create'
+  const canUpdate = isCreateMode || (props.mode !== 'create' ? (props.canUpdate ?? true) : true)
 
   return (
     <>
@@ -56,6 +58,7 @@ export default function DashboardEditForm(props: DashboardEditFormProps) {
                 onChange={(event) => updateDraft({ nome: event.target.value })}
                 hasError={Boolean(fieldErrors.nome)}
                 placeholder={isCreateMode ? 'Ex.: Comercial - Receita mensal' : undefined}
+                disabled={!canUpdate}
               />
               {fieldErrors.nome && (
                 <p className="text-xs text-vscode-error">{fieldErrors.nome}</p>
@@ -196,7 +199,8 @@ export default function DashboardEditForm(props: DashboardEditFormProps) {
               </Button>
             </div>
           ) : (
-            props.isDirty && (
+            props.isDirty &&
+            canUpdate && (
               <div className="flex flex-wrap gap-2 border-t border-vscode-border pt-4">
                 <Button type="button" loading={isSaving} onClick={props.onSave}>
                   Salvar

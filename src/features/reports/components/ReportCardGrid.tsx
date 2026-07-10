@@ -7,6 +7,8 @@ type ReportCardGridProps = {
   onEdit: (report: Report) => void
   onDelete: (report: Report) => void
   onClearFilters: () => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 export default function ReportCardGrid({
@@ -14,6 +16,8 @@ export default function ReportCardGrid({
   onEdit,
   onDelete,
   onClearFilters,
+  canEdit = true,
+  canDelete = true,
 }: ReportCardGridProps) {
   if (reports.length === 0) {
     return <ReportEmptyState onClearFilters={onClearFilters} />
@@ -23,7 +27,13 @@ export default function ReportCardGrid({
     <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,18rem),1fr))]">
       {reports.map((report) => (
         <div key={report.id} className="min-w-0">
-          <ReportCard report={report} onEdit={onEdit} onDelete={onDelete} />
+          <ReportCard
+            report={report}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            canEdit={canEdit}
+            canDelete={canDelete}
+          />
         </div>
       ))}
     </div>

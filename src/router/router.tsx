@@ -7,6 +7,13 @@ import {
   redirect,
 } from '@tanstack/react-router'
 import { authStore } from '@/features/auth/auth-store'
+import {
+  CONNECTION_RBAC,
+  DASHBOARD_RBAC,
+  REPORT_RBAC,
+  USER_RBAC,
+} from '@/features/auth/rbac-requirements'
+import { requirePermission, requireRole } from '@/features/auth/route-guards'
 import AppShell from '@/layouts/AppShell'
 import ConfiguracoesPage from '@/pages/ConfiguracoesPage'
 import CriarConexaoPage from '@/pages/CriarConexaoPage'
@@ -56,18 +63,29 @@ const gerenciarDashboardsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/dashboards',
   component: GerenciarDashboardsPage,
+  beforeLoad: () => {
+    requireRole(DASHBOARD_RBAC.menuRole)
+  },
 })
 
 const criarDashboardRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/dashboards/novo',
   component: CriarDashboardPage,
+  beforeLoad: () => {
+    requireRole(DASHBOARD_RBAC.menuRole)
+    requirePermission(DASHBOARD_RBAC.create, '/dashboards')
+  },
 })
 
 const editarDashboardRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/dashboards/$dashboardId/editar',
   component: EditarDashboardPage,
+  beforeLoad: () => {
+    requireRole(DASHBOARD_RBAC.menuRole)
+    requirePermission(DASHBOARD_RBAC.update, '/dashboards')
+  },
 })
 
 const visualizarDashboardRoute = createRoute({
@@ -92,54 +110,87 @@ const gerenciarRelatoriosRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/relatorios/gerenciar',
   component: GerenciarRelatoriosPage,
+  beforeLoad: () => {
+    requireRole(REPORT_RBAC.menuRole)
+  },
 })
 
 const criarRelatorioRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/relatorios/novo',
   component: CriarRelatorioPage,
+  beforeLoad: () => {
+    requireRole(REPORT_RBAC.menuRole)
+    requirePermission(REPORT_RBAC.create, '/relatorios/gerenciar')
+  },
 })
 
 const editarRelatorioRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/relatorios/$relatorioId/editar',
   component: EditarRelatorioPage,
+  beforeLoad: () => {
+    requireRole(REPORT_RBAC.menuRole)
+    requirePermission(REPORT_RBAC.update, '/relatorios/gerenciar')
+  },
 })
 
 const gerenciarConexoesRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/conexoes',
   component: GerenciarConexoesPage,
+  beforeLoad: () => {
+    requireRole(CONNECTION_RBAC.menuRole)
+  },
 })
 
 const criarConexaoRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/conexoes/nova',
   component: CriarConexaoPage,
+  beforeLoad: () => {
+    requireRole(CONNECTION_RBAC.menuRole)
+    requirePermission(CONNECTION_RBAC.create, '/conexoes')
+  },
 })
 
 const editarConexaoRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/conexoes/$conexaoId/editar',
   component: EditarConexaoPage,
+  beforeLoad: () => {
+    requireRole(CONNECTION_RBAC.menuRole)
+    requirePermission(CONNECTION_RBAC.update, '/conexoes')
+  },
 })
 
 const gerenciarUsuariosRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/usuarios',
   component: GerenciarUsuariosPage,
+  beforeLoad: () => {
+    requireRole(USER_RBAC.menuRole)
+  },
 })
 
 const criarUsuarioRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/usuarios/criar',
   component: CriarUsuarioPage,
+  beforeLoad: () => {
+    requireRole(USER_RBAC.menuRole)
+    requirePermission(USER_RBAC.create, '/usuarios')
+  },
 })
 
 const editarUsuarioRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/usuarios/$userId/editar',
   component: EditarUsuarioPage,
+  beforeLoad: () => {
+    requireRole(USER_RBAC.menuRole)
+    requirePermission(USER_RBAC.update, '/usuarios')
+  },
 })
 
 const configuracoesRoute = createRoute({

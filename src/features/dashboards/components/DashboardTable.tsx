@@ -18,6 +18,8 @@ type DashboardTableProps = {
   onEdit: (dashboard: Dashboard) => void
   onDelete: (dashboard: Dashboard) => void
   onClearFilters: () => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 const TABLE_COLUMN_COUNT = 6
@@ -50,6 +52,8 @@ export default function DashboardTable({
   onEdit,
   onDelete,
   onClearFilters,
+  canEdit = true,
+  canDelete = true,
 }: DashboardTableProps) {
   const [expandedRowIds, setExpandedRowIds] = useState<number[]>([])
 
@@ -135,16 +139,26 @@ export default function DashboardTable({
                       <IconButton
                         icon={<PencilIcon />}
                         label={`Editar ${dashboard.nome}`}
-                        title="Editar"
+                        title={
+                          canEdit
+                            ? 'Editar'
+                            : 'Você não possui permissão para editar dashboards.'
+                        }
                         onClick={() => onEdit(dashboard)}
-                        className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300"
+                        disabled={!canEdit}
+                        className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300 disabled:opacity-40"
                       />
                       <IconButton
                         icon={<TrashIcon />}
                         label={`Excluir ${dashboard.nome}`}
-                        title="Excluir"
+                        title={
+                          canDelete
+                            ? 'Excluir'
+                            : 'Você não possui permissão para excluir dashboards.'
+                        }
                         onClick={() => onDelete(dashboard)}
-                        className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
+                        disabled={!canDelete}
+                        className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-40"
                       />
                     </div>
                   </td>

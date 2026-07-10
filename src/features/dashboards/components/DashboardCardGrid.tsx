@@ -7,6 +7,8 @@ type DashboardCardGridProps = {
   onEdit: (dashboard: Dashboard) => void
   onDelete: (dashboard: Dashboard) => void
   onClearFilters: () => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 export default function DashboardCardGrid({
@@ -14,6 +16,8 @@ export default function DashboardCardGrid({
   onEdit,
   onDelete,
   onClearFilters,
+  canEdit = true,
+  canDelete = true,
 }: DashboardCardGridProps) {
   if (dashboards.length === 0) {
     return <DashboardEmptyState onClearFilters={onClearFilters} />
@@ -27,6 +31,8 @@ export default function DashboardCardGrid({
             dashboard={dashboard}
             onEdit={onEdit}
             onDelete={onDelete}
+            canEdit={canEdit}
+            canDelete={canDelete}
           />
         </div>
       ))}

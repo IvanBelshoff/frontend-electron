@@ -17,9 +17,17 @@ type UserCardProps = {
   user: ManagedUser
   onEdit: (user: ManagedUser) => void
   onDelete: (user: ManagedUser) => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
-export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
+export default function UserCard({
+  user,
+  onEdit,
+  onDelete,
+  canEdit = true,
+  canDelete = true,
+}: UserCardProps) {
   const [expanded, setExpanded] = useState(false)
   const displayName = getUserDisplayName(user)
 
@@ -52,16 +60,22 @@ export default function UserCard({ user, onEdit, onDelete }: UserCardProps) {
           <IconButton
             icon={<PencilIcon />}
             label={`Editar ${displayName}`}
-            title="Editar"
+            title={
+              canEdit ? 'Editar' : 'Você não possui permissão para editar usuários.'
+            }
             onClick={() => onEdit(user)}
-            className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300"
+            disabled={!canEdit}
+            className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300 disabled:opacity-40"
           />
           <IconButton
             icon={<TrashIcon />}
             label={`Excluir ${displayName}`}
-            title="Excluir"
+            title={
+              canDelete ? 'Excluir' : 'Você não possui permissão para excluir usuários.'
+            }
             onClick={() => onDelete(user)}
-            className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300"
+            disabled={!canDelete}
+            className="h-8 w-8 rounded-full border border-vscode-border text-red-400 hover:border-red-400/40 hover:bg-red-400/10 hover:text-red-300 disabled:opacity-40"
           />
           <IconButton
             icon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}

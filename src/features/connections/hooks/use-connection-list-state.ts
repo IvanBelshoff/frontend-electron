@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useCallback, useMemo, useState } from 'react'
+import { hasPermission } from '@/features/auth/rbac'
+import { CONNECTION_RBAC } from '@/features/auth/rbac-requirements'
+import { useRbac } from '@/features/auth/use-rbac'
 import { listConnections } from '@/features/connections/connection-api'
 import {
   applyConnectionFilters,
@@ -14,6 +17,10 @@ const CONNECTIONS_FETCH_LIMIT = 100
 
 export function useConnectionListState() {
   const navigate = useNavigate()
+  const rbac = useRbac()
+  const canCreate = hasPermission(rbac, CONNECTION_RBAC.create)
+  const canEdit = hasPermission(rbac, CONNECTION_RBAC.update)
+  const canDelete = hasPermission(rbac, CONNECTION_RBAC.delete)
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<ConnectionFilters>(DEFAULT_CONNECTION_FILTERS)
 
@@ -42,17 +49,19 @@ export function useConnectionListState() {
   }, [connectionsQuery])
 
   const handleCreate = useCallback(() => {
+    if (!canCreate) return
     void navigate({ to: '/conexoes/nova' })
-  }, [navigate])
+  }, [canCreate, navigate])
 
   const handleEdit = useCallback(
     (connection: Connection) => {
+      if (!canEdit) return
       void navigate({
         to: '/conexoes/$conexaoId/editar',
         params: { conexaoId: String(connection.id) },
       })
     },
-    [navigate],
+    [canEdit, navigate],
   )
 
   return {
@@ -60,6 +69,9 @@ export function useConnectionListState() {
     filteredConnections,
     totalCount,
     filteredCount,
+    canCreate,
+    canEdit,
+    canDelete,
     search,
     setSearch,
     filters,

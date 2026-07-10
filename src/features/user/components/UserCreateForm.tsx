@@ -24,6 +24,7 @@ type UserCreateFormProps = {
   createdUserId: number | null
   onSaveToList: () => void
   onSaveAndEdit: () => void
+  canCopyFromUser?: boolean
 }
 
 export default function UserCreateForm({
@@ -38,6 +39,7 @@ export default function UserCreateForm({
   createdUserId,
   onSaveToList,
   onSaveAndEdit,
+  canCopyFromUser = true,
 }: UserCreateFormProps) {
   return (
     <SettingsCard>
@@ -126,7 +128,7 @@ export default function UserCreateForm({
               <SettingsSelect
                 id="userCreateCopyPermissions"
                 value={draft.copyPermissionsFromId ?? ''}
-                disabled={isLoadingUserOptions || isSaving}
+                disabled={!canCopyFromUser || isLoadingUserOptions || isSaving}
                 onChange={(event) => {
                   const value = event.target.value
                   updateDraft({
@@ -147,7 +149,7 @@ export default function UserCreateForm({
               <SettingsSelect
                 id="userCreateCopyDashboards"
                 value={draft.copyDashboardsFromId ?? ''}
-                disabled={isLoadingUserOptions || isSaving}
+                disabled={!canCopyFromUser || isLoadingUserOptions || isSaving}
                 onChange={(event) => {
                   const value = event.target.value
                   updateDraft({
@@ -168,7 +170,7 @@ export default function UserCreateForm({
               <SettingsSelect
                 id="userCreateCopyRelatorios"
                 value={draft.copyRelatoriosFromId ?? ''}
-                disabled={isLoadingUserOptions || isSaving}
+                disabled={!canCopyFromUser || isLoadingUserOptions || isSaving}
                 onChange={(event) => {
                   const value = event.target.value
                   updateDraft({

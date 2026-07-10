@@ -1,5 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router'
 import Alert from '@/components/ui/Alert'
+import { hasAnyPermission, hasPermission, hasRole } from '@/features/auth/rbac'
+import { USER_RBAC } from '@/features/auth/rbac-requirements'
+import { useRbac } from '@/features/auth/use-rbac'
 import UserDeleteConfirmDialog from '@/features/user/components/UserDeleteConfirmDialog'
 import UserEditHeader from '@/features/user/components/UserEditHeader'
 import UserAccessTab from '@/features/user/components/UserAccessTab'
@@ -15,6 +18,14 @@ import { ApiError } from '@/features/auth/auth-types'
 export default function EditarUsuarioPage() {
   const { userId: userIdParam } = useParams({ strict: false })
   const userId = Number(userIdParam)
+  const rbac = useRbac()
+
+  const canUpdate = hasPermission(rbac, USER_RBAC.update)
+  const canDelete = hasPermission(rbac, USER_RBAC.delete)
+  const canManagePermissions = hasRole(rbac, USER_RBAC.permissionsTabRole)
+  const canManageDashboardAccess = hasPermission(rbac, USER_RBAC.grantDashboardAccess)
+  const canManageReportAccess = hasPermission(rbac, USER_RBAC.grantReportAccess)
+  const canManageAccess = hasAnyPermission(rbac, [...USER_RBAC.grantAccessPermissions])
 
   const {
     user,
@@ -72,9 +83,15 @@ export default function EditarUsuarioPage() {
               deleteDialog.requestDelete(user)
             }
           }}
+          canDelete={canDelete}
         />
 
-        <UserEditTabs activeTab={activeTab} onChange={setActiveTab} />
+        <UserEditTabs
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          hiddenTabs={canManagePermissions ? [] : ['permissions']}
+          disabledTabs={canManageAccess ? [] : ['access']}
+        />
       </div>
 
       <div
@@ -109,13 +126,25 @@ export default function EditarUsuarioPage() {
               saveSuccess={saveSuccess}
               onSave={() => void saveEdit()}
               onCancel={cancelEdit}
+              canUpdate={canUpdate}
             />
             <UserInfoSection user={user} />
           </div>
         ) : activeTab === 'permissions' ? (
           <UserPermissionsTab user={user} />
         ) : activeTab === 'access' ? (
-          <UserAccessTab user={user} enabled={activeTab === 'access'} />
+          canManageAccess ? (
+            <UserAccessTab
+              user={user}
+              enabled={activeTab === 'access'}
+              canManageDashboardAccess={canManageDashboardAccess}
+              canManageReportAccess={canManageReportAccess}
+            />
+          ) : (
+            <Alert variant="warning">
+              Você não possui permissão para gerenciar acessos deste usuário.
+            </Alert>
+          )
         ) : null}
       </div>
 

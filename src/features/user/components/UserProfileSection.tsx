@@ -17,6 +17,7 @@ type UserProfileSectionProps = {
   saveSuccess: boolean
   onSave: () => void
   onCancel: () => void
+  canUpdate?: boolean
 }
 
 export default function UserProfileSection({
@@ -29,6 +30,7 @@ export default function UserProfileSection({
   saveSuccess,
   onSave,
   onCancel,
+  canUpdate = true,
 }: UserProfileSectionProps) {
   return (
     <SettingsCard>
@@ -43,6 +45,7 @@ export default function UserProfileSection({
                 value={draft.nome}
                 onChange={(event) => updateDraft({ nome: event.target.value })}
                 hasError={Boolean(fieldErrors.nome)}
+                disabled={!canUpdate}
               />
               {fieldErrors.nome && (
                 <p className="text-xs text-vscode-error">{fieldErrors.nome}</p>
@@ -55,6 +58,7 @@ export default function UserProfileSection({
                 value={draft.sobrenome}
                 onChange={(event) => updateDraft({ sobrenome: event.target.value })}
                 hasError={Boolean(fieldErrors.sobrenome)}
+                disabled={!canUpdate}
               />
               {fieldErrors.sobrenome && (
                 <p className="text-xs text-vscode-error">{fieldErrors.sobrenome}</p>
@@ -69,6 +73,7 @@ export default function UserProfileSection({
               value={draft.email}
               onChange={(event) => updateDraft({ email: event.target.value })}
               hasError={Boolean(fieldErrors.email)}
+              disabled={!canUpdate}
             />
             {fieldErrors.email && (
               <p className="text-xs text-vscode-error">{fieldErrors.email}</p>
@@ -80,7 +85,8 @@ export default function UserProfileSection({
               type="checkbox"
               checked={draft.bloqueado}
               onChange={(event) => updateDraft({ bloqueado: event.target.checked })}
-              className="h-4 w-4 rounded border-vscode-border accent-vscode-accent"
+              disabled={!canUpdate}
+              className="h-4 w-4 rounded border-vscode-border accent-vscode-accent disabled:opacity-50"
             />
             Bloqueado
           </label>
@@ -91,7 +97,7 @@ export default function UserProfileSection({
             <Alert variant="success">Usuário salvo com sucesso.</Alert>
           )}
 
-          {isDirty && (
+          {isDirty && canUpdate && (
             <div className="flex flex-wrap gap-2 border-t border-vscode-border pt-4">
               <Button type="button" loading={isSaving} onClick={onSave}>
                 Salvar
