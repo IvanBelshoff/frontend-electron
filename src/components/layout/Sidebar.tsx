@@ -13,6 +13,7 @@ import {
   UsersIcon,
 } from '@/components/layout/SidebarIcons'
 import SidebarNavItem from '@/components/layout/SidebarNavItem'
+import type { SidebarNavMatchPattern } from '@/components/layout/sidebar-nav-utils'
 import SidebarProfile from '@/components/layout/SidebarProfile'
 import { readSidebarExpanded, writeSidebarExpanded } from '@/components/layout/sidebar-utils'
 import { useAuth } from '@/features/auth/use-auth'
@@ -30,35 +31,55 @@ type MainNavItem = {
   label: string
   icon: ReactNode
   exact?: boolean
+  alsoActiveOn?: SidebarNavMatchPattern[]
   requiredRole?: string
 }
 
 const MAIN_NAV: MainNavItem[] = [
-  { to: '/', label: 'Meus Dashboards', icon: <LayoutDashboardIcon />, exact: true },
-  { to: '/relatorios', label: 'Meus Relatórios', icon: <MyReportsIcon />, exact: true },
+  {
+    to: '/',
+    label: 'Meus Dashboards',
+    icon: <LayoutDashboardIcon />,
+    exact: true,
+    alsoActiveOn: [/^\/dashboards\/[^/]+\/visualizar$/],
+  },
+  {
+    to: '/relatorios',
+    label: 'Meus Relatórios',
+    icon: <MyReportsIcon />,
+    exact: true,
+    alsoActiveOn: [/^\/relatorios\/[^/]+\/executar$/],
+  },
   {
     to: '/dashboards',
     label: 'Gerenciar Dashboards',
     icon: <ChartBarIcon />,
     requiredRole: DASHBOARD_RBAC.menuRole,
+    exact: true,
+    alsoActiveOn: ['/dashboards/novo', /^\/dashboards\/[^/]+\/editar$/],
   },
   {
     to: '/relatorios/gerenciar',
     label: 'Gerenciar Relatórios',
     icon: <TableChartIcon />,
     requiredRole: REPORT_RBAC.menuRole,
+    alsoActiveOn: ['/relatorios/novo', /^\/relatorios\/[^/]+\/editar$/],
   },
   {
     to: '/conexoes',
     label: 'Gerenciar Conexões',
     icon: <DatabaseIcon />,
     requiredRole: CONNECTION_RBAC.menuRole,
+    exact: true,
+    alsoActiveOn: ['/conexoes/nova', /^\/conexoes\/[^/]+\/editar$/],
   },
   {
     to: '/usuarios',
     label: 'Gerenciar Usuários',
     icon: <UsersIcon />,
     requiredRole: USER_RBAC.menuRole,
+    exact: true,
+    alsoActiveOn: ['/usuarios/criar', /^\/usuarios\/[^/]+\/editar$/],
   },
 ]
 
@@ -121,7 +142,8 @@ export default function Sidebar() {
             to={item.to}
             label={item.label}
             icon={item.icon}
-            exact={'exact' in item ? item.exact : false}
+            exact={item.exact}
+            alsoActiveOn={item.alsoActiveOn}
             expanded={expanded}
           />
         ))}

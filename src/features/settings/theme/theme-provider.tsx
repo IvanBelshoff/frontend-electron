@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { DEFAULT_ACCENT_COLOR } from '@/features/settings/accent-colors'
-import { computeAccentHover, normalizeHexColor } from '@/features/settings/theme/accent-utils'
+import { computeAccentHover, hexToRgbChannels, normalizeHexColor } from '@/features/settings/theme/accent-utils'
 import type { ResolvedTheme, ThemePreference } from '@/features/settings/settings-types'
 
 const THEME_STORAGE_KEY = 'datadash.theme'
@@ -69,9 +69,14 @@ function applyThemeToDocument(theme: ThemePreference, accentColor: string) {
 
   document.documentElement.dataset.theme = resolved
   document.documentElement.style.setProperty('--vscode-accent', accentColor)
+  document.documentElement.style.setProperty('--vscode-accent-rgb', hexToRgbChannels(accentColor))
   document.documentElement.style.setProperty(
     '--vscode-accent-hover',
     computeAccentHover(accentColor, resolved),
+  )
+  document.documentElement.style.setProperty(
+    '--vscode-accent-hover-rgb',
+    hexToRgbChannels(computeAccentHover(accentColor, resolved)),
   )
 
   return resolved

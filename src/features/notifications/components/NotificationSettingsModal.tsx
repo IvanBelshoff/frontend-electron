@@ -47,32 +47,36 @@ export default function NotificationSettingsModal({
       className="!max-w-5xl"
       closeAriaLabel="Fechar personalização de notificações"
     >
-      <div className="max-h-[75vh] space-y-6 overflow-y-auto pr-1">
-        <section className="space-y-3 rounded border border-vscode-border bg-vscode-bg p-4">
-          <div>
-            <h4 className="text-sm font-semibold text-vscode-text">Posição na tela</h4>
-            <p className="mt-1 text-xs text-vscode-text-muted">
-              Onde as notificações devem aparecer por padrão.
-            </p>
+      <div className="flex max-h-[min(75vh,48rem)] flex-col gap-4">
+        <section className="shrink-0 rounded border border-vscode-border bg-vscode-bg p-3">
+          <div className="space-y-3 text-center">
+            <div>
+              <h4 className="text-sm font-semibold text-vscode-text">Posição na tela</h4>
+              <p className="mt-0.5 text-xs text-vscode-text-muted">
+                Onde as notificações devem aparecer por padrão.
+              </p>
+            </div>
+            <NotificationPositionPicker
+              value={selectedPlacement}
+              onChange={handlePlacementChange}
+            />
           </div>
-          <NotificationPositionPicker
-            value={selectedPlacement}
-            onChange={handlePlacementChange}
-          />
         </section>
 
-        <section className="space-y-3">
-          <div>
+        <section className="flex min-h-0 flex-1 flex-col gap-3">
+          <div className="shrink-0">
             <h4 className="text-sm font-semibold text-vscode-text">Estilo visual</h4>
-            <p className="mt-1 text-xs text-vscode-text-muted">
+            <p className="mt-0.5 text-xs text-vscode-text-muted">
               Estilo usado em todas as notificações do app. Teste cada opção antes de selecionar.
             </p>
           </div>
-          <NotificationStylePicker
-            selectedStyle={selectedStyle}
-            selectedPlacement={selectedPlacement}
-            onStyleChange={handleStyleChange}
-          />
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <NotificationStylePicker
+              selectedStyle={selectedStyle}
+              selectedPlacement={selectedPlacement}
+              onStyleChange={handleStyleChange}
+            />
+          </div>
         </section>
       </div>
     </Dialog>

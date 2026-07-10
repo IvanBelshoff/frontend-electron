@@ -18,6 +18,24 @@ const TONE_BUTTON_CLASSES: Record<NotificationTone, string> = {
   warning: 'border-vscode-warning/40 text-vscode-warning hover:bg-vscode-warning/10',
 }
 
+function CheckIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-3 w-3"
+      aria-hidden="true"
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  )
+}
+
 type NotificationStylePickerProps = {
   selectedStyle: NotificationDisplayStyle
   selectedPlacement: NotificationPlacement
@@ -104,15 +122,28 @@ export default function NotificationStylePicker({
             )}
           >
             <div className="mb-3 space-y-1">
-              <div className="flex items-center justify-between gap-2">
-                <h4 className="text-sm font-semibold text-vscode-text">{variant.name}</h4>
-                {isSelected ? (
-                  <span className="rounded-full bg-vscode-accent/15 px-2 py-0.5 text-[10px] font-medium text-vscode-accent">
-                    Selecionado
-                  </span>
-                ) : null}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h4 className="text-sm font-semibold text-vscode-text">{variant.name}</h4>
+                  <p className="mt-1 text-xs text-vscode-text-muted">{variant.description}</p>
+                </div>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  aria-label={`Selecionar estilo ${variant.name}`}
+                  title={isSelected ? 'Estilo selecionado' : `Selecionar ${variant.name}`}
+                  onClick={() => onStyleChange(variant.id)}
+                  className={clsx(
+                    'flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors',
+                    isSelected
+                      ? 'border-vscode-accent bg-vscode-accent text-white'
+                      : 'border-vscode-border bg-vscode-bg text-transparent hover:border-vscode-accent/50',
+                  )}
+                >
+                  <CheckIcon />
+                </button>
               </div>
-              <p className="text-xs text-vscode-text-muted">{variant.description}</p>
             </div>
 
             <div className="flex flex-wrap gap-1.5">
@@ -131,21 +162,14 @@ export default function NotificationStylePicker({
               ))}
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 border-t border-vscode-border pt-3">
               <Button
                 size="sm"
                 variant="secondary"
+                fullWidth
                 onClick={() => handleStressTest(variant.id)}
               >
                 Todas de uma vez
-              </Button>
-              <Button
-                size="sm"
-                variant={isSelected ? 'primary' : 'ghost'}
-                onClick={() => onStyleChange(variant.id)}
-                disabled={isSelected}
-              >
-                Selecionar
               </Button>
             </div>
           </article>

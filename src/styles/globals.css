@@ -11,7 +11,9 @@
   --vscode-activity-bar: #333333;
   --vscode-border: #3c3c3c;
   --vscode-accent: #007acc;
+  --vscode-accent-rgb: 0 122 204;
   --vscode-accent-hover: #1a8ad4;
+  --vscode-accent-hover-rgb: 26 138 212;
   --vscode-text: #cccccc;
   --vscode-text-muted: #858585;
   --vscode-input-bg: #3c3c3c;
@@ -26,7 +28,9 @@
   --vscode-activity-bar: #e8e8e8;
   --vscode-border: #e5e5e5;
   --vscode-accent: #007acc;
+  --vscode-accent-rgb: 0 122 204;
   --vscode-accent-hover: #0062a3;
+  --vscode-accent-hover-rgb: 0 98 163;
   --vscode-text: #333333;
   --vscode-text-muted: #6e6e6e;
   --vscode-input-bg: #ffffff;

@@ -15,21 +15,17 @@ export default function NotificationPositionPicker({
   onChange,
 }: NotificationPositionPickerProps) {
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-vscode-text-muted">
-        Posição padrão: <span className="text-vscode-text">{getNotificationPlacementLabel(value)}</span>
+    <div className="inline-flex flex-col items-center space-y-1.5">
+      <p className="text-center text-[11px] text-vscode-text-muted">
+        <span className="text-vscode-text">{getNotificationPlacementLabel(value)}</span>
       </p>
 
       <div
-        className="mx-auto w-full max-w-xs rounded border border-vscode-border bg-vscode-bg p-3"
+        className="rounded border border-vscode-border bg-vscode-sidebar p-2"
         role="radiogroup"
         aria-label="Posição das notificações na tela"
       >
-        <div className="mb-2 text-center text-[10px] font-medium uppercase tracking-wide text-vscode-text-muted">
-          Tela
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 pb-1">
+        <div className="grid grid-cols-3 gap-1">
           {NOTIFICATION_PLACEMENTS.map((placement) => {
             const isSelected = value === placement
 
@@ -43,15 +39,15 @@ export default function NotificationPositionPicker({
                 title={getNotificationPlacementLabel(placement)}
                 onClick={() => onChange(placement)}
                 className={clsx(
-                  'flex aspect-square items-center justify-center rounded border transition-colors',
+                  'flex h-7 w-7 items-center justify-center rounded border transition-colors',
                   isSelected
                     ? 'border-vscode-accent bg-vscode-accent/15'
-                    : 'border-vscode-border bg-vscode-sidebar hover:border-vscode-accent/40',
+                    : 'border-vscode-border bg-vscode-bg hover:border-vscode-accent/40',
                 )}
               >
                 <span
                   className={clsx(
-                    'h-2.5 w-2.5 rounded-full',
+                    'h-1.5 w-1.5 rounded-full',
                     isSelected ? 'bg-vscode-accent' : 'bg-vscode-border',
                   )}
                   aria-hidden="true"
@@ -61,10 +57,6 @@ export default function NotificationPositionPicker({
           })}
         </div>
       </div>
-
-      <p className="text-center text-xs text-vscode-text-muted">
-        {getNotificationPlacementLabel(value)}
-      </p>
     </div>
   )
 }

@@ -27,6 +27,11 @@ function adjustChannel(channel: number, amount: number): number {
   return clamp(Math.round(channel + amount), 0, 255)
 }
 
+export function hexToRgbChannels(hex: string): string {
+  const { r, g, b } = hexToRgb(hex)
+  return `${r} ${g} ${b}`
+}
+
 export function computeAccentHover(hex: string, theme: ResolvedTheme): string {
   const { r, g, b } = hexToRgb(hex)
   const amount = theme === 'dark' ? -30 : -20
