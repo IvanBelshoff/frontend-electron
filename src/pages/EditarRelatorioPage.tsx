@@ -1,4 +1,5 @@
 import { Link, useParams } from '@tanstack/react-router'
+import { useEffect, useMemo } from 'react'
 import Alert from '@/components/ui/Alert'
 import { hasPermission } from '@/features/auth/rbac'
 import { REPORT_RBAC } from '@/features/auth/rbac-requirements'
@@ -10,8 +11,10 @@ import ReportEditHeader from '@/features/reports/components/ReportEditHeader'
 import ReportEditTabs from '@/features/reports/components/ReportEditTabs'
 import ReportExecutionTab from '@/features/reports/components/ReportExecutionTab'
 import ReportInfoSection from '@/features/reports/components/ReportInfoSection'
+import ReportScheduleTab from '@/features/reports/components/ReportScheduleTab'
 import { useReportDeleteDialog } from '@/features/reports/hooks/use-report-delete-dialog'
 import { useReportEditState } from '@/features/reports/hooks/use-report-edit-state'
+import type { ReportEditTab } from '@/features/reports/report-types'
 import { ApiError } from '@/features/auth/auth-types'
 
 export default function EditarRelatorioPage() {
@@ -42,6 +45,36 @@ export default function EditarRelatorioPage() {
   } = useReportEditState(relatorioId)
 
   const deleteDialog = useReportDeleteDialog({ redirectToListOnSuccess: true })
+
+  const isScheduleTabAvailable = report?.estado === 'offline'
+
+  const disabledTabs = useMemo(() => {
+    const tabs: ReportEditTab[] = []
+
+    if (!canManageAccess) {
+      tabs.push('access')
+    }
+
+    if (!isScheduleTabAvailable) {
+      tabs.push('schedule')
+    }
+
+    return tabs
+  }, [canManageAccess, isScheduleTabAvailable])
+
+  const disabledTabTitles = useMemo(
+    () => ({
+      access: 'Você não possui permissão para acessar esta seção.',
+      schedule: 'Disponível apenas para relatórios offline.',
+    }),
+    [],
+  )
+
+  useEffect(() => {
+    if (activeTab === 'schedule' && !isScheduleTabAvailable) {
+      setActiveTab('report')
+    }
+  }, [activeTab, isScheduleTabAvailable, setActiveTab])
 
   const errorMessage =
     error instanceof ApiError
@@ -82,13 +115,14 @@ export default function EditarRelatorioPage() {
         <ReportEditTabs
           activeTab={activeTab}
           onChange={setActiveTab}
-          disabledTabs={canManageAccess ? [] : ['access']}
+          disabledTabs={disabledTabs}
+          disabledTabTitles={disabledTabTitles}
         />
       </div>
 
       <div
         className={
-          activeTab === 'access' || activeTab === 'execution'
+          activeTab === 'access' || activeTab === 'execution' || activeTab === 'schedule'
             ? 'flex min-h-0 flex-1 flex-col overflow-hidden pt-4'
             : 'min-h-0 flex-1 overflow-y-auto pt-4'
         }
@@ -130,11 +164,18 @@ export default function EditarRelatorioPage() {
               Você não possui permissão para gerenciar acessos deste relatório.
             </Alert>
           )
-        ) : (
+        ) : activeTab === 'execution' ? (
           <ReportExecutionTab
             reportId={relatorioId}
             report={report}
             enabled={activeTab === 'execution'}
+          />
+        ) : (
+          <ReportScheduleTab
+            reportId={relatorioId}
+            report={report}
+            enabled={activeTab === 'schedule'}
+            canUpdate={canUpdate}
           />
         )}
       </div>

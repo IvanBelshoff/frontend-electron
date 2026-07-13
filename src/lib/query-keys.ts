@@ -57,6 +57,9 @@ export const queryKeys = {
     data: (id: number, page: number, pageSize: number, paramsKey?: string) =>
       ['report', 'data', id, page, pageSize, paramsKey] as const,
     job: (jobId: string) => ['report', 'job', jobId] as const,
+    snapshotSchedule: (id: number) => ['report', 'snapshot-schedule', id] as const,
+    snapshotScheduleExecutions: (id: number) =>
+      ['report', 'snapshot-schedule-executions', id] as const,
   },
   connection: {
     list: (params?: { limit?: number }) => ['connection', 'list', params] as const,

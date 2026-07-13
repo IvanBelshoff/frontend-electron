@@ -6,18 +6,21 @@ type ReportEditTabsProps = {
   activeTab: ReportEditTab
   onChange: (tab: ReportEditTab) => void
   disabledTabs?: ReportEditTab[]
+  disabledTabTitles?: Partial<Record<ReportEditTab, string>>
 }
 
 const tabs: { id: ReportEditTab; label: string; icon: string }[] = [
   { id: 'report', label: 'Relatório', icon: 'table_chart' },
   { id: 'access', label: 'Acessos', icon: 'group' },
   { id: 'execution', label: 'Execução', icon: 'play_circle' },
+  { id: 'schedule', label: 'Agendamento', icon: 'schedule' },
 ]
 
 export default function ReportEditTabs({
   activeTab,
   onChange,
   disabledTabs = [],
+  disabledTabTitles = {},
 }: ReportEditTabsProps) {
   return (
     <div className="flex justify-center">
@@ -39,7 +42,8 @@ export default function ReportEditTabs({
               onClick={() => onChange(tab.id)}
               title={
                 isDisabled
-                  ? 'Você não possui permissão para acessar esta seção.'
+                  ? disabledTabTitles[tab.id] ??
+                    'Você não possui permissão para acessar esta seção.'
                   : undefined
               }
               className={clsx(

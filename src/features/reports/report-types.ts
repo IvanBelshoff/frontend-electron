@@ -16,7 +16,7 @@ export type ParametroRelatorio = {
 
 export type ReportViewMode = 'grid' | 'table'
 
-export type ReportEditTab = 'report' | 'access' | 'execution'
+export type ReportEditTab = 'report' | 'access' | 'execution' | 'schedule'
 
 export type ReportUser = {
   id: number
