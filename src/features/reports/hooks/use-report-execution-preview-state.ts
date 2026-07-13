@@ -80,6 +80,7 @@ export function useReportExecutionPreviewState(
   const handleSnapshotJobCompleted = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.report.status(reportId) })
     void queryClient.invalidateQueries({ queryKey: queryKeys.report.detail(reportId) })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.report.snapshotHistory(reportId) })
     setPage(1)
     setOfflineEnabled(true)
     void queryClient.invalidateQueries({
@@ -186,6 +187,7 @@ export function useReportExecutionPreviewState(
       setActiveSnapshotJobId(result.jobId)
       await queryClient.invalidateQueries({ queryKey: queryKeys.report.status(reportId) })
       await queryClient.invalidateQueries({ queryKey: queryKeys.report.detail(reportId) })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.report.snapshotHistory(reportId) })
     },
   })
 

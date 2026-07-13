@@ -1,7 +1,7 @@
 import SettingsInfoGrid from '@/components/settings/SettingsInfoGrid'
 import Drawer from '@/components/ui/Drawer'
 import { DashboardMaterialIcon } from '@/features/dashboards/icons/DashboardIcons'
-import { formatReportDate } from '@/features/reports/format-report-date'
+import { formatReportDate, formatReportDateOnly } from '@/features/reports/format-report-date'
 import ReportStatusBadges from '@/features/reports/components/ReportStatusBadges'
 import type { Report } from '@/features/reports/report-types'
 
@@ -51,11 +51,11 @@ export default function MyReportInfoDrawer({
     infoItems.push(
       {
         label: 'Válido de',
-        value: formatReportDate(report.dataExpiracaoInicial),
+        value: formatReportDateOnly(report.dataExpiracaoInicial),
       },
       {
         label: 'Válido até',
-        value: formatReportDate(report.dataExpiracaoFinal),
+        value: formatReportDateOnly(report.dataExpiracaoFinal),
       },
     )
   }

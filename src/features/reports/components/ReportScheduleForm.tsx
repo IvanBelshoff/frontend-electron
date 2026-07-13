@@ -11,7 +11,7 @@ import {
   FREQUENCIA_OPTIONS,
   getFrequenciaLabel,
 } from '@/features/reports/schedule-labels'
-import { formatReportDate } from '@/features/reports/format-report-date'
+import { formatDateTimeInstant } from '@/lib/datetime'
 import type { Agendamento } from '@/features/reports/report-schedule-types'
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => index)
@@ -68,11 +68,11 @@ export default function ReportScheduleForm({
           <dl className="mt-3 grid grid-cols-1 gap-2 text-vscode-text-muted sm:grid-cols-2">
             <div>
               <dt className="text-xs uppercase tracking-wide">Próxima execução</dt>
-              <dd className="text-vscode-text">{formatReportDate(agendamento.proximaExecucao)}</dd>
+              <dd className="text-vscode-text">{formatDateTimeInstant(agendamento.proximaExecucao)}</dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-wide">Última execução</dt>
-              <dd className="text-vscode-text">{formatReportDate(agendamento.ultimaExecucao)}</dd>
+              <dd className="text-vscode-text">{formatDateTimeInstant(agendamento.ultimaExecucao)}</dd>
             </div>
             <div className="sm:col-span-2">
               <dt className="text-xs uppercase tracking-wide">Expressão cron</dt>

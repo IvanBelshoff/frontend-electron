@@ -1,7 +1,7 @@
 import SettingsInfoGrid from '@/components/settings/SettingsInfoGrid'
 import DashboardStatusBadges from '@/features/dashboards/components/DashboardStatusBadges'
 import type { Dashboard } from '@/features/dashboards/dashboard-types'
-import { formatDashboardDate } from '@/features/dashboards/format-dashboard-date'
+import { formatDashboardDate, formatDashboardDateOnly } from '@/features/dashboards/format-dashboard-date'
 import { DashboardMaterialIcon } from '@/features/dashboards/icons/DashboardIcons'
 import Drawer from '@/components/ui/Drawer'
 
@@ -43,11 +43,11 @@ export default function MyDashboardInfoDrawer({
     infoItems.push(
       {
         label: 'Válido de',
-        value: formatDashboardDate(dashboard.dataExpiracaoInicial),
+        value: formatDashboardDateOnly(dashboard.dataExpiracaoInicial),
       },
       {
         label: 'Válido até',
-        value: formatDashboardDate(dashboard.dataExpiracaoFinal),
+        value: formatDashboardDateOnly(dashboard.dataExpiracaoFinal),
       },
     )
   }

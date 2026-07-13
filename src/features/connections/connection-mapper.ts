@@ -1,3 +1,4 @@
+import { coerceApiDateString } from '@/lib/datetime'
 import type {
   Connection,
   ConnectionEditDraft,
@@ -66,8 +67,8 @@ export function mapConnectionFromApi(record: ConnectionApiRecord): Connection {
     opcoes: record.opcoes ?? null,
     usuarioCadastrador: normalizeOptionalString(record.usuario_cadastrador),
     usuarioAtualizador: normalizeOptionalString(record.usuario_atualizador),
-    dataCriacao: normalizeOptionalString(record.data_criacao),
-    dataAtualizacao: normalizeOptionalString(record.data_atualizacao),
+    dataCriacao: coerceApiDateString(record.data_criacao),
+    dataAtualizacao: coerceApiDateString(record.data_atualizacao),
   }
 }
 

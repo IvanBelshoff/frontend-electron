@@ -63,3 +63,7 @@ export const CONNECTION_RBAC = {
 export const METRICS_RBAC = {
   menuRole: RBAC_ROLES.ADMIN,
 } as const
+
+export const JOBS_RBAC = {
+  menuRole: RBAC_ROLES.ADMIN,
+} as const

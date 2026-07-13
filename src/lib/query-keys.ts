@@ -60,10 +60,14 @@ export const queryKeys = {
     snapshotSchedule: (id: number) => ['report', 'snapshot-schedule', id] as const,
     snapshotScheduleExecutions: (id: number) =>
       ['report', 'snapshot-schedule-executions', id] as const,
+    snapshotHistory: (id: number) => ['report', 'snapshot-history', id] as const,
   },
   connection: {
     list: (params?: { limit?: number }) => ['connection', 'list', params] as const,
     detail: (id: number) => ['connection', 'detail', id] as const,
   },
   userReportAccess: (userId?: number) => ['user', 'report-access', userId] as const,
+  adminJobs: (filters?: Record<string, unknown>) => ['admin-jobs', filters] as const,
+  adminScheduleExecutions: (filters?: Record<string, unknown>) =>
+    ['admin-schedule-executions', filters] as const,
 } as const

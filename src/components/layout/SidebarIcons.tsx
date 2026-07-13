@@ -126,3 +126,13 @@ export function ActivityIcon({ className = 'h-4 w-4' }: IconProps) {
     </svg>
   )
 }
+
+export function WorkHistoryIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M12 8v4l2.5 2.5" />
+      <path d="M3.05 11a9 9 0 1 1 .5 4" />
+      <path d="M2 2v5h5" />
+    </svg>
+  )
+}

@@ -12,6 +12,7 @@ import {
   SignOutIcon,
   TableChartIcon,
   UsersIcon,
+  WorkHistoryIcon,
 } from '@/components/layout/SidebarIcons'
 import SidebarNavItem from '@/components/layout/SidebarNavItem'
 import type { SidebarNavMatchPattern } from '@/components/layout/sidebar-nav-utils'
@@ -37,7 +38,7 @@ type MainNavItem = {
   requiredRole?: string
 }
 
-const MAIN_NAV: MainNavItem[] = [
+const USER_NAV: MainNavItem[] = [
   {
     to: '/',
     label: 'Meus Dashboards',
@@ -52,6 +53,9 @@ const MAIN_NAV: MainNavItem[] = [
     exact: true,
     alsoActiveOn: [/^\/relatorios\/[^/]+\/executar$/],
   },
+]
+
+const MANAGE_NAV: MainNavItem[] = [
   {
     to: '/dashboards',
     label: 'Gerenciar Dashboards',
@@ -90,9 +94,24 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState(readSidebarExpanded)
 
-  const visibleNavItems = MAIN_NAV.filter(
+  const visibleUserNavItems = USER_NAV
+  const visibleManageNavItems = MANAGE_NAV.filter(
     (item) => !item.requiredRole || hasRole(rbac, item.requiredRole),
   )
+
+  function renderNavItem(item: MainNavItem) {
+    return (
+      <SidebarNavItem
+        key={item.to}
+        to={item.to}
+        label={item.label}
+        icon={item.icon}
+        exact={item.exact}
+        alsoActiveOn={item.alsoActiveOn}
+        expanded={expanded}
+      />
+    )
+  }
 
   function toggleExpanded() {
     setExpanded((current) => {
@@ -138,17 +157,20 @@ export default function Sidebar() {
         className={clsx('flex flex-1 flex-col gap-1 py-1', expanded ? 'px-2' : 'px-1')}
         aria-label="Navegação principal"
       >
-        {visibleNavItems.map((item) => (
-          <SidebarNavItem
-            key={item.to}
-            to={item.to}
-            label={item.label}
-            icon={item.icon}
-            exact={item.exact}
-            alsoActiveOn={item.alsoActiveOn}
-            expanded={expanded}
+        {visibleUserNavItems.map(renderNavItem)}
+
+        {visibleManageNavItems.length > 0 && (
+          <div
+            className={clsx(
+              'my-2 border-t border-vscode-border',
+              expanded ? 'mx-1' : 'mx-0',
+            )}
+            role="separator"
+            aria-hidden="true"
           />
-        ))}
+        )}
+
+        {visibleManageNavItems.map(renderNavItem)}
       </nav>
 
       <div
@@ -165,14 +187,29 @@ export default function Sidebar() {
         />
 
         {isAdmin(rbac) && (
-          <SidebarNavItem
-            to="/metricas"
-            label="Métricas"
-            icon={<ActivityIcon />}
-            expanded={expanded}
-          />
+          <>
+            <SidebarNavItem
+              to="/metricas"
+              label="Métricas"
+              icon={<ActivityIcon />}
+              expanded={expanded}
+            />
+            <SidebarNavItem
+              to="/jobs"
+              label="Jobs"
+              icon={<WorkHistoryIcon />}
+              expanded={expanded}
+            />
+          </>
         )}
+      </div>
 
+      <div
+        className={clsx(
+          'flex flex-col gap-1 border-t border-vscode-border py-3',
+          expanded ? 'px-2' : 'px-1',
+        )}
+      >
         <button
           type="button"
           onClick={() => void handleLogout()}

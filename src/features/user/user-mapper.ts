@@ -1,3 +1,4 @@
+import { coerceApiDateString } from '@/lib/datetime'
 import type {
   ManagedUser,
   ManagedUserApiRecord,
@@ -55,9 +56,9 @@ export function mapManagedUserFromApi(record: ManagedUserApiRecord): ManagedUser
     sobrenome: record.sobrenome,
     email: record.email,
     bloqueado: record.bloqueado,
-    ultimoLogin: record.ultimo_login ?? null,
-    dataCriacao: record.data_criacao ?? null,
-    dataAtualizacao: record.data_atualizacao ?? null,
+    ultimoLogin: coerceApiDateString(record.ultimo_login) ?? null,
+    dataCriacao: coerceApiDateString(record.data_criacao) ?? null,
+    dataAtualizacao: coerceApiDateString(record.data_atualizacao) ?? null,
     usuarioCadastrador: record.usuario_cadastrador ?? null,
     usuarioAtualizador: record.usuario_atualizador ?? null,
     regras: (record.regra ?? []).map((regra) => regra.nome),

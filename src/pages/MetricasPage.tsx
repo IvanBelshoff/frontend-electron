@@ -19,6 +19,7 @@ import {
 } from '@/features/system-metrics/use-system-metrics'
 
 import type { DependencyStatus } from '@/features/system-metrics/system-metrics-types'
+import { formatTimeOnly } from '@/lib/datetime'
 
 import {
 
@@ -64,12 +65,12 @@ const CHART_COLORS = {
 
 
 
-function formatTimeLabel(value: string): string {
+function formatTimeLabel(value: unknown): string {
+  if (typeof value !== 'string' || !value) {
+    return ''
+  }
 
-  const date = new Date(value)
-
-  return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-
+  return formatTimeOnly(value)
 }
 
 

@@ -6,7 +6,6 @@ import {
   createReportSnapshotSchedule,
   deleteReportSnapshotSchedule,
   getReportSnapshotSchedule,
-  listReportSnapshotScheduleExecutions,
 } from '@/features/reports/report-schedule-api'
 import {
   mapScheduleDraftFromAgendamento,
@@ -16,10 +15,14 @@ import {
   DEFAULT_REPORT_SCHEDULE_DRAFT,
   type ReportScheduleDraft,
 } from '@/features/reports/report-schedule-types'
+import {
+  hasActiveSnapshotJobs,
+  listReportSnapshotHistory,
+} from '@/features/reports/report-snapshot-history-api'
 import type { Report } from '@/features/reports/report-types'
 import { queryKeys } from '@/lib/query-keys'
 
-const EXECUTIONS_POLL_MS = 30_000
+const HISTORY_POLL_MS = 5_000
 
 function areScheduleDraftsEqual(a: ReportScheduleDraft, b: ReportScheduleDraft): boolean {
   return (
@@ -60,13 +63,14 @@ export function useReportSnapshotScheduleState(
   const schedule = scheduleQuery.data ?? null
   const hasSchedule = schedule !== null
 
-  const executionsQuery = useQuery({
-    queryKey: queryKeys.report.snapshotScheduleExecutions(reportId),
-    queryFn: () => listReportSnapshotScheduleExecutions(reportId),
-    enabled: queryEnabled && hasSchedule,
-    refetchInterval: queryEnabled && hasSchedule && scheduleDraft.ativo
-      ? EXECUTIONS_POLL_MS
-      : false,
+  const historyQuery = useQuery({
+    queryKey: queryKeys.report.snapshotHistory(reportId),
+    queryFn: () => listReportSnapshotHistory(reportId),
+    enabled: queryEnabled,
+    refetchInterval: (query) =>
+      queryEnabled && hasActiveSnapshotJobs(query.state.data?.items ?? [])
+        ? HISTORY_POLL_MS
+        : false,
   })
 
   const baselineDraft = useMemo(() => {
@@ -119,7 +123,7 @@ export function useReportSnapshotScheduleState(
       queryKey: queryKeys.report.snapshotSchedule(reportId),
     })
     await queryClient.invalidateQueries({
-      queryKey: queryKeys.report.snapshotScheduleExecutions(reportId),
+      queryKey: queryKeys.report.snapshotHistory(reportId),
     })
   }, [queryClient, reportId])
 
@@ -190,9 +194,9 @@ export function useReportSnapshotScheduleState(
     await deleteMutation.mutateAsync()
   }, [deleteMutation])
 
-  const refreshExecutions = useCallback(() => {
-    void executionsQuery.refetch()
-  }, [executionsQuery])
+  const refreshHistory = useCallback(() => {
+    void historyQuery.refetch()
+  }, [historyQuery])
 
   return {
     schedule,
@@ -201,10 +205,10 @@ export function useReportSnapshotScheduleState(
     updateScheduleDraft,
     parametrosSnapshot,
     setParametrosSnapshot,
-    executions: executionsQuery.data ?? [],
+    snapshotHistory: historyQuery.data?.items ?? [],
     isLoading: scheduleQuery.isLoading,
-    isLoadingExecutions: executionsQuery.isLoading,
-    isFetchingExecutions: executionsQuery.isFetching,
+    isLoadingHistory: historyQuery.isLoading,
+    isFetchingHistory: historyQuery.isFetching,
     isSaving: createMutation.isPending || deleteMutation.isPending,
     isDeleting: deleteMutation.isPending,
     isDirty,
@@ -213,8 +217,8 @@ export function useReportSnapshotScheduleState(
     deleteError,
     saveSchedule,
     removeSchedule,
-    refreshExecutions,
+    refreshHistory,
     scheduleError: scheduleQuery.error,
-    executionsError: executionsQuery.error,
+    historyError: historyQuery.error,
   }
 }

@@ -95,7 +95,7 @@ export const INITIAL_REPORT_CREATE_DRAFT: ReportEditDraft = {
   temporario: false,
   estado: 'online',
   limiteLinhas: 10000,
-  timeoutMs: 30000,
+  timeoutMs: 600000,
   dataExpiracaoInicial: null,
   dataExpiracaoFinal: null,
 }

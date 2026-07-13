@@ -3,6 +3,7 @@ import SettingsSelect from '@/components/settings/SettingsSelect'
 import Input from '@/components/ui/Input'
 import { FilterOptionButton } from '@/features/dashboards/icons/DashboardIcons'
 import type { ParametroRelatorio } from '@/features/reports/report-types'
+import { toDateInputValue } from '@/lib/datetime'
 
 type ReportParamFormProps = {
   parametros: ParametroRelatorio[]
@@ -21,7 +22,7 @@ function toInputDateValue(value: unknown): string {
     return ''
   }
 
-  return value.slice(0, 10)
+  return toDateInputValue(value)
 }
 
 export default function ReportParamForm({

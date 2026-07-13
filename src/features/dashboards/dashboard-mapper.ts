@@ -1,3 +1,4 @@
+import { coerceApiDateString, toDateInputValue as toDateInputValueFromApi } from '@/lib/datetime'
 import type {
   CreateDashboardInput,
   Dashboard,
@@ -56,7 +57,7 @@ function toDateInputValue(value: unknown): string | null | undefined {
   const normalized = normalizeOptionalString(value)
   if (normalized === undefined) return undefined
   if (normalized === null) return null
-  return normalized.slice(0, 10)
+  return toDateInputValueFromApi(normalized) || null
 }
 
 function mapUsersFromApi(users?: DashboardApiUserRecord[]): DashboardUser[] | undefined {
@@ -97,8 +98,8 @@ export function mapDashboardFromApi(record: DashboardApiRecord): Dashboard {
     dataExpiracaoFinal: toDateInputValue(record.data_expiracao_final),
     usuarioCadastrador: normalizeOptionalString(record.usuario_cadastrador) ?? undefined,
     usuarioAtualizador: normalizeOptionalString(record.usuario_atualizador) ?? undefined,
-    dataCriacao: normalizeOptionalString(record.data_criacao) ?? undefined,
-    dataAtualizacao: normalizeOptionalString(record.data_atualizacao) ?? undefined,
+    dataCriacao: coerceApiDateString(record.data_criacao),
+    dataAtualizacao: coerceApiDateString(record.data_atualizacao),
     usuarios: mapUsersFromApi(record.usuario),
   }
 }

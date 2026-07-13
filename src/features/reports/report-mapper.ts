@@ -1,4 +1,5 @@
 import type { Privacidade } from '@/features/dashboards/dashboard-types'
+import { coerceApiDateString, toDateInputValue as toDateInputValueFromApi } from '@/lib/datetime'
 import type {
   CreateReportInput,
   EstadoRelatorio,
@@ -81,7 +82,7 @@ function toDateInputValue(value: unknown): string | null | undefined {
   const normalized = normalizeOptionalString(value)
   if (normalized === undefined) return undefined
   if (normalized === null) return null
-  return normalized.slice(0, 10)
+  return toDateInputValueFromApi(normalized) || null
 }
 
 function mapConnectionFromApi(
@@ -131,7 +132,7 @@ export function mapReportFromApi(record: ReportApiRecord): Report {
     privacidade: normalizePrivacidade(record.privacidade),
     temporario: Boolean(record.temporario),
     estado: normalizeEstado(record.estado),
-    snapshotAtualizadoEm: normalizeOptionalString(record.snapshot_atualizado_em),
+    snapshotAtualizadoEm: coerceApiDateString(record.snapshot_atualizado_em) ?? null,
     snapshotValido: Boolean(record.snapshot_valido),
     erroUltimaGeracao: normalizeOptionalString(record.erro_ultima_geracao),
     limiteLinhas: Number(record.limite_linhas),
@@ -142,8 +143,8 @@ export function mapReportFromApi(record: ReportApiRecord): Report {
     dataExpiracaoFinal: toDateInputValue(record.data_expiracao_final),
     usuarioCadastrador: normalizeOptionalString(record.usuario_cadastrador) ?? undefined,
     usuarioAtualizador: normalizeOptionalString(record.usuario_atualizador) ?? undefined,
-    dataCriacao: normalizeOptionalString(record.data_criacao) ?? undefined,
-    dataAtualizacao: normalizeOptionalString(record.data_atualizacao) ?? undefined,
+    dataCriacao: coerceApiDateString(record.data_criacao),
+    dataAtualizacao: coerceApiDateString(record.data_atualizacao),
     usuarios: mapUsersFromApi(record.usuario),
   }
 }

@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import SettingsCard from '@/components/settings/SettingsCard'
 import SettingsField from '@/components/settings/SettingsField'
+import ReportTimeoutField from '@/features/reports/components/ReportTimeoutField'
 import { PencilIcon } from '@/components/settings/SettingsIcons'
 import Alert from '@/components/ui/Alert'
 import Button from '@/components/ui/Button'
@@ -297,15 +298,10 @@ export default function ReportEditForm(props: ReportEditFormProps) {
               />
             </SettingsField>
 
-            <SettingsField label="Timeout (ms)" htmlFor="reportEditTimeoutMs">
-              <Input
-                id="reportEditTimeoutMs"
-                type="number"
-                min={1}
-                value={draft.timeoutMs}
-                onChange={(event) =>
-                  updateDraft({ timeoutMs: Number(event.target.value) || 0 })
-                }
+            <SettingsField label="Timeout" htmlFor="reportEditTimeoutMinutes">
+              <ReportTimeoutField
+                timeoutMs={draft.timeoutMs}
+                onChange={(timeoutMs) => updateDraft({ timeoutMs })}
               />
             </SettingsField>
           </div>

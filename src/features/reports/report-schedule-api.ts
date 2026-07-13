@@ -44,7 +44,7 @@ export async function createReportSnapshotSchedule(
     `/relatorios/${reportId}/agendamento-snapshot`,
     {
       method: 'POST',
-      body: JSON.stringify(mapCreateInputToApiBody(input)),
+      body: mapCreateInputToApiBody(input),
     },
   )
 
