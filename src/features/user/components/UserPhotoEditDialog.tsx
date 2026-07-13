@@ -3,6 +3,10 @@ import type { Area, Point } from 'react-easy-crop'
 import Alert from '@/components/ui/Alert'
 import Button from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
+import {
+  MAX_PHOTO_ROTATION,
+  MIN_PHOTO_ROTATION,
+} from '@/features/user/hooks/use-user-photo-crop-state'
 
 type UserPhotoEditDialogProps = {
   isOpen: boolean
@@ -14,8 +18,8 @@ type UserPhotoEditDialogProps = {
   isSaving: boolean
   onCropChange: (crop: Point) => void
   onZoomChange: (zoom: number) => void
+  onRotationChange: (rotation: number) => void
   onCropComplete: (croppedArea: Area, croppedAreaPixels: Area) => void
-  onRotate: () => void
   onReset: () => void
   onCancel: () => void
   onConfirm: () => void
@@ -31,8 +35,8 @@ export default function UserPhotoEditDialog({
   isSaving,
   onCropChange,
   onZoomChange,
+  onRotationChange,
   onCropComplete,
-  onRotate,
   onReset,
   onCancel,
   onConfirm,
@@ -96,22 +100,22 @@ export default function UserPhotoEditDialog({
             />
           </label>
 
-          <div className="space-y-2">
+          <label className="block space-y-2">
             <div className="flex items-center justify-between text-sm font-medium text-vscode-text">
               <span>Girar</span>
-              <span className="text-xs text-vscode-text-muted">{rotation} deg</span>
+              <span className="text-xs text-vscode-text-muted">{Math.round(rotation)} deg</span>
             </div>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={onRotate}
+            <input
+              type="range"
+              min={MIN_PHOTO_ROTATION}
+              max={MAX_PHOTO_ROTATION}
+              step="1"
+              value={rotation}
+              onChange={(event) => onRotationChange(Number(event.target.value))}
               disabled={isSaving}
-              className="w-full"
-            >
-              Girar 90 deg
-            </Button>
-          </div>
+              className="w-full accent-vscode-accent"
+            />
+          </label>
         </div>
       </div>
 

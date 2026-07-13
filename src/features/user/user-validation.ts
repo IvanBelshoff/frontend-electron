@@ -4,6 +4,8 @@ import type {
   UserFieldErrors,
   UserPasswordDraft,
   UserPasswordFieldErrors,
+  MyPasswordDraft,
+  MyPasswordFieldErrors,
 } from '@/features/user/user-edit-types'
 import { ApiError } from '@/features/auth/auth-types'
 
@@ -152,6 +154,58 @@ export function validateUserPasswordDraft(draft: UserPasswordDraft): UserPasswor
   return {
     senha: passwordErrors.senha,
     confirmarSenha: passwordErrors.confirmarSenha,
+  }
+}
+
+export function validateMyPasswordDraft(draft: MyPasswordDraft): MyPasswordFieldErrors {
+  const errors: MyPasswordFieldErrors = {}
+
+  if (!draft.senhaAtual) {
+    errors.senhaAtual = 'Senha atual é obrigatória.'
+  }
+
+  const passwordErrors = validatePasswordFields(draft.senha, draft.confirmarSenha)
+
+  if (passwordErrors.senha) errors.senha = passwordErrors.senha
+  if (passwordErrors.confirmarSenha) errors.confirmarSenha = passwordErrors.confirmarSenha
+
+  return errors
+}
+
+export function parseMyPasswordFieldErrors(error: unknown): MyPasswordFieldErrors {
+  if (error instanceof ApiError && error.statusCode === 401) {
+    return {
+      senhaAtual: error.message || 'Senha atual incorreta.',
+    }
+  }
+
+  if (error instanceof ApiError && error.statusCode === 400) {
+    const body = error.body as { errors?: Record<string, unknown>; message?: string } | undefined
+    const errors = body?.errors
+    const fieldErrors: MyPasswordFieldErrors = {}
+
+    if (errors && typeof errors === 'object') {
+      if (typeof errors.senhaAtual === 'string') fieldErrors.senhaAtual = errors.senhaAtual
+      if (typeof errors.senha === 'string') fieldErrors.senha = errors.senha
+
+      if (!fieldErrors.senhaAtual && !fieldErrors.senha) {
+        fieldErrors.general = formatValidationErrorMessage(errors) ?? error.message
+      }
+
+      return fieldErrors
+    }
+
+    return {
+      general: formatValidationErrorMessage(body?.errors) ?? error.message,
+    }
+  }
+
+  const baseErrors = parseUserPasswordFieldErrors(error)
+
+  return {
+    senha: baseErrors.senha,
+    confirmarSenha: baseErrors.confirmarSenha,
+    general: baseErrors.general,
   }
 }
 

@@ -37,3 +37,22 @@ export const EMPTY_USER_PASSWORD_DRAFT: UserPasswordDraft = {
   senha: '',
   confirmarSenha: '',
 }
+
+export type MyPasswordDraft = {
+  senhaAtual: string
+  senha: string
+  confirmarSenha: string
+}
+
+export type MyPasswordFieldErrors = {
+  senhaAtual?: string
+  senha?: string
+  confirmarSenha?: string
+  general?: string
+}
+
+export const EMPTY_MY_PASSWORD_DRAFT: MyPasswordDraft = {
+  senhaAtual: '',
+  senha: '',
+  confirmarSenha: '',
+}

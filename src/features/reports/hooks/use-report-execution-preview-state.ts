@@ -16,6 +16,8 @@ import {
 } from '@/features/reports/report-api'
 import type { Report, ReportDataResult, ReportExecutionParams } from '@/features/reports/report-types'
 import { queryKeys } from '@/lib/query-keys'
+import { boostInboxPolling } from '@/features/user-inbox/inbox-polling'
+import { notify } from '@/features/notifications/notification-api'
 
 const STATUS_POLL_MS = 3000
 const DEFAULT_PAGE_SIZE = REPORT_DATA_PAGE_SIZE_OPTIONS[0]
@@ -198,6 +200,9 @@ export function useReportExecutionPreviewState(
     },
     onSuccess: (result) => {
       setActiveExportJobId(result.jobId)
+      boostInboxPolling()
+      void queryClient.invalidateQueries({ queryKey: queryKeys.userInbox.unreadCount })
+      notify.info('Exportação enfileirada. Você será notificado quando concluir.')
     },
     onError: (error) => {
       setExportError(

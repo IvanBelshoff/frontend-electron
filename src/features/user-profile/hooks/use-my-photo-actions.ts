@@ -1,19 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import {
-  deleteUserPhoto,
-  getManagedUserById,
-  updateUserPhoto,
-} from '@/features/user/user-api'
+import { deleteUserPhoto } from '@/features/user/user-api'
+import { uploadMyPhoto } from '@/features/user-inbox/user-inbox-api'
 import { useUserPhotoCropState } from '@/features/user/hooks/use-user-photo-crop-state'
-import { mergeManagedUserAfterUpdate } from '@/features/user/user-mapper'
-import type { ManagedUser } from '@/features/user/user-list-types'
 import { ApiError } from '@/features/auth/auth-types'
 import { bumpUserPhotoVersion, useUserPhotoVersion } from '@/features/user/use-current-user'
 import { queryKeys } from '@/lib/query-keys'
-
-const USERS_FETCH_LIMIT = 100
-
 function getPhotoActionErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     return error.message
@@ -26,39 +18,23 @@ function getPhotoActionErrorMessage(error: unknown): string {
   return 'Não foi possível atualizar a foto do usuário.'
 }
 
-export function useUserPhotoActions(
-  userId: number,
-  options: { disabled?: boolean } = {},
-) {
-  const { disabled = false } = options
+export function useMyPhotoActions(userId: number) {
   const queryClient = useQueryClient()
   const cropState = useUserPhotoCropState()
   const { data: photoVersion = 0 } = useUserPhotoVersion(userId)
 
-  const updateDetailCache = useCallback(
-    (updatedUser: ManagedUser) => {
-      queryClient.setQueryData<ManagedUser>(queryKeys.user.detail(userId), (previous) => {
-        if (!previous) {
-          return updatedUser
-        }
-
-        return mergeManagedUserAfterUpdate(previous, updatedUser)
-      })
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.user.list({ limit: USERS_FETCH_LIMIT }),
-      })
-      bumpUserPhotoVersion(queryClient, userId)
-    },
-    [queryClient, userId],
-  )
-
+  const refreshUserCaches = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: queryKeys.user.detail(userId) })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile })
+    bumpUserPhotoVersion(queryClient, userId)
+  }, [queryClient, userId])
   const uploadMutation = useMutation({
     mutationFn: async () => {
       const croppedPhoto = await cropState.getCroppedBlob()
-      return updateUserPhoto(userId, croppedPhoto)
+      await uploadMyPhoto(croppedPhoto)
     },
-    onSuccess: (updatedUser) => {
-      updateDetailCache(updatedUser)
+    onSuccess: () => {
+      refreshUserCaches()
       cropState.setError(null)
       cropState.clearSelection()
     },
@@ -70,10 +46,9 @@ export function useUserPhotoActions(
   const deleteMutation = useMutation({
     mutationFn: async () => {
       await deleteUserPhoto(userId)
-      return getManagedUserById(userId)
     },
-    onSuccess: (updatedUser) => {
-      updateDetailCache(updatedUser)
+    onSuccess: () => {
+      refreshUserCaches()
       cropState.setError(null)
     },
     onError: (mutationError) => {
@@ -82,28 +57,20 @@ export function useUserPhotoActions(
   })
 
   const confirmEdit = useCallback(async () => {
-    if (disabled) {
-      return
-    }
-
     try {
       await uploadMutation.mutateAsync()
     } catch {
-      // Error state is handled by the mutation onError callback.
+      // handled in mutation
     }
-  }, [disabled, uploadMutation])
+  }, [uploadMutation])
 
   const deletePhoto = useCallback(async () => {
-    if (disabled) {
-      return
-    }
-
     try {
       await deleteMutation.mutateAsync()
     } catch {
-      // Error state is handled by the mutation onError callback.
+      // handled in mutation
     }
-  }, [deleteMutation, disabled])
+  }, [deleteMutation])
 
   return {
     isDialogOpen: cropState.isDialogOpen,

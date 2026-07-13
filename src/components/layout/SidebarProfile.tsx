@@ -1,7 +1,10 @@
 import clsx from 'clsx'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import UserAvatar from '@/features/user/UserAvatar'
 import { useAuth } from '@/features/auth/use-auth'
-import { getUserPhotoUrl, useCurrentUser } from '@/features/user/use-current-user'
+import { useUnreadNotifications } from '@/features/user-inbox/hooks/use-unread-notifications'
+import { useProfileModal } from '@/features/user-profile/profile-modal-context'
+import { useCurrentUser, useUserPhotoVersion } from '@/features/user/use-current-user'
 
 type SidebarProfileProps = {
   expanded?: boolean
@@ -10,7 +13,9 @@ type SidebarProfileProps = {
 export default function SidebarProfile({ expanded = true }: SidebarProfileProps) {
   const { user } = useAuth()
   const { data: userDetail, isLoading } = useCurrentUser()
-  const [photoError, setPhotoError] = useState(false)
+  const { data: photoVersion = 0 } = useUserPhotoVersion(user?.sub)
+  const { openProfile } = useProfileModal()
+  const { unreadCount } = useUnreadNotifications()
 
   const displayName = useMemo(() => {
     if (userDetail) {
@@ -30,31 +35,42 @@ export default function SidebarProfile({ expanded = true }: SidebarProfileProps)
     return user?.email?.charAt(0).toUpperCase() ?? 'U'
   }, [user?.email, userDetail])
 
-  const photoUrl = user?.sub && !photoError ? getUserPhotoUrl(user.sub) : null
-
   return (
-    <div
+    <button
+      type="button"
+      onClick={() => openProfile({ notifications: unreadCount > 0 })}
       className={clsx(
-        'border-b border-vscode-border py-4',
+        'w-full border-b border-vscode-border py-4 text-left transition-colors hover:bg-vscode-border/20',
         expanded ? 'flex items-center gap-3 px-4' : 'flex justify-center px-2',
       )}
+      title={displayName}
     >
-      <div
-        className={clsx(
-          'flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-vscode-accent/20 font-semibold text-vscode-accent',
-          expanded ? 'h-10 w-10 text-sm' : 'h-9 w-9 text-xs',
-        )}
-        title={displayName}
-      >
-        {photoUrl ? (
-          <img
-            src={photoUrl}
-            alt=""
-            className="h-full w-full object-cover"
-            onError={() => setPhotoError(true)}
+      <div className="relative z-0 shrink-0">
+        {user?.sub && userDetail ? (
+          <UserAvatar
+            userId={user.sub}
+            nome={userDetail.nome}
+            sobrenome={userDetail.sobrenome}
+            foto={userDetail.foto}
+            photoVersion={photoVersion}
+            shape="round"
+            className={expanded ? 'h-10 w-10 text-sm' : 'h-9 w-9 text-xs'}
           />
         ) : (
-          <span>{initials}</span>
+          <div
+            className={clsx(
+              'flex items-center justify-center overflow-hidden rounded-full bg-vscode-accent/20 font-semibold text-vscode-accent',
+              expanded ? 'h-10 w-10 text-sm' : 'h-9 w-9 text-xs',
+            )}
+          >
+            <span>{initials}</span>
+          </div>
+        )}
+
+        {unreadCount > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 z-20 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-vscode-sidebar">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
         )}
       </div>
 
@@ -75,6 +91,6 @@ export default function SidebarProfile({ expanded = true }: SidebarProfileProps)
           )}
         </div>
       )}
-    </div>
+    </button>
   )
 }

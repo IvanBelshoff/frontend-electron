@@ -139,8 +139,8 @@ export default function UserCreatePhotoPanel({
         isSaving={cropState.isProcessing}
         onCropChange={cropState.setCrop}
         onZoomChange={cropState.setZoom}
+        onRotationChange={cropState.setRotation}
         onCropComplete={cropState.onCropComplete}
-        onRotate={cropState.rotatePhoto}
         onReset={cropState.resetAdjustments}
         onCancel={cropState.cancelEdit}
         onConfirm={() => void handleConfirmCrop()}

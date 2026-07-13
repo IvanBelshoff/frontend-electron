@@ -4,6 +4,8 @@ import { getCroppedPhotoBlob } from '@/features/user/user-photo-crop'
 
 export const MAX_PHOTO_SIZE = 4 * 1024 * 1024
 export const ALLOWED_PHOTO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+export const MIN_PHOTO_ROTATION = -180
+export const MAX_PHOTO_ROTATION = 180
 
 export function validatePhotoFile(file: File): string | null {
   if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
@@ -72,12 +74,12 @@ export function useUserPhotoCropState() {
     setZoom(Math.min(3, Math.max(1, nextZoom)))
   }, [])
 
-  const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
-    croppedAreaPixelsRef.current = croppedAreaPixels
+  const setRotationClamped = useCallback((nextRotation: number) => {
+    setRotation(Math.min(MAX_PHOTO_ROTATION, Math.max(MIN_PHOTO_ROTATION, nextRotation)))
   }, [])
 
-  const rotatePhoto = useCallback(() => {
-    setRotation((current) => (current + 90) % 360)
+  const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
+    croppedAreaPixelsRef.current = croppedAreaPixels
   }, [])
 
   const resetAdjustments = useCallback(() => {
@@ -129,8 +131,8 @@ export function useUserPhotoCropState() {
     selectPhoto,
     setCrop,
     setZoom: setZoomClamped,
+    setRotation: setRotationClamped,
     onCropComplete,
-    rotatePhoto,
     resetAdjustments,
     cancelEdit,
     clearSelection,

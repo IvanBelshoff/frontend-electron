@@ -8,6 +8,8 @@ type DialogProps = {
   onClose: () => void
   children: ReactNode
   className?: string
+  bodyClassName?: string
+  headerActions?: ReactNode
   closeAriaLabel?: string
 }
 
@@ -36,6 +38,8 @@ export default function Dialog({
   onClose,
   children,
   className,
+  bodyClassName,
+  headerActions,
   closeAriaLabel = 'Fechar',
 }: DialogProps) {
   if (!isOpen) {
@@ -57,12 +61,15 @@ export default function Dialog({
         )}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-vscode-border px-4 py-3">
+        <div className="flex items-center justify-between gap-3 border-b border-vscode-border px-4 py-3">
           <h3 className="text-sm font-semibold text-vscode-text">{title}</h3>
-          <IconButton icon={<CloseIcon />} label={closeAriaLabel} onClick={onClose} />
+          <div className="flex items-center gap-2">
+            {headerActions}
+            <IconButton icon={<CloseIcon />} label={closeAriaLabel} onClick={onClose} />
+          </div>
         </div>
 
-        <div className="p-4">{children}</div>
+        <div className={clsx('p-4', bodyClassName)}>{children}</div>
       </div>
     </div>
   )

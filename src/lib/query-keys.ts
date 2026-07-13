@@ -11,6 +11,7 @@ export const queryKeys = {
       permissao?: string
     }) => ['user', 'list', params] as const,
     detail: (id?: number) => ['user', 'detail', id] as const,
+    photoVersion: (id?: number) => ['user', 'photo-version', id] as const,
     ids: ['user', 'ids'] as const,
     roleCatalog: ['user', 'role-catalog'] as const,
     dashboardAccess: (userId?: number) => ['user', 'dashboard-access', userId] as const,
@@ -70,4 +71,12 @@ export const queryKeys = {
   adminJobs: (filters?: Record<string, unknown>) => ['admin-jobs', filters] as const,
   adminScheduleExecutions: (filters?: Record<string, unknown>) =>
     ['admin-schedule-executions', filters] as const,
+  userInbox: {
+    list: (params?: { page?: number; pageSize?: number; unreadOnly?: boolean }) =>
+      ['user-inbox', 'list', params] as const,
+    unreadCount: ['user-inbox', 'unread-count'] as const,
+  },
+  userProfile: {
+    summary: ['user-profile', 'summary'] as const,
+  },
 } as const
