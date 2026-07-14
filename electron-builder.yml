@@ -1,7 +1,7 @@
 appId: com.datadash.admin
 productName: DataDash Admin
 directories:
-  output: release
+  output: release-build
 files:
   - dist/**/*
   - dist-electron/**/*

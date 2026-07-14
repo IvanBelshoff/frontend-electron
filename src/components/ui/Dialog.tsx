@@ -56,8 +56,8 @@ export default function Dialog({
     >
       <div
         className={clsx(
-          'w-full max-w-md rounded border border-vscode-border bg-vscode-sidebar shadow-xl',
-          className,
+          'w-full rounded border border-vscode-border bg-vscode-sidebar shadow-xl',
+          className ?? 'max-w-md',
         )}
         onClick={(event) => event.stopPropagation()}
       >

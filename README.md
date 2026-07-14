@@ -33,11 +33,14 @@ Abre o Vite em `http://localhost:5173` e lança o Electron automaticamente.
 
 ## Build
 
+Feche o app **DataDash Admin** e pare `npm run dev` antes de buildar (evita bloqueio de `app.asar` no Windows).
+
 ```bash
 npm run build
 ```
 
-Gera instaladores em `release/` para Windows, macOS e Linux via electron-builder.
+Gera instaladores em `release-build/` para Windows, macOS e Linux via electron-builder.
+No Windows, o instalador `.exe` fica em `release-build/DataDash Admin Setup *.exe`.
 
 ## Autenticação
 
