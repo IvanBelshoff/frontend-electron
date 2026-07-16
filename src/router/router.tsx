@@ -19,6 +19,7 @@ import { requirePermission, requireRole } from '@/features/auth/route-guards'
 import AppShell from '@/layouts/AppShell'
 import MetricasPage from '@/pages/MetricasPage'
 import JobsPage from '@/pages/JobsPage'
+import AiChatTestPage from '@/pages/AiChatTestPage'
 import ConfiguracoesPage from '@/pages/ConfiguracoesPage'
 import CriarConexaoPage from '@/pages/CriarConexaoPage'
 import CriarDashboardPage from '@/pages/CriarDashboardPage'
@@ -203,6 +204,12 @@ const configuracoesRoute = createRoute({
   component: ConfiguracoesPage,
 })
 
+const aiChatRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/ai-chat',
+  component: AiChatTestPage,
+})
+
 const jobsRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/jobs',
@@ -255,6 +262,7 @@ const routeTree = rootRoute.addChildren([
     criarUsuarioRoute,
     editarUsuarioRoute,
     configuracoesRoute,
+    aiChatRoute,
     jobsRoute,
     metricasRoute,
   ]),

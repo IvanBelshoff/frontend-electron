@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 import {
   ActivityIcon,
   ChartBarIcon,
+  ChatIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   DatabaseIcon,
@@ -52,6 +53,12 @@ const USER_NAV: MainNavItem[] = [
     icon: <MyReportsIcon />,
     exact: true,
     alsoActiveOn: [/^\/relatorios\/[^/]+\/executar$/],
+  },
+  {
+    to: '/ai-chat',
+    label: 'Chat IA (teste)',
+    icon: <ChatIcon />,
+    exact: true,
   },
 ]
 
