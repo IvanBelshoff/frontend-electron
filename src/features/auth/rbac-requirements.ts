@@ -21,6 +21,7 @@ export const RBAC_PERMISSIONS = {
   CRIAR_CONEXAO: 'PERMISSAO_CRIAR_CONEXAO',
   ATUALIZAR_CONEXAO: 'PERMISSAO_ATUALIZAR_CONEXAO',
   EXCLUIR_CONEXAO: 'PERMISSAO_EXCLUIR_CONEXAO',
+  USAR_IA: 'PERMISSAO_USAR_IA',
 } as const
 
 export const USER_RBAC = {
@@ -66,4 +67,8 @@ export const METRICS_RBAC = {
 
 export const JOBS_RBAC = {
   menuRole: RBAC_ROLES.ADMIN,
+} as const
+
+export const AI_RBAC = {
+  permission: RBAC_PERMISSIONS.USAR_IA,
 } as const

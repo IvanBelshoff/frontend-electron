@@ -20,14 +20,15 @@ import type { SidebarNavMatchPattern } from '@/components/layout/sidebar-nav-uti
 import SidebarProfile from '@/components/layout/SidebarProfile'
 import { readSidebarExpanded, writeSidebarExpanded } from '@/components/layout/sidebar-utils'
 import { useAuth } from '@/features/auth/use-auth'
-import { hasRole } from '@/features/auth/rbac'
+import { useAiAccess } from '@/features/ai/hooks/use-ai-access'
 import {
   CONNECTION_RBAC,
   DASHBOARD_RBAC,
+  AI_RBAC,
   REPORT_RBAC,
   USER_RBAC,
 } from '@/features/auth/rbac-requirements'
-import { isAdmin } from '@/features/auth/rbac'
+import { hasPermission, hasRole, isAdmin } from '@/features/auth/rbac'
 import { useNavigate } from '@tanstack/react-router'
 
 type MainNavItem = {
@@ -37,6 +38,8 @@ type MainNavItem = {
   exact?: boolean
   alsoActiveOn?: SidebarNavMatchPattern[]
   requiredRole?: string
+  requiredPermission?: string
+  requiresAiEligibility?: boolean
 }
 
 const USER_NAV: MainNavItem[] = [
@@ -56,9 +59,11 @@ const USER_NAV: MainNavItem[] = [
   },
   {
     to: '/ai-chat',
-    label: 'Chat IA (teste)',
+    label: 'Assistente IA',
     icon: <ChatIcon />,
     exact: true,
+    requiredPermission: AI_RBAC.permission,
+    requiresAiEligibility: true,
   },
 ]
 
@@ -98,10 +103,21 @@ const MANAGE_NAV: MainNavItem[] = [
 
 export default function Sidebar() {
   const { logout, rbac } = useAuth()
+  const { isEligible: isAiEligible } = useAiAccess()
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState(readSidebarExpanded)
 
-  const visibleUserNavItems = USER_NAV
+  const visibleUserNavItems = USER_NAV.filter((item) => {
+    if (item.requiredPermission && !hasPermission(rbac, item.requiredPermission)) {
+      return false
+    }
+
+    if (item.requiresAiEligibility && !isAiEligible) {
+      return false
+    }
+
+    return true
+  })
   const visibleManageNavItems = MANAGE_NAV.filter(
     (item) => !item.requiredRole || hasRole(rbac, item.requiredRole),
   )

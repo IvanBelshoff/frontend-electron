@@ -70,7 +70,14 @@ export function useReportAccessState(
   )
 
   const persistMutation = useMutation({
-    mutationFn: (userIds: number[]) => assignReportUsers(reportId, userIds),
+    mutationFn: (users: AccessUser[]) =>
+      assignReportUsers(
+        reportId,
+        users.map((user) => ({
+          id: user.id,
+          permitirConhecimentoIa: user.permitirConhecimentoIa ?? false,
+        })),
+      ),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.report.detail(reportId) })
       setErrorMessage(null)
@@ -98,7 +105,7 @@ export function useReportAccessState(
       setSelectedGrantedIds([])
 
       try {
-        await persistMutation.mutateAsync(nextGranted.map((user) => user.id))
+        await persistMutation.mutateAsync(nextGranted)
       } catch {
         setGrantedUsers(previousGranted)
         setAvailableUsers(previousAvailable)
@@ -245,6 +252,22 @@ export function useReportAccessState(
   const controlsDisabled =
     isPublicReport || accessQuery.isLoading || persistMutation.isPending
 
+  const toggleAiKnowledge = useCallback(
+    async (userId: number) => {
+      const nextGranted = grantedUsers.map((user) =>
+        user.id === userId
+          ? {
+              ...user,
+              permitirConhecimentoIa: !user.permitirConhecimentoIa,
+            }
+          : user,
+      )
+
+      await persistGrantedUsers(nextGranted, availableUsers)
+    },
+    [availableUsers, grantedUsers, persistGrantedUsers],
+  )
+
   return {
     isPublicReport,
     ownerId,
@@ -270,6 +293,7 @@ export function useReportAccessState(
     isError: accessQuery.isError,
     errorMessage,
     controlsDisabled,
+    toggleAiKnowledge,
     refresh: accessQuery.refetch,
   }
 }

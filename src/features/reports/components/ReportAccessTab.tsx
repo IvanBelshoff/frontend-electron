@@ -36,6 +36,7 @@ export default function ReportAccessTab({ reportId, report, enabled }: ReportAcc
     isError,
     errorMessage,
     controlsDisabled,
+    toggleAiKnowledge,
   } = useReportAccessState(reportId, report, enabled)
 
   return (
@@ -45,6 +46,7 @@ export default function ReportAccessTab({ reportId, report, enabled }: ReportAcc
           <h3 className="text-sm font-semibold text-vscode-text">Acessos ao relatório</h3>
           <p className="mt-1 text-xs text-vscode-text-muted">
             Selecione usuários e mova entre as listas para conceder ou remover acesso.
+            Na coluna &quot;Com acesso&quot;, use o botão IA para permitir conhecimento da IA.
           </p>
         </div>
 
@@ -98,6 +100,8 @@ export default function ReportAccessTab({ reportId, report, enabled }: ReportAcc
             onMoveAllLeft={() => void moveAllLeft()}
             disabled={controlsDisabled || isSaving}
             ownerId={ownerId}
+            showAiKnowledge
+            onToggleAiKnowledge={(userId) => void toggleAiKnowledge(userId)}
           />
         </div>
       )}

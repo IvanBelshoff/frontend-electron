@@ -4,6 +4,7 @@ export type UserPermissionOption = {
   regraId: number
   regraNome: string
   descricao?: string
+  pendingSync?: boolean
 }
 
 export type UserRuleOption = {

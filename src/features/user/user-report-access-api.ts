@@ -11,12 +11,17 @@ export async function getRelatoriosByUser(userId: number) {
   return mapUserReportAccessListsFromApi(data)
 }
 
+export type ReportAccessGrant = {
+  id: number
+  permitirConhecimentoIa?: boolean
+}
+
 export async function assignUserRelatorios(
   userId: number,
-  relatorioIds: number[],
+  relatorios: ReportAccessGrant[],
 ): Promise<void> {
   await apiRequest<void>(`/user/relatorios/${userId}`, {
     method: 'PATCH',
-    body: { relatorios: relatorioIds },
+    body: { relatorios },
   })
 }

@@ -17,6 +17,8 @@ type DashboardAccessUserColumnProps = {
   isAllSelected: boolean
   disabled?: boolean
   ownerId?: number | null
+  showAiKnowledge?: boolean
+  onToggleAiKnowledge?: (userId: number) => void
 }
 
 export default function DashboardAccessUserColumn({
@@ -32,6 +34,8 @@ export default function DashboardAccessUserColumn({
   isAllSelected,
   disabled = false,
   ownerId = null,
+  showAiKnowledge = false,
+  onToggleAiKnowledge,
 }: DashboardAccessUserColumnProps) {
   return (
     <section className="flex h-full min-h-0 flex-col rounded-lg border border-vscode-border bg-vscode-sidebar/60 p-4">
@@ -86,6 +90,10 @@ export default function DashboardAccessUserColumn({
               selected={selectedIds.includes(user.id)}
               disabled={disabled || user.id === ownerId}
               isOwner={user.id === ownerId}
+              showAiKnowledge={showAiKnowledge}
+              onToggleAiKnowledge={
+                onToggleAiKnowledge ? () => onToggleAiKnowledge(user.id) : undefined
+              }
               onToggle={() => onToggleUser(user.id)}
             />
           ))

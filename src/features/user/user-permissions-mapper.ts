@@ -7,7 +7,7 @@ import type {
 } from '@/features/user/user-permissions-types'
 
 const ADMIN_RULE_MARKER = 'ADMIN'
-
+const PENDING_PERMISSION_ID_START = -1_000
 export function isAdminRuleName(ruleName: string): boolean {
   return ruleName.toUpperCase().includes(ADMIN_RULE_MARKER)
 }
@@ -90,8 +90,97 @@ export function normalizeRoleCatalog(payload: unknown): UserRuleOption[] {
   return Array.from(dedupedById.values())
 }
 
-export function buildPermissionSelectionFromUser(
-  user: ManagedUser,
+export function isPendingPermission(permission: UserPermissionOption): boolean {
+  return Boolean(permission.pendingSync) || permission.id < 0
+}
+
+export function mergeRoleCatalogWithEnvDefinitions(
+  apiCatalog: UserRuleOption[],
+  envDefinitions: Record<string, string[]>,
+): UserRuleOption[] {
+  if (Object.keys(envDefinitions).length === 0) {
+    return apiCatalog
+  }
+
+  const permissionsByName = new Map<string, UserPermissionOption>()
+
+  apiCatalog.forEach((rule) => {
+    rule.permissoes.forEach((permission) => {
+      permissionsByName.set(permission.nome, permission)
+    })
+  })
+
+  const apiRulesByName = new Map(apiCatalog.map((rule) => [rule.nome, rule]))
+  const mergedRules: UserRuleOption[] = []
+  const processedRuleNames = new Set<string>()
+
+  for (const [ruleName, envPermissionNames] of Object.entries(envDefinitions)) {
+    const apiRule = apiRulesByName.get(ruleName)
+
+    if (!apiRule) {
+      continue
+    }
+
+    processedRuleNames.add(ruleName)
+
+    const mergedPermissions: UserPermissionOption[] = []
+    const seenNames = new Set<string>()
+    let pendingCounter = 0
+
+    for (const permissionName of envPermissionNames) {
+      if (seenNames.has(permissionName)) {
+        continue
+      }
+
+      const fromApi =
+        apiRule.permissoes.find((permission) => permission.nome === permissionName) ??
+        permissionsByName.get(permissionName)
+
+      if (fromApi) {
+        mergedPermissions.push({
+          ...fromApi,
+          regraId: apiRule.id,
+          regraNome: apiRule.nome,
+        })
+      } else {
+        pendingCounter += 1
+        mergedPermissions.push({
+          id: PENDING_PERMISSION_ID_START - pendingCounter,
+          nome: permissionName,
+          regraId: apiRule.id,
+          regraNome: apiRule.nome,
+          pendingSync: true,
+        })
+      }
+
+      seenNames.add(permissionName)
+    }
+
+    for (const permission of apiRule.permissoes) {
+      if (!seenNames.has(permission.nome)) {
+        mergedPermissions.push(permission)
+        seenNames.add(permission.nome)
+      }
+    }
+
+    mergedRules.push({
+      ...apiRule,
+      permissoes: mergedPermissions.sort((left, right) =>
+        left.nome.localeCompare(right.nome, 'pt-BR'),
+      ),
+    })
+  }
+
+  for (const apiRule of apiCatalog) {
+    if (!processedRuleNames.has(apiRule.nome)) {
+      mergedRules.push(apiRule)
+    }
+  }
+
+  return mergedRules.sort((left, right) => left.nome.localeCompare(right.nome, 'pt-BR'))
+}
+
+export function buildPermissionSelectionFromUser(  user: ManagedUser,
   catalog: UserRuleOption[],
 ): UserPermissionsSelection {
   const roleNameSet = new Set(user.regras)
@@ -195,6 +284,10 @@ export function describeRoleAccess(rule: UserRuleOption): string {
 export function describePermissionAccess(permission: UserPermissionOption): string {
   if (permission.descricao) {
     return permission.descricao
+  }
+
+  if (permission.nome === 'PERMISSAO_USAR_IA') {
+    return 'Permite usar o assistente de IA do DataDash.'
   }
 
   return permission.nome.replace(/_/g, ' ')

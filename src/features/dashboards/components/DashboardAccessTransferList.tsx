@@ -25,6 +25,8 @@ type DashboardAccessTransferListProps = {
   onMoveAllLeft: () => void
   disabled?: boolean
   ownerId?: number | null
+  showAiKnowledge?: boolean
+  onToggleAiKnowledge?: (userId: number) => void
 }
 
 export default function DashboardAccessTransferList({
@@ -50,6 +52,8 @@ export default function DashboardAccessTransferList({
   onMoveAllLeft,
   disabled = false,
   ownerId = null,
+  showAiKnowledge = false,
+  onToggleAiKnowledge,
 }: DashboardAccessTransferListProps) {
   return (
     <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-stretch">
@@ -90,6 +94,8 @@ export default function DashboardAccessTransferList({
         isAllSelected={isAllGrantedSelected}
         disabled={disabled}
         ownerId={ownerId}
+        showAiKnowledge={showAiKnowledge}
+        onToggleAiKnowledge={onToggleAiKnowledge}
       />
     </div>
   )

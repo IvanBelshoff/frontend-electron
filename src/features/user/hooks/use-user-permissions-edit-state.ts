@@ -32,7 +32,7 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
     queryKey: queryKeys.user.roleCatalog,
     queryFn: listRoleCatalog,
     enabled: Boolean(user),
-    staleTime: 60_000,
+    staleTime: 0,
   })
 
   const catalog = catalogQuery.data ?? []
@@ -139,7 +139,7 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
 
   const togglePermission = useCallback(
     (ruleId: number, permissionId: number, checked: boolean) => {
-      if (isUserBlocked) {
+      if (isUserBlocked || permissionId < 0) {
         return
       }
 
@@ -182,7 +182,9 @@ export function useUserPermissionsEditState(user: ManagedUser | undefined) {
 
       return updateUserAuthentication(userId, {
         regras: sortIds(selectedRuleIds),
-        permissoes: hasAdminOnly ? [] : sortIds(selectedPermissionIds),
+        permissoes: hasAdminOnly
+          ? []
+          : sortIds(selectedPermissionIds.filter((id) => id > 0)),
       })
     },
     onSuccess: async () => {

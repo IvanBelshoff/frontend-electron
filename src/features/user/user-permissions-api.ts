@@ -1,4 +1,8 @@
-import { normalizeRoleCatalog } from '@/features/user/user-permissions-mapper'
+import { getRegrasPermissoes } from '@/lib/config'
+import {
+  mergeRoleCatalogWithEnvDefinitions,
+  normalizeRoleCatalog,
+} from '@/features/user/user-permissions-mapper'
 import type {
   RoleCatalogApiRecord,
   UpdateUserAuthenticationInput,
@@ -6,8 +10,12 @@ import type {
 import { apiRequest } from '@/lib/api-client'
 
 export async function listRoleCatalog() {
-  const data = await apiRequest<RoleCatalogApiRecord[]>('/role', { method: 'GET' })
-  return normalizeRoleCatalog(data)
+  const data = await apiRequest<RoleCatalogApiRecord[]>('/role', {
+    method: 'GET',
+    cache: 'no-store',
+  })
+  const normalized = normalizeRoleCatalog(data)
+  return mergeRoleCatalogWithEnvDefinitions(normalized, getRegrasPermissoes())
 }
 
 export async function updateUserAuthentication(

@@ -78,7 +78,14 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
   )
 
   const persistMutation = useMutation({
-    mutationFn: (reportIds: number[]) => assignUserRelatorios(userId, reportIds),
+    mutationFn: (reports: AccessReport[]) =>
+      assignUserRelatorios(
+        userId,
+        reports.map((report) => ({
+          id: report.id,
+          permitirConhecimentoIa: report.permitirConhecimentoIa ?? false,
+        })),
+      ),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.user.detail(userId) })
       setErrorMessage(null)
@@ -106,7 +113,7 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
       setSelectedGrantedIds([])
 
       try {
-        await persistMutation.mutateAsync(nextGranted.map((report) => report.id))
+        await persistMutation.mutateAsync(nextGranted)
       } catch {
         setGrantedReports(previousGranted)
         setAvailableReports(previousAvailable)
@@ -259,6 +266,22 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
   const controlsDisabled =
     isUserBlocked || accessQuery.isLoading || persistMutation.isPending
 
+  const toggleAiKnowledge = useCallback(
+    async (reportId: number) => {
+      const nextGranted = grantedReports.map((report) =>
+        report.id === reportId
+          ? {
+              ...report,
+              permitirConhecimentoIa: !report.permitirConhecimentoIa,
+            }
+          : report,
+      )
+
+      await persistGrantedReports(nextGranted, availableReports)
+    },
+    [availableReports, grantedReports, persistGrantedReports],
+  )
+
   return {
     availableReports,
     grantedReports,
@@ -285,6 +308,7 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
     controlsDisabled,
     isUserBlocked,
     isOwnerReportId,
+    toggleAiKnowledge,
     refresh: accessQuery.refetch,
   }
 }

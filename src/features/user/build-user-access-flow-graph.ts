@@ -22,6 +22,17 @@ export function inferRoleFromPermission(
     return 'REGRA_DASHBOARD'
   }
 
+  if (normalizedPermission.includes('_RELATORIO') && availableRules.includes('REGRA_RELATORIO')) {
+    return 'REGRA_RELATORIO'
+  }
+
+  if (
+    (normalizedPermission.includes('_IA') || normalizedPermission.includes('USAR_IA')) &&
+    availableRules.includes('REGRA_USUARIO')
+  ) {
+    return 'REGRA_USUARIO'
+  }
+
   if (normalizedPermission.includes('_USUARIO') && availableRules.includes('REGRA_USUARIO')) {
     return 'REGRA_USUARIO'
   }

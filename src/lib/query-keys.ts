@@ -79,4 +79,9 @@ export const queryKeys = {
   userProfile: {
     summary: ['user-profile', 'summary'] as const,
   },
+  ai: {
+    access: ['ai', 'access'] as const,
+    threads: ['ai', 'threads'] as const,
+    threadMessages: (threadId?: string) => ['ai', 'thread-messages', threadId] as const,
+  },
 } as const

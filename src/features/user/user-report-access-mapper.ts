@@ -28,6 +28,8 @@ function mapAccessReportFromApi(
     nome,
     icone,
     ...(Number.isFinite(ownerId) && ownerId > 0 ? { idProprietario: ownerId } : {}),
+    permitirConhecimentoIa:
+      record.permitirConhecimentoIa ?? record.permitir_conhecimento_ia ?? false,
   }
 }
 

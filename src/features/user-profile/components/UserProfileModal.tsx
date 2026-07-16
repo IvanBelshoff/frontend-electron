@@ -1,4 +1,3 @@
-import clsx from 'clsx'
 import { useQuery } from '@tanstack/react-query'
 import Button from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
@@ -48,7 +47,7 @@ export default function UserProfileModal() {
       isOpen={isOpen}
       title="Meu perfil"
       onClose={closeProfile}
-      className="w-[70vw] max-w-[70vw]"
+      className="w-full max-w-[min(70vw,calc(100vw-2rem))]"
       bodyClassName="p-0"
       headerActions={
         <Button
@@ -67,42 +66,36 @@ export default function UserProfileModal() {
           )}
         </Button>
       }
+      sidePanelHeader={
+        notificationsPanelOpen ? (
+          <p className="text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
+            Notificações
+          </p>
+        ) : undefined
+      }
+      sidePanel={
+        notificationsPanelOpen ? (
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
+            <UserNotificationsPanel enabled={isOpen && notificationsPanelOpen} compact />
+          </div>
+        ) : undefined
+      }
     >
-      <div className="flex min-h-[28rem]">
-        <div
-          className={clsx(
-            'min-w-0 overflow-y-auto p-4 transition-[width] duration-200',
-            notificationsPanelOpen ? 'w-[85%]' : 'w-full',
-          )}
-        >
-          {isUserLoading && (
-            <p className="text-sm text-vscode-text-muted">Carregando perfil...</p>
-          )}
+      <div className="min-w-0 p-4">
+        {isUserLoading && (
+          <p className="text-sm text-vscode-text-muted">Carregando perfil...</p>
+        )}
 
-          {!isUserLoading && !user && (
-            <p className="text-sm text-vscode-text-muted">Não foi possível carregar o perfil.</p>
-          )}
+        {!isUserLoading && !user && (
+          <p className="text-sm text-vscode-text-muted">Não foi possível carregar o perfil.</p>
+        )}
 
-          {user && (
-            <UserProfileTab
-              user={user}
-              summary={summaryQuery.data}
-              isSummaryLoading={summaryQuery.isLoading}
-            />
-          )}
-        </div>
-
-        {notificationsPanelOpen && (
-          <aside className="flex w-[15%] min-w-[11rem] flex-col border-l border-vscode-border bg-vscode-bg/30">
-            <div className="border-b border-vscode-border px-3 py-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
-                Notificações
-              </p>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-3">
-              <UserNotificationsPanel enabled={isOpen && notificationsPanelOpen} compact />
-            </div>
-          </aside>
+        {user && (
+          <UserProfileTab
+            user={user}
+            summary={summaryQuery.data}
+            isSummaryLoading={summaryQuery.isLoading}
+          />
         )}
       </div>
     </Dialog>

@@ -11,6 +11,8 @@ type DialogProps = {
   bodyClassName?: string
   headerActions?: ReactNode
   closeAriaLabel?: string
+  sidePanel?: ReactNode
+  sidePanelHeader?: ReactNode
 }
 
 function CloseIcon() {
@@ -41,10 +43,28 @@ export default function Dialog({
   bodyClassName,
   headerActions,
   closeAriaLabel = 'Fechar',
+  sidePanel,
+  sidePanelHeader,
 }: DialogProps) {
   if (!isOpen) {
     return null
   }
+
+  const headerActionsRow = (
+    <div className="flex items-center gap-2">
+      {headerActions}
+      <IconButton icon={<CloseIcon />} label={closeAriaLabel} onClick={onClose} />
+    </div>
+  )
+
+  const header = (
+    <div className="flex items-center justify-between gap-3 border-b border-vscode-border px-4 py-3">
+      <h3 className="text-sm font-semibold text-vscode-text">{title}</h3>
+      {headerActionsRow}
+    </div>
+  )
+
+  const body = <div className={clsx('p-4', bodyClassName)}>{children}</div>
 
   return (
     <div
@@ -61,15 +81,30 @@ export default function Dialog({
         )}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-vscode-border px-4 py-3">
-          <h3 className="text-sm font-semibold text-vscode-text">{title}</h3>
-          <div className="flex items-center gap-2">
-            {headerActions}
-            <IconButton icon={<CloseIcon />} label={closeAriaLabel} onClick={onClose} />
+        {sidePanel ? (
+          <div className="grid grid-cols-[minmax(0,1fr)_1px_minmax(13rem,18rem)]">
+            <div className="col-start-1 row-start-1 flex items-center justify-between gap-3 border-b border-vscode-border px-4 py-3">
+              <h3 className="text-sm font-semibold text-vscode-text">{title}</h3>
+              {headerActionsRow}
+            </div>
+            <div
+              className="col-start-2 row-span-2 min-h-full w-px bg-vscode-border"
+              aria-hidden="true"
+            />
+            <div className="col-start-3 row-start-1 flex min-w-0 items-center border-b border-vscode-border px-3 py-3">
+              {sidePanelHeader}
+            </div>
+            <div className="col-start-1 row-start-2 min-w-0">{body}</div>
+            <div className="col-start-3 row-start-2 flex h-0 min-h-full min-w-0 flex-col overflow-hidden bg-vscode-bg/30">
+              {sidePanel}
+            </div>
           </div>
-        </div>
-
-        <div className={clsx('p-4', bodyClassName)}>{children}</div>
+        ) : (
+          <>
+            {header}
+            {body}
+          </>
+        )}
       </div>
     </div>
   )

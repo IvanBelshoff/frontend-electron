@@ -34,6 +34,7 @@ export default function UserReportAccessSection({ user, enabled }: UserReportAcc
           <h3 className="text-sm font-semibold text-vscode-text">Relatórios do usuário</h3>
           <p className="mt-1 text-xs text-vscode-text-muted">
             Selecione relatórios e mova entre as listas para conceder ou remover acesso.
+            Na coluna &quot;Com acesso&quot;, use o botão IA para permitir conhecimento da IA.
           </p>
         </div>
 
@@ -100,6 +101,7 @@ export default function UserReportAccessSection({ user, enabled }: UserReportAcc
             onMoveSelectedLeft={() => void accessState.moveSelectedLeft()}
             onMoveAllLeft={() => void accessState.moveAllLeft()}
             disabled={accessState.controlsDisabled || accessState.isSaving}
+            onToggleAiKnowledge={(reportId) => void accessState.toggleAiKnowledge(reportId)}
           />
         </div>
       )}

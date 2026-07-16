@@ -12,6 +12,7 @@ import {
   DASHBOARD_RBAC,
   METRICS_RBAC,
   JOBS_RBAC,
+  AI_RBAC,
   REPORT_RBAC,
   USER_RBAC,
 } from '@/features/auth/rbac-requirements'
@@ -19,7 +20,7 @@ import { requirePermission, requireRole } from '@/features/auth/route-guards'
 import AppShell from '@/layouts/AppShell'
 import MetricasPage from '@/pages/MetricasPage'
 import JobsPage from '@/pages/JobsPage'
-import AiChatTestPage from '@/pages/AiChatTestPage'
+import AiChatPage from '@/pages/AiChatPage'
 import ConfiguracoesPage from '@/pages/ConfiguracoesPage'
 import CriarConexaoPage from '@/pages/CriarConexaoPage'
 import CriarDashboardPage from '@/pages/CriarDashboardPage'
@@ -207,7 +208,10 @@ const configuracoesRoute = createRoute({
 const aiChatRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/ai-chat',
-  component: AiChatTestPage,
+  component: AiChatPage,
+  beforeLoad: () => {
+    requirePermission(AI_RBAC.permission)
+  },
 })
 
 const jobsRoute = createRoute({

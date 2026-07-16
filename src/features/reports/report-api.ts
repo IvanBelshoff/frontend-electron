@@ -126,6 +126,8 @@ function mapAccessUserFromApi(record: {
     type?: string
     url?: string
   } | null
+  permitir_conhecimento_ia?: boolean
+  permitirConhecimentoIa?: boolean
 }): AccessUser {
   return {
     id: Number(record.id),
@@ -139,6 +141,8 @@ function mapAccessUserFromApi(record: {
           type: record.foto.type ?? record.foto.tipo,
         }
       : null,
+    permitirConhecimentoIa:
+      record.permitirConhecimentoIa ?? record.permitir_conhecimento_ia ?? false,
   }
 }
 
@@ -274,7 +278,15 @@ export {
   getReportJobStatus,
 } from '@/features/reports/report-job-api'
 
-export async function assignReportUsers(id: number, usuarios: number[]): Promise<void> {
+export type ReportUserAccessGrant = {
+  id: number
+  permitirConhecimentoIa?: boolean
+}
+
+export async function assignReportUsers(
+  id: number,
+  usuarios: ReportUserAccessGrant[],
+): Promise<void> {
   await apiRequest<void>(`/relatorios/users/${id}`, {
     method: 'PATCH',
     body: { usuarios },

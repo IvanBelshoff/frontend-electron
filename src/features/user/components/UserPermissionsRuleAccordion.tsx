@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ChevronDownIcon, ChevronUpIcon } from '@/features/dashboards/icons/DashboardIcons'
-import { isAdminRuleName } from '@/features/user/user-permissions-mapper'
+import { isAdminRuleName, isPendingPermission } from '@/features/user/user-permissions-mapper'
 import {
   resolvePermissionIcon,
   resolveRuleIcon,
@@ -108,22 +108,32 @@ export default function UserPermissionsRuleAccordion({
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {rule.permissoes.map((permission) => {
               const isPermissionSelected = selectedPermissionIds.includes(permission.id)
+              const isPending = isPendingPermission(permission)
 
               return (
                 <label
                   key={`rule-${rule.id}-permission-${permission.id}`}
                   className={clsx(
-                    'flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-2 transition-colors',
-                    isPermissionSelected
-                      ? 'border-vscode-accent/30 bg-vscode-accent/10'
-                      : 'border-vscode-border bg-vscode-input-bg/20 hover:border-vscode-accent/20',
+                    'flex items-center gap-2 rounded-md border px-2.5 py-2 transition-colors',
+                    isPending
+                      ? 'cursor-not-allowed border-dashed border-vscode-border bg-vscode-input-bg/10 opacity-70'
+                      : 'cursor-pointer',
+                    !isPending &&
+                      (isPermissionSelected
+                        ? 'border-vscode-accent/30 bg-vscode-accent/10'
+                        : 'border-vscode-border bg-vscode-input-bg/20 hover:border-vscode-accent/20'),
                     disabled && 'cursor-not-allowed opacity-60',
                   )}
+                  title={
+                    isPending
+                      ? 'Permissão definida no ambiente, mas ainda não sincronizada no backend. Reinicie a API.'
+                      : undefined
+                  }
                 >
                   <input
                     type="checkbox"
                     checked={isPermissionSelected}
-                    disabled={disabled}
+                    disabled={disabled || isPending}
                     onChange={(event) =>
                       onTogglePermission(permission.id, event.target.checked)
                     }

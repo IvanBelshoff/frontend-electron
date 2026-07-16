@@ -19,6 +19,7 @@ export type AccessUser = {
   nome: string
   sobrenome: string
   foto?: UserPhoto | null
+  permitirConhecimentoIa?: boolean
 }
 
 export type DashboardAccessLists = {
@@ -31,6 +32,8 @@ export type AccessUserApiRecord = {
   nome: string
   sobrenome: string
   foto?: UserPhoto | null
+  permitir_conhecimento_ia?: boolean
+  permitirConhecimentoIa?: boolean
 }
 
 export type DashboardAccessListsApiRecord = {
