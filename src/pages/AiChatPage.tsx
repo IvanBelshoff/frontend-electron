@@ -7,15 +7,18 @@ import AiChatComposer from '@/features/ai/components/AiChatComposer'
 import AiChatLayout from '@/features/ai/components/AiChatLayout'
 import AiEmptyState from '@/features/ai/components/AiEmptyState'
 import AiMessageList from '@/features/ai/components/AiMessageList'
+import AiServiceStatusIndicator from '@/features/ai/components/AiServiceStatusIndicator'
 import AiThreadDeleteConfirmDialog from '@/features/ai/components/AiThreadDeleteConfirmDialog'
 import AiThreadSidebar from '@/features/ai/components/AiThreadSidebar'
 import { useAiChatPage } from '@/features/ai/hooks/use-ai-chat-page'
+import { useAiHealth } from '@/features/ai/hooks/use-ai-health'
 import { useAiThreadDeleteDialog } from '@/features/ai/hooks/use-ai-thread-delete-dialog'
 import { useCurrentUser } from '@/features/user/use-current-user'
 
 export default function AiChatPage() {
   const { data: currentUser } = useCurrentUser()
   const [input, setInput] = useState('')
+  const aiHealth = useAiHealth()
   const chat = useAiChatPage()
   const deleteDialog = useAiThreadDeleteDialog({
     activeThreadId: chat.activeThreadId,
@@ -24,7 +27,7 @@ export default function AiChatPage() {
 
   async function handleSubmit() {
     const text = input.trim()
-    if (!text || chat.isBusy) {
+    if (!text || chat.isBusy || !aiHealth.isAvailable) {
       return
     }
 
@@ -33,6 +36,10 @@ export default function AiChatPage() {
   }
 
   async function handleSuggestion(text: string) {
+    if (!aiHealth.isAvailable) {
+      return
+    }
+
     setInput(text)
     await chat.sendUserMessage(text)
   }
@@ -43,12 +50,19 @@ export default function AiChatPage() {
         header={
           <SettingsPageHeader
             title="Assistente IA"
+            titleAddon={
+              <AiServiceStatusIndicator
+                isChecking={aiHealth.isChecking}
+                isAvailable={aiHealth.isAvailable}
+                error={aiHealth.health?.error}
+              />
+            }
             subtitle="Consulte relatórios autorizados com respostas em tempo real e histórico de conversas."
             actions={
               <Button
                 type="button"
                 variant="secondary"
-                disabled={chat.isCreatingThread}
+                disabled={!aiHealth.isAvailable || chat.isCreatingThread}
                 onClick={() => void chat.startNewConversation()}
               >
                 Nova conversa
@@ -73,11 +87,19 @@ export default function AiChatPage() {
                 <Alert variant="error">{chat.error.message}</Alert>
               </div>
             )}
+            {!aiHealth.isAvailable && !aiHealth.isLoading && (
+              <div className="px-3 pt-3">
+                <Alert variant="warning">
+                  O serviço de IA está indisponível no momento.
+                </Alert>
+              </div>
+            )}
             <AiChatComposer
               value={input}
               onChange={setInput}
               onSubmit={() => void handleSubmit()}
               onStop={() => chat.stop()}
+              disabled={!aiHealth.isAvailable}
               isBusy={chat.isBusy}
             />
           </>
@@ -86,6 +108,7 @@ export default function AiChatPage() {
         {chat.messages.length === 0 && !chat.isHydratingMessages && !chat.isBusy ? (
           <AiEmptyState
             userName={currentUser?.nome}
+            disabled={!aiHealth.isAvailable}
             onSuggestionClick={(text) => void handleSuggestion(text)}
           />
         ) : (

@@ -81,6 +81,7 @@ export const queryKeys = {
   },
   ai: {
     access: ['ai', 'access'] as const,
+    health: ['ai', 'health'] as const,
     threads: ['ai', 'threads'] as const,
     threadMessages: (threadId?: string) => ['ai', 'thread-messages', threadId] as const,
   },

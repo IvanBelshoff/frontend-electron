@@ -2,8 +2,13 @@ import { apiRequest } from '@/lib/api-client'
 import type {
   AiAccessStatus,
   AiChatThread,
+  AiHealthStatus,
   AiThreadMessagesResponse,
 } from './ai-chat-types'
+
+export function getAiHealth(): Promise<AiHealthStatus> {
+  return apiRequest<AiHealthStatus>('/ai/health')
+}
 
 export function getAiAccessStatus(): Promise<AiAccessStatus> {
   return apiRequest<AiAccessStatus>('/ai/access')

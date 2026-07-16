@@ -132,7 +132,9 @@ export function mapConnectionToUpdateApi(
   if (input.porta !== undefined) body.porta = input.porta
   if (input.database !== undefined) body.database = input.database.trim()
   if (input.usuario !== undefined) body.usuario = input.usuario.trim()
-  if (input.senha !== undefined && input.senha.trim()) {
+  if (input.senhaAlterada) {
+    body.senha = input.senha
+  } else if (input.senha !== undefined && input.senha.trim()) {
     body.senha = input.senha
   }
 

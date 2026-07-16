@@ -24,6 +24,7 @@ export type ConnectionEditDraft = {
   usuario: string
   senha: string
   opcoes: string
+  senhaAlterada?: boolean
 }
 
 export type CreateConnectionInput = ConnectionEditDraft

@@ -56,7 +56,7 @@ export function useConnectionCreateState() {
 
   const save = useCallback(
     async (mode: ConnectionCreateSaveMode) => {
-      const validationErrors = validateConnectionDraft(draft, { requirePassword: true })
+      const validationErrors = validateConnectionDraft(draft, { requirePassword: false })
 
       if (Object.keys(validationErrors).length > 0) {
         setFieldErrors(validationErrors)

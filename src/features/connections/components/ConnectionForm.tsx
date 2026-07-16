@@ -137,18 +137,33 @@ export default function ConnectionForm(props: ConnectionFormProps) {
           <SettingsField
             label="Senha"
             htmlFor="connectionPassword"
-            hint={isCreateMode ? undefined : 'Deixe em branco para manter a senha atual.'}
+            hint={
+              isCreateMode
+                ? 'Alguns bancos públicos (Rfam, Ensembl) não usam senha — deixe em branco.'
+                : 'Deixe em branco para manter a senha atual.'
+            }
           >
             <Input
               id="connectionPassword"
               type="password"
               value={draft.senha}
-              onChange={(event) => updateDraft({ senha: event.target.value })}
+              onChange={(event) =>
+                updateDraft({ senha: event.target.value, senhaAlterada: true })
+              }
               hasError={Boolean(fieldErrors.senha)}
               autoComplete="new-password"
               placeholder={isCreateMode ? undefined : '••••••••'}
             />
             {fieldErrors.senha && <p className="text-xs text-vscode-error">{fieldErrors.senha}</p>}
+            {!isCreateMode && (
+              <button
+                type="button"
+                className="mt-1 text-xs text-vscode-accent hover:underline"
+                onClick={() => updateDraft({ senha: '', senhaAlterada: true })}
+              >
+                Definir conexão sem senha
+              </button>
+            )}
           </SettingsField>
         </div>
 

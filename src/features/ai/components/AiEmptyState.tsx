@@ -1,5 +1,8 @@
+import clsx from 'clsx'
+
 type AiEmptyStateProps = {
   userName?: string
+  disabled?: boolean
   onSuggestionClick: (text: string) => void
 }
 
@@ -9,7 +12,11 @@ const SUGGESTIONS = [
   'Quais colunas estão disponíveis no relatório de vendas?',
 ]
 
-export default function AiEmptyState({ userName, onSuggestionClick }: AiEmptyStateProps) {
+export default function AiEmptyState({
+  userName,
+  disabled = false,
+  onSuggestionClick,
+}: AiEmptyStateProps) {
   const greeting = userName ? `Olá, ${userName}!` : 'Olá!'
 
   return (
@@ -27,8 +34,14 @@ export default function AiEmptyState({ userName, onSuggestionClick }: AiEmptySta
           <button
             key={suggestion}
             type="button"
+            disabled={disabled}
             onClick={() => onSuggestionClick(suggestion)}
-            className="rounded-lg border border-vscode-border bg-vscode-sidebar/70 px-3 py-3 text-left text-sm text-vscode-text transition-colors hover:border-vscode-accent/40 hover:bg-vscode-accent/10"
+            className={clsx(
+              'rounded-lg border border-vscode-border bg-vscode-sidebar/70 px-3 py-3 text-left text-sm text-vscode-text transition-colors',
+              disabled
+                ? 'cursor-not-allowed opacity-50'
+                : 'hover:border-vscode-accent/40 hover:bg-vscode-accent/10',
+            )}
           >
             {suggestion}
           </button>
