@@ -1,6 +1,7 @@
 import { getApiUrl } from './config'
 import { ApiError, type ApiErrorBody } from '@/features/auth/auth-types'
 import { authStore } from '@/features/auth/auth-store'
+import { persistToken } from '@/features/auth/token-storage'
 
 let refreshPromise: Promise<string | null> | null = null
 
@@ -51,6 +52,7 @@ async function refreshAccessToken(): Promise<string | null> {
   }
 
   authStore.setAccessToken(body.access_token)
+  await persistToken(body.access_token)
   return body.access_token
 }
 
@@ -98,7 +100,8 @@ async function executeApiRequest(
     response.status === 401 &&
     !skipAuth &&
     !skipRefresh &&
-    !path.startsWith('/auth/login')
+    !path.startsWith('/auth/login') &&
+    path !== '/auth/refresh'
   ) {
     if (!refreshPromise) {
       refreshPromise = refreshAccessToken().finally(() => {
@@ -202,7 +205,8 @@ export async function apiRequestBlob(
     response.status === 401 &&
     !skipAuth &&
     !skipRefresh &&
-    !path.startsWith('/auth/login')
+    !path.startsWith('/auth/login') &&
+    path !== '/auth/refresh'
   ) {
     if (!refreshPromise) {
       refreshPromise = refreshAccessToken().finally(() => {

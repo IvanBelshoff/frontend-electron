@@ -210,7 +210,7 @@ const aiChatRoute = createRoute({
   path: '/ai-chat',
   component: AiChatPage,
   beforeLoad: () => {
-    requirePermission(AI_RBAC.permission)
+    requireRole(AI_RBAC.menuRole)
   },
 })
 

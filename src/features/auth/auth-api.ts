@@ -14,6 +14,7 @@ export async function refreshRequest(): Promise<LoginResponse> {
   return apiRequest<LoginResponse>('/auth/refresh', {
     method: 'POST',
     skipAuth: true,
+    skipRefresh: true,
   })
 }
 

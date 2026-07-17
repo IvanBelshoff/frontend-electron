@@ -4,10 +4,13 @@ import { createRoot } from 'react-dom/client'
 import { AuthProvider, useAuth } from '@/features/auth/use-auth'
 import { NotificationProvider } from '@/features/notifications/NotificationProvider'
 import { ThemeProvider } from '@/features/settings/theme/theme-provider'
+import { warnApiHostnameMismatch } from '@/lib/config'
 import { queryClient } from '@/lib/query-client'
 import AppRouter from '@/router'
 import { router } from '@/router/router'
 import '@/styles/globals.css'
+
+warnApiHostnameMismatch()
 
 function BootstrapGate({ children }: { children: React.ReactNode }) {
   const { isBootstrapping } = useAuth()

@@ -41,6 +41,7 @@ export default function UserPermissionsSummarySection({
           catalog.map((rule) => {
             const isRuleActive = initialRuleIds.includes(rule.id)
             const isAdminRule = isAdminRuleName(rule.nome)
+            const hasRulePermissions = rule.permissoes.length > 0
             const activePermissionsCount = rule.permissoes.filter((permission) =>
               initialPermissionIds.includes(permission.id),
             ).length
@@ -67,9 +68,9 @@ export default function UserPermissionsSummarySection({
 
                   <div className="min-w-0 flex-1">
                     <strong className="block text-sm text-vscode-text">{rule.nome}</strong>
-                    {!isAdminRule && (
+                    {!isAdminRule && hasRulePermissions && (
                       <small className="text-xs text-vscode-text-muted">
-                        {activePermissionsCount}/{rule.permissoes.length || 0} permissões ativas
+                        {activePermissionsCount}/{rule.permissoes.length} permissões ativas
                       </small>
                     )}
                   </div>

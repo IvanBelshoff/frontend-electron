@@ -28,9 +28,9 @@ export function inferRoleFromPermission(
 
   if (
     (normalizedPermission.includes('_IA') || normalizedPermission.includes('USAR_IA')) &&
-    availableRules.includes('REGRA_USUARIO')
+    availableRules.includes('REGRA_IA')
   ) {
-    return 'REGRA_USUARIO'
+    return 'REGRA_IA'
   }
 
   if (normalizedPermission.includes('_USUARIO') && availableRules.includes('REGRA_USUARIO')) {

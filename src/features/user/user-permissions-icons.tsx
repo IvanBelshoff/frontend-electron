@@ -118,6 +118,10 @@ export function resolveRuleIcon(ruleName: string, className?: string): ReactNode
     return <ShieldIcon className={className} />
   }
 
+  if (normalizedRuleName.includes('_IA') || normalizedRuleName.endsWith('IA')) {
+    return <SparklesIcon className={className} />
+  }
+
   if (normalizedRuleName.includes('DASHBOARD')) {
     return <ChartLineIcon className={className} />
   }

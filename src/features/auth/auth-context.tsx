@@ -47,6 +47,19 @@ function clearSession() {
   userPreferencesStore.clear()
 }
 
+async function restoreSessionFromRefresh(): Promise<UserProfile | null> {
+  try {
+    const refreshed = await refreshRequest()
+    authStore.setAccessToken(refreshed.access_token)
+    await persistToken(refreshed.access_token)
+    const profile = await profileRequest()
+    applySession(profile)
+    return profile
+  } catch {
+    return null
+  }
+}
+
 async function loadProfileWithToken(token: string): Promise<UserProfile | null> {
   authStore.setAccessToken(token)
 
@@ -55,18 +68,14 @@ async function loadProfileWithToken(token: string): Promise<UserProfile | null> 
     applySession(profile)
     return profile
   } catch {
-    try {
-      const refreshed = await refreshRequest()
-      authStore.setAccessToken(refreshed.access_token)
-      await persistToken(refreshed.access_token)
-      const profile = await profileRequest()
-      applySession(profile)
+    const profile = await restoreSessionFromRefresh()
+    if (profile) {
       return profile
-    } catch {
-      clearSession()
-      await clearPersistedToken()
-      return null
     }
+
+    clearSession()
+    await clearPersistedToken()
+    return null
   }
 }
 
@@ -90,6 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (persistedToken) {
           await loadProfileWithToken(persistedToken)
+        } else {
+          await restoreSessionFromRefresh()
         }
       } finally {
         if (!cancelled) {

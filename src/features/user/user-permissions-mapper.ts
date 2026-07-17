@@ -278,16 +278,16 @@ export function describeRoleAccess(rule: UserRuleOption): string {
     return 'Permite gerenciar usuários e recursos relacionados.'
   }
 
+  if (normalizedRuleName.includes('_IA') || normalizedRuleName.endsWith('IA')) {
+    return 'Permite usar o assistente de IA do DataDash.'
+  }
+
   return rule.nome
 }
 
 export function describePermissionAccess(permission: UserPermissionOption): string {
   if (permission.descricao) {
     return permission.descricao
-  }
-
-  if (permission.nome === 'PERMISSAO_USAR_IA') {
-    return 'Permite usar o assistente de IA do DataDash.'
   }
 
   return permission.nome.replace(/_/g, ' ')

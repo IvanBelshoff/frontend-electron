@@ -62,7 +62,7 @@ const USER_NAV: MainNavItem[] = [
     label: 'Assistente IA',
     icon: <ChatIcon />,
     exact: true,
-    requiredPermission: AI_RBAC.permission,
+    requiredRole: AI_RBAC.menuRole,
     requiresAiEligibility: true,
   },
 ]
@@ -108,6 +108,10 @@ export default function Sidebar() {
   const [expanded, setExpanded] = useState(readSidebarExpanded)
 
   const visibleUserNavItems = USER_NAV.filter((item) => {
+    if (item.requiredRole && !hasRole(rbac, item.requiredRole)) {
+      return false
+    }
+
     if (item.requiredPermission && !hasPermission(rbac, item.requiredPermission)) {
       return false
     }
