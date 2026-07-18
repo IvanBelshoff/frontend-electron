@@ -8,17 +8,24 @@ import {
 } from '@/features/ai/ai-chat-api'
 import { createAiChatTransport } from '@/features/ai/ai-chat-transport'
 import type { AiChatThread } from '@/features/ai/ai-chat-types'
+import type { AiMention } from '@/features/ai/ai-mention-types'
 import { queryKeys } from '@/lib/query-keys'
 
 export function useAiChatPage() {
   const queryClient = useQueryClient()
   const [activeThreadId, setActiveThreadId] = useState<string | undefined>()
   const [isHydratingMessages, setIsHydratingMessages] = useState(false)
+  const [pendingMentions, setPendingMentions] = useState<AiMention[]>([])
   const activeThreadIdRef = useRef<string | undefined>(activeThreadId)
+  const pendingMentionsRef = useRef<AiMention[]>([])
 
   useEffect(() => {
     activeThreadIdRef.current = activeThreadId
   }, [activeThreadId])
+
+  useEffect(() => {
+    pendingMentionsRef.current = pendingMentions
+  }, [pendingMentions])
 
   const threadsQuery = useQuery({
     queryKey: queryKeys.ai.threads,
@@ -29,6 +36,7 @@ export function useAiChatPage() {
     () =>
       createAiChatTransport({
         getThreadId: () => activeThreadIdRef.current,
+        getMentions: () => pendingMentionsRef.current,
         onThreadId: (threadId) => {
           if (!activeThreadIdRef.current) {
             activeThreadIdRef.current = threadId
@@ -72,6 +80,7 @@ export function useAiChatPage() {
   const selectThread = useCallback(
     async (thread: AiChatThread) => {
       setActiveThreadId(thread.id)
+      setPendingMentions([])
       await hydrateThread(thread.id)
     },
     [hydrateThread],
@@ -79,6 +88,7 @@ export function useAiChatPage() {
 
   const startNewConversation = useCallback(() => {
     setActiveThreadId(undefined)
+    setPendingMentions([])
     setMessages([])
   }, [setMessages])
 
@@ -87,18 +97,28 @@ export function useAiChatPage() {
     onSuccess: async (thread) => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.ai.threads })
       setActiveThreadId(thread.id)
+      setPendingMentions([])
       setMessages([])
     },
   })
 
   const sendUserMessage = useCallback(
-    async (text: string) => {
+    async (text: string, mentions: AiMention[] = []) => {
       const trimmed = text.trim()
       if (!trimmed || isBusy) {
         return
       }
 
-      await sendMessage({ text })
+      pendingMentionsRef.current = mentions
+      setPendingMentions(mentions)
+
+      await sendMessage({
+        text: trimmed,
+        metadata: mentions.length > 0 ? { mentions } : undefined,
+      })
+
+      pendingMentionsRef.current = []
+      setPendingMentions([])
       void queryClient.invalidateQueries({ queryKey: queryKeys.ai.threads })
     },
     [isBusy, queryClient, sendMessage],

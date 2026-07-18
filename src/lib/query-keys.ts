@@ -84,5 +84,6 @@ export const queryKeys = {
     health: ['ai', 'health'] as const,
     threads: ['ai', 'threads'] as const,
     threadMessages: (threadId?: string) => ['ai', 'thread-messages', threadId] as const,
+    mentionRelatorios: ['ai', 'mentions', 'relatorios'] as const,
   },
 } as const

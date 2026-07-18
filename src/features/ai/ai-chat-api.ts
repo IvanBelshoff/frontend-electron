@@ -5,6 +5,12 @@ import type {
   AiHealthStatus,
   AiThreadMessagesResponse,
 } from './ai-chat-types'
+import type { AiMention } from './ai-mention-types'
+
+export type AiMentionRelatorioApiItem = {
+  id: number
+  nome: string
+}
 
 export function getAiHealth(): Promise<AiHealthStatus> {
   return apiRequest<AiHealthStatus>('/ai/health')
@@ -12,6 +18,10 @@ export function getAiHealth(): Promise<AiHealthStatus> {
 
 export function getAiAccessStatus(): Promise<AiAccessStatus> {
   return apiRequest<AiAccessStatus>('/ai/access')
+}
+
+export function listAiMentionRelatorios(): Promise<AiMentionRelatorioApiItem[]> {
+  return apiRequest<AiMentionRelatorioApiItem[]>('/ai/mentions/relatorios')
 }
 
 export function listAiThreads(): Promise<AiChatThread[]> {
@@ -32,3 +42,6 @@ export function getAiThreadMessages(threadId: string): Promise<AiThreadMessagesR
 export async function deleteAiThread(threadId: string): Promise<void> {
   await apiRequest<void>(`/ai/threads/${threadId}`, { method: 'DELETE' })
 }
+
+export type { AiMention }
+

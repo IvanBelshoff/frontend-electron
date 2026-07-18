@@ -1,11 +1,21 @@
 import type { ChatStatus, UIMessage } from 'ai'
 import AiMarkdown from '@/features/ai/components/AiMarkdown'
+import AiMentionChips from '@/features/ai/components/AiMentionChips'
+import type { AiMention } from '@/features/ai/ai-mention-types'
 import { getMessageText, messageHasActiveToolCall } from '@/features/ai/ai-chat-utils'
 
 type AiMessageBubbleProps = {
   message: UIMessage
   status: ChatStatus
   isLastAssistant?: boolean
+}
+
+function getMessageMentions(message: UIMessage): AiMention[] {
+  const metadata = message.metadata as { mentions?: AiMention[] } | undefined
+  if (!metadata?.mentions || !Array.isArray(metadata.mentions)) {
+    return []
+  }
+  return metadata.mentions
 }
 
 export default function AiMessageBubble({
@@ -15,6 +25,7 @@ export default function AiMessageBubble({
 }: AiMessageBubbleProps) {
   const isUser = message.role === 'user'
   const text = getMessageText(message)
+  const mentions = isUser ? getMessageMentions(message) : []
   const isStreamingAssistant =
     !isUser && isLastAssistant && (status === 'submitted' || status === 'streaming')
   const isToolRunning = isStreamingAssistant && messageHasActiveToolCall(message)
@@ -31,6 +42,12 @@ export default function AiMessageBubble({
       <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-vscode-text-muted">
         {isUser ? 'Você' : 'Assistente'}
       </p>
+
+      {mentions.length > 0 && (
+        <div className="mb-2">
+          <AiMentionChips mentions={mentions} readOnly />
+        </div>
+      )}
 
       {showSkeleton ? (
         <div className="space-y-2">

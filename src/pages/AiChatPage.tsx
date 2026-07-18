@@ -10,6 +10,7 @@ import AiMessageList from '@/features/ai/components/AiMessageList'
 import AiServiceStatusIndicator from '@/features/ai/components/AiServiceStatusIndicator'
 import AiThreadDeleteConfirmDialog from '@/features/ai/components/AiThreadDeleteConfirmDialog'
 import AiThreadSidebar from '@/features/ai/components/AiThreadSidebar'
+import type { AiMention } from '@/features/ai/ai-mention-types'
 import { useAiChatPage } from '@/features/ai/hooks/use-ai-chat-page'
 import { useAiHealth } from '@/features/ai/hooks/use-ai-health'
 import { useAiThreadDeleteDialog } from '@/features/ai/hooks/use-ai-thread-delete-dialog'
@@ -18,6 +19,7 @@ import { useCurrentUser } from '@/features/user/use-current-user'
 export default function AiChatPage() {
   const { data: currentUser } = useCurrentUser()
   const [input, setInput] = useState('')
+  const [mentions, setMentions] = useState<AiMention[]>([])
   const aiHealth = useAiHealth()
   const chat = useAiChatPage()
   const deleteDialog = useAiThreadDeleteDialog({
@@ -31,8 +33,10 @@ export default function AiChatPage() {
       return
     }
 
+    const mentionsToSend = mentions
     setInput('')
-    await chat.sendUserMessage(text)
+    setMentions([])
+    await chat.sendUserMessage(text, mentionsToSend)
   }
 
   async function handleSuggestion(text: string) {
@@ -41,6 +45,7 @@ export default function AiChatPage() {
     }
 
     setInput(text)
+    setMentions([])
     await chat.sendUserMessage(text)
   }
 
@@ -63,7 +68,10 @@ export default function AiChatPage() {
                 type="button"
                 variant="secondary"
                 disabled={!aiHealth.isAvailable || chat.isCreatingThread}
-                onClick={() => void chat.startNewConversation()}
+                onClick={() => {
+                  setMentions([])
+                  void chat.startNewConversation()
+                }}
               >
                 Nova conversa
               </Button>
@@ -76,7 +84,10 @@ export default function AiChatPage() {
             activeThreadId={chat.activeThreadId}
             isLoading={chat.threadsLoading}
             isDeleting={deleteDialog.isDeleting}
-            onSelectThread={(thread) => void chat.selectThread(thread)}
+            onSelectThread={(thread) => {
+              setMentions([])
+              void chat.selectThread(thread)
+            }}
             onDeleteThread={deleteDialog.requestDelete}
           />
         }
@@ -97,6 +108,8 @@ export default function AiChatPage() {
             <AiChatComposer
               value={input}
               onChange={setInput}
+              mentions={mentions}
+              onMentionsChange={setMentions}
               onSubmit={() => void handleSubmit()}
               onStop={() => chat.stop()}
               disabled={!aiHealth.isAvailable}

@@ -59,7 +59,7 @@ const USER_NAV: MainNavItem[] = [
   },
   {
     to: '/ai-chat',
-    label: 'Assistente IA',
+    label: 'Assistente IA (Beta)',
     icon: <ChatIcon />,
     exact: true,
     requiredRole: AI_RBAC.menuRole,
