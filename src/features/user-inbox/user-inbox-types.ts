@@ -10,8 +10,12 @@ export type UserNotificationPayload = {
   relatorioNome?: string
   downloadAvailable?: boolean
   errorMessage?: string | null
-  jobTipo?: string
-  jobStatus?: string
+  jobTipo?: 'export_csv' | 'snapshot' | string
+  jobStatus?: 'completed' | 'failed' | string
+  completedAt?: string | null
+  origem?: 'manual' | 'agendado' | null
+  fileName?: string | null
+  parametrosResumo?: string | null
 }
 
 export type UserInboxItem = {

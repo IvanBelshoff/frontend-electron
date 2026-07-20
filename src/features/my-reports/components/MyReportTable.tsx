@@ -41,6 +41,9 @@ export default function MyReportTable({
               Privacidade
             </th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
+              Estado
+            </th>
+            <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
               Temporalidade
             </th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
@@ -79,6 +82,9 @@ export default function MyReportTable({
               </td>
               <td className="px-4 py-3">
                 <ReportStatusBadges report={report} field="privacidade" />
+              </td>
+              <td className="px-4 py-3">
+                <ReportStatusBadges report={report} field="estado" />
               </td>
               <td className="px-4 py-3">
                 <ReportStatusBadges report={report} field="temporario" />
