@@ -56,6 +56,7 @@ export type Report = {
   dataCriacao?: string
   dataAtualizacao?: string
   usuarios?: ReportUser[]
+  permitirConhecimentoIa?: boolean
 }
 
 export type ReportEditDraft = {

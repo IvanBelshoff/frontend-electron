@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { RefreshIcon } from '@/components/settings/SettingsIcons'
 import Alert from '@/components/ui/Alert'
 import Button from '@/components/ui/Button'
@@ -26,6 +27,7 @@ type UserPermissionsEditorSectionProps = {
   onReset: () => void
   onSave: () => void
   onRetry: () => void
+  className?: string
 }
 
 export default function UserPermissionsEditorSection({
@@ -48,10 +50,14 @@ export default function UserPermissionsEditorSection({
   onReset,
   onSave,
   onRetry,
+  className,
 }: UserPermissionsEditorSectionProps) {
   return (
     <section
-      className="flex min-h-0 flex-col rounded-lg border border-vscode-border bg-vscode-sidebar"
+      className={clsx(
+        'flex h-full min-h-0 flex-col rounded-lg border border-vscode-border bg-vscode-sidebar',
+        className,
+      )}
       aria-label="Configuração de regras e permissões"
     >
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-vscode-border px-4 py-3">

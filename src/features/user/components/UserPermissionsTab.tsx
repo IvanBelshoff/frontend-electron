@@ -37,9 +37,10 @@ export default function UserPermissionsTab({ user }: UserPermissionsTabProps) {
 
   if (isUserBlocked) {
     return (
-      <div className="space-y-4">
+      <div className="flex min-h-0 flex-1 flex-col">
         <Alert variant="info">{BLOCKED_USER_PERMISSIONS_MESSAGE}</Alert>
         <UserPermissionsSummarySection
+          className="mt-4 min-h-0 flex-1"
           catalog={permissionsState.catalog}
           initialRuleIds={permissionsState.initialRuleIds}
           initialPermissionIds={permissionsState.initialPermissionIds}
@@ -49,14 +50,16 @@ export default function UserPermissionsTab({ user }: UserPermissionsTabProps) {
   }
 
   return (
-    <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,7fr)] lg:items-start">
+    <div className="grid h-full min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,7fr)] lg:items-stretch">
       <UserPermissionsSummarySection
+        className="min-h-0"
         catalog={permissionsState.catalog}
         initialRuleIds={permissionsState.initialRuleIds}
         initialPermissionIds={permissionsState.initialPermissionIds}
       />
 
       <UserPermissionsEditorSection
+        className="min-h-0"
         catalog={permissionsState.catalog}
         selectedRuleIds={permissionsState.selectedRuleIds}
         selectedPermissionIds={permissionsState.selectedPermissionIds}

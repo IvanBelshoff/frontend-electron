@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   describeRoleAccess,
   mergeRoleCatalogWithEnvDefinitions,
+  sortRoleCatalogByDisplayOrder,
 } from './user-permissions-mapper'
 import type { UserRuleOption } from './user-permissions-types'
 
@@ -20,6 +21,26 @@ const apiCatalog: UserRuleOption[] = [
     permissoes: [],
   },
 ]
+
+describe('sortRoleCatalogByDisplayOrder', () => {
+  it('places REGRA_ADMIN first and REGRA_IA second', () => {
+    const ordered = sortRoleCatalogByDisplayOrder([
+      { id: 3, nome: 'REGRA_RELATORIO', permissoes: [] },
+      { id: 5, nome: 'REGRA_IA', permissoes: [] },
+      { id: 1, nome: 'REGRA_ADMIN', permissoes: [] },
+      { id: 2, nome: 'REGRA_DASHBOARD', permissoes: [] },
+      { id: 4, nome: 'REGRA_USUARIO', permissoes: [] },
+    ])
+
+    expect(ordered.map((rule) => rule.nome)).toEqual([
+      'REGRA_ADMIN',
+      'REGRA_IA',
+      'REGRA_DASHBOARD',
+      'REGRA_RELATORIO',
+      'REGRA_USUARIO',
+    ])
+  })
+})
 
 describe('mergeRoleCatalogWithEnvDefinitions', () => {
   it('merges REGRA_IA with empty permissions from API', () => {

@@ -1,13 +1,14 @@
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
-export type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral'
+export type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'accent' | 'neutral'
 
 type BadgeProps = {
   variant?: BadgeVariant
   icon?: ReactNode
   children: ReactNode
   className?: string
+  title?: string
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
@@ -15,6 +16,7 @@ const variantClasses: Record<BadgeVariant, string> = {
   warning: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
   danger: 'border-red-500/30 bg-red-500/10 text-red-400',
   info: 'border-sky-500/30 bg-sky-500/10 text-sky-400',
+  accent: 'border-violet-400/40 bg-violet-500/15 text-violet-300',
   neutral: 'border-vscode-border bg-vscode-input-bg/50 text-vscode-text-muted',
 }
 
@@ -23,9 +25,11 @@ export default function Badge({
   icon,
   children,
   className,
+  title,
 }: BadgeProps) {
   return (
     <span
+      title={title}
       className={clsx(
         'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium',
         variantClasses[variant],

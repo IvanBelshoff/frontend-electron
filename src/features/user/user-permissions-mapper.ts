@@ -8,6 +8,42 @@ import type {
 
 const ADMIN_RULE_MARKER = 'ADMIN'
 const PENDING_PERMISSION_ID_START = -1_000
+
+const RULE_DISPLAY_ORDER: Record<string, number> = {
+  REGRA_ADMIN: 0,
+  REGRA_IA: 1,
+}
+
+function getRuleDisplayOrder(ruleName: string): number {
+  const normalizedRuleName = ruleName.toUpperCase()
+
+  if (normalizedRuleName in RULE_DISPLAY_ORDER) {
+    return RULE_DISPLAY_ORDER[normalizedRuleName]
+  }
+
+  if (normalizedRuleName.includes('ADMIN')) {
+    return RULE_DISPLAY_ORDER.REGRA_ADMIN
+  }
+
+  if (normalizedRuleName.includes('_IA') || normalizedRuleName.endsWith('IA')) {
+    return RULE_DISPLAY_ORDER.REGRA_IA
+  }
+
+  return 100
+}
+
+export function sortRoleCatalogByDisplayOrder(rules: UserRuleOption[]): UserRuleOption[] {
+  return [...rules].sort((left, right) => {
+    const orderDiff = getRuleDisplayOrder(left.nome) - getRuleDisplayOrder(right.nome)
+
+    if (orderDiff !== 0) {
+      return orderDiff
+    }
+
+    return left.nome.localeCompare(right.nome, 'pt-BR')
+  })
+}
+
 export function isAdminRuleName(ruleName: string): boolean {
   return ruleName.toUpperCase().includes(ADMIN_RULE_MARKER)
 }
@@ -79,7 +115,6 @@ export function normalizeRoleCatalog(payload: unknown): UserRuleOption[] {
       return rule
     })
     .filter((rule): rule is UserRuleOption => rule !== null)
-    .sort((left, right) => left.nome.localeCompare(right.nome, 'pt-BR'))
 
   const dedupedById = new Map<number, UserRuleOption>()
 
@@ -87,7 +122,7 @@ export function normalizeRoleCatalog(payload: unknown): UserRuleOption[] {
     dedupedById.set(rule.id, rule)
   })
 
-  return Array.from(dedupedById.values())
+  return sortRoleCatalogByDisplayOrder(Array.from(dedupedById.values()))
 }
 
 export function isPendingPermission(permission: UserPermissionOption): boolean {
@@ -177,7 +212,7 @@ export function mergeRoleCatalogWithEnvDefinitions(
     }
   }
 
-  return mergedRules.sort((left, right) => left.nome.localeCompare(right.nome, 'pt-BR'))
+  return sortRoleCatalogByDisplayOrder(mergedRules)
 }
 
 export function buildPermissionSelectionFromUser(  user: ManagedUser,

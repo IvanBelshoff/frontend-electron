@@ -73,6 +73,7 @@ export default function MyReportInfoDrawer({
               <ReportStatusBadges report={report} field="estado" />
               <ReportStatusBadges report={report} field="privacidade" />
               <ReportStatusBadges report={report} field="temporario" />
+              <ReportStatusBadges report={report} field="ia" />
             </div>
           </div>
         </div>

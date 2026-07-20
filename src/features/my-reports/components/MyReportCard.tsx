@@ -68,6 +68,7 @@ export default function MyReportCard({
       <div className="mt-4 flex flex-wrap gap-2">
         <ReportStatusBadges report={report} field="privacidade" />
         <ReportStatusBadges report={report} field="temporario" />
+        <ReportStatusBadges report={report} field="ia" />
       </div>
     </article>
   )

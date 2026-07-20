@@ -89,7 +89,7 @@ function AtIcon({ className = 'h-4 w-4' }: IconProps) {
   )
 }
 
-function SparklesIcon({ className = 'h-4 w-4' }: IconProps) {
+export function SparklesIcon({ className = 'h-4 w-4' }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

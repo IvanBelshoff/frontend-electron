@@ -14,16 +14,21 @@ type UserPermissionsSummarySectionProps = {
   catalog: UserRuleOption[]
   initialRuleIds: number[]
   initialPermissionIds: number[]
+  className?: string
 }
 
 export default function UserPermissionsSummarySection({
   catalog,
   initialRuleIds,
   initialPermissionIds,
+  className,
 }: UserPermissionsSummarySectionProps) {
   return (
     <section
-      className="flex min-h-0 flex-col rounded-lg border border-vscode-border bg-vscode-sidebar"
+      className={clsx(
+        'flex h-full min-h-0 flex-col rounded-lg border border-vscode-border bg-vscode-sidebar',
+        className,
+      )}
       aria-label="Resumo de permissões"
     >
       <header className="border-b border-vscode-border px-4 py-3">

@@ -107,7 +107,7 @@ export default function EditarUsuarioPage() {
 
       <div
         className={
-          activeTab === 'access'
+          activeTab === 'access' || activeTab === 'permissions'
             ? 'flex min-h-0 flex-1 flex-col overflow-hidden pt-4'
             : 'min-h-0 flex-1 overflow-y-auto pt-4'
         }

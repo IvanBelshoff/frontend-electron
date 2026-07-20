@@ -8,11 +8,12 @@ import {
   LockIcon,
 } from '@/features/dashboards/icons/DashboardIcons'
 import type { Report } from '@/features/reports/report-types'
+import { SparklesIcon } from '@/features/user/user-permissions-icons'
 
-export type ReportStatusField = 'estado' | 'visivel' | 'privacidade' | 'temporario'
+export type ReportStatusField = 'estado' | 'visivel' | 'privacidade' | 'temporario' | 'ia'
 
 type ReportStatusBadgesProps = {
-  report: Pick<Report, 'visivel' | 'privacidade' | 'temporario' | 'estado'>
+  report: Pick<Report, 'visivel' | 'privacidade' | 'temporario' | 'estado' | 'permitirConhecimentoIa'>
   field?: ReportStatusField
 }
 
@@ -108,6 +109,18 @@ export default function ReportStatusBadges({ report, field }: ReportStatusBadges
         icon={report.temporario ? <ClockIcon /> : <CalendarIcon />}
       >
         {report.temporario ? 'Temporário' : 'Contínuo'}
+      </Badge>
+    )
+  }
+
+  if (field === 'ia') {
+    if (!report.permitirConhecimentoIa) {
+      return null
+    }
+
+    return (
+      <Badge variant="accent" icon={<SparklesIcon />} title="Consulta disponível na IA">
+        IA
       </Badge>
     )
   }

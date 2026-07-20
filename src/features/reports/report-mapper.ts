@@ -56,6 +56,8 @@ export type ReportApiRecord = {
   data_criacao?: string | null
   data_atualizacao?: string | null
   usuario?: ReportApiUserRecord[]
+  permitir_conhecimento_ia?: boolean | null
+  permitirConhecimentoIa?: boolean | null
 }
 
 function normalizePrivacidade(value: unknown): Privacidade {
@@ -146,6 +148,9 @@ export function mapReportFromApi(record: ReportApiRecord): Report {
     dataCriacao: coerceApiDateString(record.data_criacao),
     dataAtualizacao: coerceApiDateString(record.data_atualizacao),
     usuarios: mapUsersFromApi(record.usuario),
+    permitirConhecimentoIa: Boolean(
+      record.permitirConhecimentoIa ?? record.permitir_conhecimento_ia,
+    ),
   }
 }
 
