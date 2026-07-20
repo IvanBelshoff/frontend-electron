@@ -23,6 +23,7 @@ import {
   loadPersistedToken,
   persistToken,
 } from './token-storage'
+import { queryClient } from '@/lib/query-client'
 
 type AuthContextValue = {
   user: UserProfile | null
@@ -117,6 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (email: string, senha: string) => {
+    queryClient.clear()
+
     const session = await loginRequest(email, senha)
     authStore.setAccessToken(session.access_token)
     await persistToken(session.access_token)
@@ -133,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       clearSession()
       await clearPersistedToken()
+      queryClient.clear()
     }
   }, [])
 

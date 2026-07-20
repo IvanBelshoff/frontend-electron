@@ -28,7 +28,8 @@ function matchesFilter(label: string, filter: string): boolean {
 }
 
 export function useAiMentions(selected: AiMention[]) {
-  const { rbac } = useAuth()
+  const { rbac, user } = useAuth()
+  const userId = user?.sub ?? null
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'categories' | 'items'>('categories')
   const [activeCategory, setActiveCategory] = useState<AiMentionCategoryId | null>(
@@ -89,9 +90,9 @@ export function useAiMentions(selected: AiMention[]) {
   }, [canMentionDashboards, canMentionUsers, filter])
 
   const relatoriosQuery = useQuery({
-    queryKey: queryKeys.ai.mentionRelatorios,
+    queryKey: queryKeys.ai.mentionRelatorios(userId),
     queryFn: listAiMentionRelatorios,
-    enabled: open && mode === 'items' && activeCategory === 'relatorios',
+    enabled: Boolean(userId) && open && mode === 'items' && activeCategory === 'relatorios',
   })
 
   const dashboardsListQuery = useQuery({

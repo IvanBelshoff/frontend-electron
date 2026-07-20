@@ -9,10 +9,14 @@ import {
 import { createAiChatTransport } from '@/features/ai/ai-chat-transport'
 import type { AiChatThread } from '@/features/ai/ai-chat-types'
 import type { AiMention } from '@/features/ai/ai-mention-types'
+import { useAuth } from '@/features/auth/auth-context'
 import { queryKeys } from '@/lib/query-keys'
 
 export function useAiChatPage() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const userId = user?.sub ?? null
+  const threadsQueryKey = queryKeys.ai.threads(userId)
   const [activeThreadId, setActiveThreadId] = useState<string | undefined>()
   const [isHydratingMessages, setIsHydratingMessages] = useState(false)
   const [pendingMentions, setPendingMentions] = useState<AiMention[]>([])
@@ -28,8 +32,9 @@ export function useAiChatPage() {
   }, [pendingMentions])
 
   const threadsQuery = useQuery({
-    queryKey: queryKeys.ai.threads,
+    queryKey: threadsQueryKey,
     queryFn: listAiThreads,
+    enabled: Boolean(userId),
   })
 
   const transport = useMemo(
@@ -42,10 +47,10 @@ export function useAiChatPage() {
             activeThreadIdRef.current = threadId
             setActiveThreadId(threadId)
           }
-          void queryClient.invalidateQueries({ queryKey: queryKeys.ai.threads })
+          void queryClient.invalidateQueries({ queryKey: threadsQueryKey })
         },
         onThreadTitle: (threadId, title) => {
-          queryClient.setQueryData<AiChatThread[]>(queryKeys.ai.threads, (current) => {
+          queryClient.setQueryData<AiChatThread[]>(threadsQueryKey, (current) => {
             if (!current) {
               return current
             }
@@ -56,7 +61,7 @@ export function useAiChatPage() {
           })
         },
       }),
-    [queryClient],
+    [queryClient, threadsQueryKey],
   )
 
   const { messages, sendMessage, status, error, stop, setMessages } = useChat({ transport })
@@ -95,7 +100,7 @@ export function useAiChatPage() {
   const createThreadMutation = useMutation({
     mutationFn: () => createAiThread(),
     onSuccess: async (thread) => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.ai.threads })
+      await queryClient.invalidateQueries({ queryKey: threadsQueryKey })
       setActiveThreadId(thread.id)
       setPendingMentions([])
       setMessages([])
@@ -119,9 +124,9 @@ export function useAiChatPage() {
 
       pendingMentionsRef.current = []
       setPendingMentions([])
-      void queryClient.invalidateQueries({ queryKey: queryKeys.ai.threads })
+      void queryClient.invalidateQueries({ queryKey: threadsQueryKey })
     },
-    [isBusy, queryClient, sendMessage],
+    [isBusy, queryClient, sendMessage, threadsQueryKey],
   )
 
   return {

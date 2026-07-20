@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import { deleteAiThread } from '@/features/ai/ai-chat-api'
 import type { AiChatThread } from '@/features/ai/ai-chat-types'
 import { ApiError } from '@/features/auth/auth-types'
+import { useAuth } from '@/features/auth/use-auth'
 import { queryKeys } from '@/lib/query-keys'
 
 type DeleteTarget = {
@@ -20,13 +21,15 @@ export function useAiThreadDeleteDialog({
   onActiveThreadDeleted,
 }: UseAiThreadDeleteDialogOptions = {}) {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const userId = user?.sub ?? null
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const deleteMutation = useMutation({
     mutationFn: (threadId: string) => deleteAiThread(threadId),
     onSuccess: async (_result, deletedThreadId) => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.ai.threads })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.ai.threads(userId) })
       setDeleteTarget(null)
       setError(null)
 
@@ -48,7 +51,7 @@ export function useAiThreadDeleteDialog({
   const requestDelete = useCallback((thread: AiChatThread) => {
     setDeleteTarget({
       id: thread.id,
-      titulo: thread.titulo?.trim() || 'Nova conversa',
+      titulo: thread.titulo,
     })
     setError(null)
   }, [])
@@ -72,10 +75,10 @@ export function useAiThreadDeleteDialog({
 
   return {
     deleteTarget,
+    error,
+    isDeleting: deleteMutation.isPending,
     requestDelete,
     cancelDelete,
     confirmDelete,
-    isDeleting: deleteMutation.isPending,
-    error,
   }
 }

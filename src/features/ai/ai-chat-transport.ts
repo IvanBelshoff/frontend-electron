@@ -29,10 +29,6 @@ export function createAiChatTransport({
         headers.Authorization = `Bearer ${token}`
       }
 
-      // #region agent log
-      fetch('http://127.0.0.1:7570/ingest/0db2c04a-a5ac-44c9-a409-caf72cacc101',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dcbb51'},body:JSON.stringify({sessionId:'dcbb51',runId:'pre-fix',hypothesisId:'A',location:'ai-chat-transport.ts:prepareSend',message:'mentions in outbound chat body',data:{mentionCount:mentions.length,mentions:mentions.map((m)=>({type:m.type,id:m.id??null,label:m.label})),hasThreadId:Boolean(threadId),messageCount:messages.length},timestamp:Date.now()})}).catch(()=>{})
-      // #endregion
-
       return {
         headers,
         body: {

@@ -80,10 +80,12 @@ export const queryKeys = {
     summary: ['user-profile', 'summary'] as const,
   },
   ai: {
-    access: ['ai', 'access'] as const,
-    health: ['ai', 'health'] as const,
-    threads: ['ai', 'threads'] as const,
-    threadMessages: (threadId?: string) => ['ai', 'thread-messages', threadId] as const,
-    mentionRelatorios: ['ai', 'mentions', 'relatorios'] as const,
+    access: (userId?: number | string | null) => ['ai', 'access', userId ?? null] as const,
+    health: (userId?: number | string | null) => ['ai', 'health', userId ?? null] as const,
+    threads: (userId?: number | string | null) => ['ai', 'threads', userId ?? null] as const,
+    threadMessages: (userId?: number | string | null, threadId?: string) =>
+      ['ai', 'thread-messages', userId ?? null, threadId] as const,
+    mentionRelatorios: (userId?: number | string | null) =>
+      ['ai', 'mentions', 'relatorios', userId ?? null] as const,
   },
 } as const
