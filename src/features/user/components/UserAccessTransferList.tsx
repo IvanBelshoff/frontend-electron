@@ -1,4 +1,5 @@
 import DashboardAccessMoveButtons from '@/features/dashboards/components/DashboardAccessMoveButtons'
+import { countSelectableGrantedDashboards } from '@/features/user/user-dashboard-access-utils'
 import UserAccessDashboardColumn from '@/features/user/components/UserAccessDashboardColumn'
 import type { AccessDashboard } from '@/features/user/user-dashboard-access-types'
 
@@ -51,6 +52,11 @@ export default function UserAccessTransferList({
   onMoveAllLeft,
   disabled = false,
 }: UserAccessTransferListProps) {
+  const grantedSelectableCount = countSelectableGrantedDashboards(
+    filteredGrantedDashboards,
+    userId,
+  )
+
   return (
     <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-stretch">
       <UserAccessDashboardColumn
@@ -71,6 +77,8 @@ export default function UserAccessTransferList({
         disabled={disabled}
         canMoveSelectedRight={selectedAvailableIds.length > 0}
         canMoveSelectedLeft={selectedGrantedIds.length > 0}
+        canMoveAllRight={filteredAvailableDashboards.length > 0}
+        canMoveAllLeft={grantedSelectableCount > 0}
         onMoveSelectedRight={onMoveSelectedRight}
         onMoveAllRight={onMoveAllRight}
         onMoveSelectedLeft={onMoveSelectedLeft}

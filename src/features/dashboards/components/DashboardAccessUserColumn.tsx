@@ -37,6 +37,12 @@ export default function DashboardAccessUserColumn({
   showAiKnowledge = false,
   onToggleAiKnowledge,
 }: DashboardAccessUserColumnProps) {
+  const selectableCount =
+    ownerId != null
+      ? users.filter((user) => Number(user.id) !== Number(ownerId)).length
+      : users.length
+  const selectAllDisabled = disabled || selectableCount === 0
+
   return (
     <section className="flex h-full min-h-0 flex-col rounded-lg border border-vscode-border bg-vscode-sidebar/60 p-4">
       <div className="mb-3 flex shrink-0 items-start justify-between gap-3">
@@ -53,7 +59,7 @@ export default function DashboardAccessUserColumn({
         <button
           type="button"
           onClick={onToggleSelectAll}
-          disabled={disabled || users.length === 0}
+          disabled={selectAllDisabled}
           className={clsx(
             'shrink-0 rounded border px-2.5 py-1 text-xs font-medium transition-colors',
             'border-vscode-border text-vscode-text-muted hover:border-vscode-accent/40 hover:text-vscode-text',
@@ -88,7 +94,8 @@ export default function DashboardAccessUserColumn({
               key={user.id}
               user={user}
               selected={selectedIds.includes(user.id)}
-              disabled={disabled || user.id === ownerId}
+              selectionDisabled={disabled || user.id === ownerId}
+              iaDisabled={disabled}
               isOwner={user.id === ownerId}
               showAiKnowledge={showAiKnowledge}
               onToggleAiKnowledge={

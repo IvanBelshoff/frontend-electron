@@ -18,5 +18,16 @@ export function filterAccessReportsBySearch(
 }
 
 export function isOwnerReport(report: AccessReport, userId: number): boolean {
-  return report.idProprietario === userId
+  if (report.idProprietario == null) {
+    return false
+  }
+
+  return Number(report.idProprietario) === Number(userId)
+}
+
+export function countSelectableGrantedReports(
+  reports: AccessReport[],
+  userId: number,
+): number {
+  return reports.filter((report) => !isOwnerReport(report, userId)).length
 }

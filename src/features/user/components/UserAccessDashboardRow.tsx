@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import AccessOwnerBadge from '@/components/access/AccessOwnerBadge'
 import { DashboardMaterialIcon } from '@/features/dashboards/icons/DashboardIcons'
 import type { AccessDashboard } from '@/features/user/user-dashboard-access-types'
 
@@ -41,11 +42,7 @@ export default function UserAccessDashboardRow({
 
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm text-vscode-text">{dashboard.nome}</span>
-        {isOwner && (
-          <span className="mt-0.5 inline-flex rounded-full border border-vscode-accent/30 bg-vscode-accent/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-vscode-accent">
-            Proprietário
-          </span>
-        )}
+        {isOwner && <AccessOwnerBadge />}
       </span>
     </label>
   )

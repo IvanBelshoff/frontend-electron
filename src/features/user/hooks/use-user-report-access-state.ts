@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import {
   assignUserRelatorios,
   getRelatoriosByUser,
+  updateUserReportAiKnowledge,
 } from '@/features/user/user-report-access-api'
 import {
   filterAccessReportsBySearch,
@@ -42,8 +43,12 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
     enabled: enabled && Number.isFinite(userId) && userId > 0,
   })
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!accessQuery.data) {
+      setAvailableReports([])
+      setGrantedReports([])
+      setSelectedAvailableIds([])
+      setSelectedGrantedIds([])
       return
     }
 
@@ -57,7 +62,13 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
     setSelectedAvailableIds([])
     setSelectedGrantedIds([])
     setErrorMessage(null)
-  }, [accessQuery.data])
+  }, [accessQuery.data, userId])
+
+  useLayoutEffect(() => {
+    setAvailableSearch('')
+    setGrantedSearch('')
+    setErrorMessage(null)
+  }, [userId])
 
   const filteredAvailableReports = useMemo(
     () => filterAccessReportsBySearch(availableReports, availableSearch),
@@ -81,10 +92,7 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
     mutationFn: (reports: AccessReport[]) =>
       assignUserRelatorios(
         userId,
-        reports.map((report) => ({
-          id: report.id,
-          permitirConhecimentoIa: report.permitirConhecimentoIa ?? false,
-        })),
+        reports.map((report) => ({ id: report.id })),
       ),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.user.detail(userId) })
@@ -97,6 +105,31 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
           : error instanceof Error
             ? error.message
             : 'Falha ao sincronizar acessos.',
+      )
+      void accessQuery.refetch()
+    },
+  })
+
+  const aiKnowledgeMutation = useMutation({
+    mutationFn: ({
+      reportId,
+      permitirConhecimentoIa,
+    }: {
+      reportId: number
+      permitirConhecimentoIa: boolean
+    }) => updateUserReportAiKnowledge(userId, reportId, permitirConhecimentoIa),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.userReportAccess(userId) })
+      void queryClient.invalidateQueries({ queryKey: ['my-reports'] })
+      setErrorMessage(null)
+    },
+    onError: (error) => {
+      setErrorMessage(
+        error instanceof ApiError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Falha ao atualizar conhecimento da IA.',
       )
       void accessQuery.refetch()
     },
@@ -264,22 +297,41 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
   }, [availableReports, filteredGrantedReports, grantedReports, persistGrantedReports, userId])
 
   const controlsDisabled =
-    isUserBlocked || accessQuery.isLoading || persistMutation.isPending
+    isUserBlocked ||
+    (accessQuery.isLoading && !accessQuery.data) ||
+    persistMutation.isPending ||
+    aiKnowledgeMutation.isPending
 
   const toggleAiKnowledge = useCallback(
     async (reportId: number) => {
-      const nextGranted = grantedReports.map((report) =>
-        report.id === reportId
-          ? {
-              ...report,
-              permitirConhecimentoIa: !report.permitirConhecimentoIa,
-            }
-          : report,
+      const report = grantedReports.find((item) => item.id === reportId)
+      if (!report) {
+        return
+      }
+
+      const previousGranted = grantedReports
+      const nextValue = !report.permitirConhecimentoIa
+
+      setGrantedReports((current) =>
+        sortAccessReports(
+          current.map((item) =>
+            item.id === reportId
+              ? { ...item, permitirConhecimentoIa: nextValue }
+              : item,
+          ),
+        ),
       )
 
-      await persistGrantedReports(nextGranted, availableReports)
+      try {
+        await aiKnowledgeMutation.mutateAsync({
+          reportId,
+          permitirConhecimentoIa: nextValue,
+        })
+      } catch {
+        setGrantedReports(previousGranted)
+      }
     },
-    [availableReports, grantedReports, persistGrantedReports],
+    [aiKnowledgeMutation, grantedReports],
   )
 
   return {
@@ -301,7 +353,7 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
     moveSelectedLeft,
     moveAllLeft,
     isLoading: accessQuery.isLoading,
-    isSaving: persistMutation.isPending,
+    isSaving: persistMutation.isPending || aiKnowledgeMutation.isPending,
     isError: accessQuery.isError,
     loadError: accessQuery.error,
     errorMessage,

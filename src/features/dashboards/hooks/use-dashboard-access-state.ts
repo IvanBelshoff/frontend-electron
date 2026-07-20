@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import { assignDashboardUsers } from '@/features/dashboards/dashboard-api'
 import {
   filterAccessUsersBySearch,
@@ -43,8 +43,12 @@ export function useDashboardAccessState(
     enabled: enabled && Number.isFinite(dashboardId) && dashboardId > 0 && !isPublicDashboard,
   })
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!accessQuery.data) {
+      setAvailableUsers([])
+      setGrantedUsers([])
+      setSelectedAvailableIds([])
+      setSelectedGrantedIds([])
       return
     }
 
@@ -58,7 +62,13 @@ export function useDashboardAccessState(
     setSelectedAvailableIds([])
     setSelectedGrantedIds([])
     setErrorMessage(null)
-  }, [accessQuery.data])
+  }, [accessQuery.data, dashboardId])
+
+  useLayoutEffect(() => {
+    setAvailableSearch('')
+    setGrantedSearch('')
+    setErrorMessage(null)
+  }, [dashboardId])
 
   const filteredAvailableUsers = useMemo(
     () => filterAccessUsersBySearch(availableUsers, availableSearch),
@@ -244,7 +254,9 @@ export function useDashboardAccessState(
   }, [availableUsers, filteredGrantedUsers, grantedUsers, ownerId, persistGrantedUsers])
 
   const controlsDisabled =
-    isPublicDashboard || accessQuery.isLoading || persistMutation.isPending
+    isPublicDashboard ||
+    (accessQuery.isLoading && !accessQuery.data) ||
+    persistMutation.isPending
 
   return {
     isPublicDashboard,

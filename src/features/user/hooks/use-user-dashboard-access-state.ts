@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import {
   assignUserDashboards,
   getDashboardsByUser,
@@ -42,8 +42,12 @@ export function useUserDashboardAccessState(user: ManagedUser | undefined, enabl
     enabled: enabled && Number.isFinite(userId) && userId > 0,
   })
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!accessQuery.data) {
+      setAvailableDashboards([])
+      setGrantedDashboards([])
+      setSelectedAvailableIds([])
+      setSelectedGrantedIds([])
       return
     }
 
@@ -57,7 +61,13 @@ export function useUserDashboardAccessState(user: ManagedUser | undefined, enabl
     setSelectedAvailableIds([])
     setSelectedGrantedIds([])
     setErrorMessage(null)
-  }, [accessQuery.data])
+  }, [accessQuery.data, userId])
+
+  useLayoutEffect(() => {
+    setAvailableSearch('')
+    setGrantedSearch('')
+    setErrorMessage(null)
+  }, [userId])
 
   const filteredAvailableDashboards = useMemo(
     () => filterAccessDashboardsBySearch(availableDashboards, availableSearch),
@@ -268,7 +278,9 @@ export function useUserDashboardAccessState(user: ManagedUser | undefined, enabl
   ])
 
   const controlsDisabled =
-    isUserBlocked || accessQuery.isLoading || persistMutation.isPending
+    isUserBlocked ||
+    (accessQuery.isLoading && !accessQuery.data) ||
+    persistMutation.isPending
 
   return {
     availableDashboards,

@@ -13,7 +13,6 @@ export async function getRelatoriosByUser(userId: number) {
 
 export type ReportAccessGrant = {
   id: number
-  permitirConhecimentoIa?: boolean
 }
 
 export async function assignUserRelatorios(
@@ -23,5 +22,16 @@ export async function assignUserRelatorios(
   await apiRequest<void>(`/user/relatorios/${userId}`, {
     method: 'PATCH',
     body: { relatorios },
+  })
+}
+
+export async function updateUserReportAiKnowledge(
+  userId: number,
+  relatorioId: number,
+  permitirConhecimentoIa: boolean,
+): Promise<void> {
+  await apiRequest<void>(`/user/relatorios/${userId}/permitir-conhecimento-ia`, {
+    method: 'PATCH',
+    body: { relatorioId, permitirConhecimentoIa },
   })
 }

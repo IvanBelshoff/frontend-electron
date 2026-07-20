@@ -4,6 +4,8 @@ type DashboardAccessMoveButtonsProps = {
   disabled?: boolean
   canMoveSelectedRight?: boolean
   canMoveSelectedLeft?: boolean
+  canMoveAllRight?: boolean
+  canMoveAllLeft?: boolean
   onMoveSelectedRight: () => void
   onMoveAllRight: () => void
   onMoveSelectedLeft: () => void
@@ -43,11 +45,16 @@ export default function DashboardAccessMoveButtons({
   disabled = false,
   canMoveSelectedRight = false,
   canMoveSelectedLeft = false,
+  canMoveAllRight = false,
+  canMoveAllLeft = false,
   onMoveSelectedRight,
   onMoveAllRight,
   onMoveSelectedLeft,
   onMoveAllLeft,
 }: DashboardAccessMoveButtonsProps) {
+  const moveAllRightDisabled = disabled || !canMoveAllRight
+  const moveAllLeftDisabled = disabled || !canMoveAllLeft
+
   return (
     <div className="flex flex-col items-center justify-center gap-2 self-center">
       <MoveButton
@@ -60,7 +67,7 @@ export default function DashboardAccessMoveButtons({
       <MoveButton
         label="Conceder acesso a todos filtrados"
         onClick={onMoveAllRight}
-        disabled={disabled}
+        disabled={moveAllRightDisabled}
       >
         {'>>'}
       </MoveButton>
@@ -74,7 +81,7 @@ export default function DashboardAccessMoveButtons({
       <MoveButton
         label="Remover acesso de todos filtrados"
         onClick={onMoveAllLeft}
-        disabled={disabled}
+        disabled={moveAllLeftDisabled}
       >
         {'<<'}
       </MoveButton>

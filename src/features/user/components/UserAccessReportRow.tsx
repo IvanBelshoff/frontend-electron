@@ -1,11 +1,10 @@
 import clsx from 'clsx'
 import AccessOwnerBadge from '@/components/access/AccessOwnerBadge'
-import { getAccessUserFullName } from '@/features/dashboards/dashboard-access-utils'
-import type { AccessUser } from '@/features/user/user-types'
-import UserAvatar from '@/features/user/UserAvatar'
+import { DashboardMaterialIcon } from '@/features/dashboards/icons/DashboardIcons'
+import type { AccessReport } from '@/features/user/user-report-access-types'
 
-type DashboardAccessUserRowProps = {
-  user: AccessUser
+type UserAccessReportRowProps = {
+  report: AccessReport
   selected: boolean
   selectionDisabled?: boolean
   iaDisabled?: boolean
@@ -15,8 +14,8 @@ type DashboardAccessUserRowProps = {
   onToggle: () => void
 }
 
-export default function DashboardAccessUserRow({
-  user,
+export default function UserAccessReportRow({
+  report,
   selected,
   selectionDisabled = false,
   iaDisabled = false,
@@ -24,9 +23,7 @@ export default function DashboardAccessUserRow({
   showAiKnowledge = false,
   onToggleAiKnowledge,
   onToggle,
-}: DashboardAccessUserRowProps) {
-  const fullName = getAccessUserFullName(user)
-
+}: UserAccessReportRowProps) {
   return (
     <div
       className={clsx(
@@ -50,15 +47,12 @@ export default function DashboardAccessUserRow({
           className="h-4 w-4 rounded border-vscode-border accent-vscode-accent"
         />
 
-        <UserAvatar
-          userId={user.id}
-          nome={user.nome}
-          sobrenome={user.sobrenome}
-          foto={user.foto}
-        />
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-vscode-accent/25 bg-vscode-accent/10 text-vscode-accent">
+          <DashboardMaterialIcon name={report.icone} className="text-[1.15rem]" filled />
+        </span>
 
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm text-vscode-text">{fullName}</span>
+          <span className="block truncate text-sm text-vscode-text">{report.nome}</span>
           {isOwner && <AccessOwnerBadge />}
         </span>
       </label>
@@ -74,7 +68,7 @@ export default function DashboardAccessUserRow({
           }}
           className={clsx(
             'shrink-0 rounded border px-2 py-1 text-[10px] font-medium uppercase tracking-wide transition-colors',
-            user.permitirConhecimentoIa
+            report.permitirConhecimentoIa
               ? 'border-vscode-accent/50 bg-vscode-accent/15 text-vscode-accent'
               : 'border-vscode-border text-vscode-text-muted hover:border-vscode-accent/40 hover:text-vscode-text',
             iaDisabled && 'cursor-not-allowed opacity-60',

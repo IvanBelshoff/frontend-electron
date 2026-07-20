@@ -1,43 +1,47 @@
 import clsx from 'clsx'
 import Input from '@/components/ui/Input'
-import UserAccessDashboardRow from '@/features/user/components/UserAccessDashboardRow'
-import { isOwnerDashboard } from '@/features/user/user-dashboard-access-utils'
-import type { AccessDashboard } from '@/features/user/user-dashboard-access-types'
+import UserAccessReportRow from '@/features/user/components/UserAccessReportRow'
+import { isOwnerReport } from '@/features/user/user-report-access-utils'
+import type { AccessReport } from '@/features/user/user-report-access-types'
 import { SearchIcon } from '@/features/dashboards/icons/DashboardIcons'
 
-type UserAccessDashboardColumnProps = {
+type UserAccessReportColumnProps = {
   title: string
   count: number
   helper: string
-  dashboards: AccessDashboard[]
+  reports: AccessReport[]
   selectedIds: number[]
   search: string
   onSearchChange: (value: string) => void
-  onToggleDashboard: (dashboardId: number) => void
+  onToggleReport: (reportId: number) => void
   onToggleSelectAll: () => void
   isAllSelected: boolean
   disabled?: boolean
   userId?: number
+  showAiKnowledge?: boolean
+  onToggleAiKnowledge?: (reportId: number) => void
 }
 
-export default function UserAccessDashboardColumn({
+export default function UserAccessReportColumn({
   title,
   count,
   helper,
-  dashboards,
+  reports,
   selectedIds,
   search,
   onSearchChange,
-  onToggleDashboard,
+  onToggleReport,
   onToggleSelectAll,
   isAllSelected,
   disabled = false,
   userId,
-}: UserAccessDashboardColumnProps) {
+  showAiKnowledge = false,
+  onToggleAiKnowledge,
+}: UserAccessReportColumnProps) {
   const selectableCount =
     userId !== undefined
-      ? dashboards.filter((dashboard) => !isOwnerDashboard(dashboard, userId)).length
-      : dashboards.length
+      ? reports.filter((report) => !isOwnerReport(report, userId)).length
+      : reports.length
   const selectAllDisabled = disabled || selectableCount === 0
 
   return (
@@ -74,29 +78,34 @@ export default function UserAccessDashboardColumn({
         <Input
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Pesquisar por nome do dashboard"
+          placeholder="Pesquisar por nome do relatório"
           disabled={disabled}
           className="pl-9"
         />
       </div>
 
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-        {dashboards.length === 0 ? (
+        {reports.length === 0 ? (
           <p className="py-8 text-center text-sm text-vscode-text-muted">
-            Nenhum dashboard encontrado.
+            Nenhum relatório encontrado.
           </p>
         ) : (
-          dashboards.map((dashboard) => {
-            const isOwner = userId !== undefined && isOwnerDashboard(dashboard, userId)
+          reports.map((report) => {
+            const isOwner = userId !== undefined && isOwnerReport(report, userId)
 
             return (
-              <UserAccessDashboardRow
-                key={dashboard.id}
-                dashboard={dashboard}
-                selected={selectedIds.includes(dashboard.id)}
-                disabled={disabled || isOwner}
+              <UserAccessReportRow
+                key={report.id}
+                report={report}
+                selected={selectedIds.includes(report.id)}
+                selectionDisabled={disabled || isOwner}
+                iaDisabled={disabled}
                 isOwner={isOwner}
-                onToggle={() => onToggleDashboard(dashboard.id)}
+                showAiKnowledge={showAiKnowledge}
+                onToggleAiKnowledge={
+                  onToggleAiKnowledge ? () => onToggleAiKnowledge(report.id) : undefined
+                }
+                onToggle={() => onToggleReport(report.id)}
               />
             )
           })

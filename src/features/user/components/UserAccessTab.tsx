@@ -103,7 +103,7 @@ export default function UserAccessTab({
 
       {activeSection === 'reports' ? (
         canManageReportAccess ? (
-          <UserReportAccessSection user={user} enabled={enabled} />
+          <UserReportAccessSection key={user.id} user={user} enabled={enabled} />
         ) : (
           <Alert variant="warning">
             Você não possui permissão para gerenciar acessos a relatórios deste usuário.

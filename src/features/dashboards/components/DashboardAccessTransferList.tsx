@@ -55,6 +55,11 @@ export default function DashboardAccessTransferList({
   showAiKnowledge = false,
   onToggleAiKnowledge,
 }: DashboardAccessTransferListProps) {
+  const grantedSelectableCount =
+    ownerId != null
+      ? filteredGrantedUsers.filter((user) => Number(user.id) !== Number(ownerId)).length
+      : filteredGrantedUsers.length
+
   return (
     <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-stretch">
       <DashboardAccessUserColumn
@@ -75,6 +80,8 @@ export default function DashboardAccessTransferList({
         disabled={disabled}
         canMoveSelectedRight={selectedAvailableIds.length > 0}
         canMoveSelectedLeft={selectedGrantedIds.length > 0}
+        canMoveAllRight={filteredAvailableUsers.length > 0}
+        canMoveAllLeft={grantedSelectableCount > 0}
         onMoveSelectedRight={onMoveSelectedRight}
         onMoveAllRight={onMoveAllRight}
         onMoveSelectedLeft={onMoveSelectedLeft}
@@ -84,7 +91,7 @@ export default function DashboardAccessTransferList({
       <DashboardAccessUserColumn
         title="Usuários com acesso"
         count={grantedUsers.length}
-        helper="Selecione usuários para remover acesso, exceto o criador."
+        helper="Selecione usuários para remover acesso, exceto o proprietário."
         users={filteredGrantedUsers}
         selectedIds={selectedGrantedIds}
         search={grantedSearch}

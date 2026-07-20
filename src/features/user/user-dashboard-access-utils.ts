@@ -22,5 +22,16 @@ export function filterAccessDashboardsBySearch(
 }
 
 export function isOwnerDashboard(dashboard: AccessDashboard, userId: number): boolean {
-  return dashboard.idProprietario === userId
+  if (dashboard.idProprietario == null) {
+    return false
+  }
+
+  return Number(dashboard.idProprietario) === Number(userId)
+}
+
+export function countSelectableGrantedDashboards(
+  dashboards: AccessDashboard[],
+  userId: number,
+): number {
+  return dashboards.filter((dashboard) => !isOwnerDashboard(dashboard, userId)).length
 }
