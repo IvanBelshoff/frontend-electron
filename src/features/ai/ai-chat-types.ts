@@ -2,6 +2,7 @@ import type { UIMessage } from 'ai'
 
 export type AiHealthStatus = {
   available: boolean
+  provider?: string
   model: string
   latencyMs: number
   error?: string
