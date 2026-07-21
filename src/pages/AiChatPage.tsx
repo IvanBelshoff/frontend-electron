@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
+import { useRouterState } from '@tanstack/react-router'
 import Alert from '@/components/ui/Alert'
 import Button from '@/components/ui/Button'
 import SettingsPageHeader from '@/components/settings/SettingsPageHeader'
@@ -16,12 +17,21 @@ import { useAiHealth } from '@/features/ai/hooks/use-ai-health'
 import { useAiThreadDeleteDialog } from '@/features/ai/hooks/use-ai-thread-delete-dialog'
 import { useCurrentUser } from '@/features/user/use-current-user'
 
+function useAiChatThreadIdFromSearch(): string | undefined {
+  const search = useRouterState({
+    select: (state) => state.location.search as { threadId?: string },
+  })
+  const value = search?.threadId
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined
+}
+
 export default function AiChatPage() {
   const { data: currentUser } = useCurrentUser()
+  const initialThreadId = useAiChatThreadIdFromSearch()
   const [input, setInput] = useState('')
   const [mentions, setMentions] = useState<AiMention[]>([])
   const aiHealth = useAiHealth()
-  const chat = useAiChatPage()
+  const chat = useAiChatPage({ initialThreadId })
   const deleteDialog = useAiThreadDeleteDialog({
     activeThreadId: chat.activeThreadId,
     onActiveThreadDeleted: chat.startNewConversation,
@@ -48,6 +58,17 @@ export default function AiChatPage() {
     setMentions([])
     await chat.sendUserMessage(text)
   }
+
+  async function handleChipClick(value: string) {
+    if (!aiHealth.isAvailable || chat.isBusy) {
+      return
+    }
+    await chat.sendUserMessage(value)
+  }
+
+  const handleExploreRefresh = useCallback(() => {
+    void chat.refreshActiveThread()
+  }, [chat.refreshActiveThread])
 
   return (
     <AiAccessGate>
@@ -129,6 +150,9 @@ export default function AiChatPage() {
             messages={chat.messages}
             status={chat.status}
             isHydrating={chat.isHydratingMessages}
+            threadId={chat.activeThreadId}
+            onChipClick={(value) => void handleChipClick(value)}
+            onExploreRefresh={handleExploreRefresh}
           />
         )}
       </AiChatLayout>

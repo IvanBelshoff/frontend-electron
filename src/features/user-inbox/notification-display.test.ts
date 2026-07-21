@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canOpenAiChatNotification,
   canOpenReportNotification,
+  getNotificationKindLabel,
   getNotificationReportName,
   getNotificationSummary,
   getNotificationTone,
@@ -79,5 +81,24 @@ describe('notification-display', () => {
         }),
       ),
     ).toBe(false)
+  })
+
+  it('supports AI dashboard explore notifications', () => {
+    const item = createItem({
+      type: 'ai_dashboard_explore_ready',
+      title: 'Análise pronta',
+      body: 'A análise foi concluída.',
+      payload: {
+        threadId: '11111111-1111-1111-1111-111111111111',
+        dashboardId: 3,
+        dashboardNome: 'BI Senac',
+      },
+    })
+
+    expect(getNotificationReportName(item)).toBe('BI Senac')
+    expect(getNotificationKindLabel(item)).toBe('Análise do dashboard')
+    expect(getNotificationTone(item)).toBe('success')
+    expect(canOpenAiChatNotification(item)).toBe(true)
+    expect(canOpenReportNotification(item)).toBe(false)
   })
 })

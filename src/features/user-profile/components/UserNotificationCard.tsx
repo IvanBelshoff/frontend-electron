@@ -3,10 +3,12 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import {
   canDownloadNotification,
+  canOpenAiChatNotification,
   canOpenReportNotification,
   getNotificationKindLabel,
   getNotificationOrigemLabel,
   getNotificationReportName,
+  getNotificationSubjectLabel,
   getNotificationSummary,
   getNotificationTone,
   getOpenReportButtonLabel,
@@ -22,6 +24,7 @@ type UserNotificationCardProps = {
   onDownload: (item: UserInboxItem) => void
   onMarkRead: (notificationId: string) => void
   onOpenReport: (item: UserInboxItem) => void
+  onOpenAiChat?: (item: UserInboxItem) => void
 }
 
 const toneIconClasses: Record<ReturnType<typeof getNotificationTone>, string> = {
@@ -51,14 +54,17 @@ export default function UserNotificationCard({
   onDownload,
   onMarkRead,
   onOpenReport,
+  onOpenAiChat,
 }: UserNotificationCardProps) {
   const tone = getNotificationTone(item)
-  const reportName = getNotificationReportName(item)
+  const subjectName = getNotificationReportName(item)
+  const subjectLabel = getNotificationSubjectLabel(item)
   const summary = getNotificationSummary(item)
   const kindLabel = getNotificationKindLabel(item)
   const origemLabel = getNotificationOrigemLabel(item.payload.origem)
   const showDownload = canDownloadNotification(item)
   const showOpenReport = canOpenReportNotification(item)
+  const showOpenAiChat = canOpenAiChatNotification(item)
   const openReportLabel = getOpenReportButtonLabel(item)
   const isFailed = tone === 'error'
 
@@ -77,7 +83,7 @@ export default function UserNotificationCard({
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-vscode-text">{item.title}</p>
           <p className="mt-1 text-xs text-vscode-text">
-            Relatório: <span className="font-medium">{reportName}</span>
+            {subjectLabel}: <span className="font-medium">{subjectName}</span>
           </p>
           {summary && (
             <p
@@ -133,6 +139,19 @@ export default function UserNotificationCard({
           >
             <Button type="button" variant="secondary" size="sm" className="w-full">
               {openReportLabel}
+            </Button>
+          </Link>
+        )}
+
+        {showOpenAiChat && item.payload.threadId && (
+          <Link
+            to="/ai-chat"
+            search={{ threadId: item.payload.threadId }}
+            className="w-full"
+            onClick={() => onOpenAiChat?.(item)}
+          >
+            <Button type="button" variant="secondary" size="sm" className="w-full">
+              Abrir conversa
             </Button>
           </Link>
         )}

@@ -26,6 +26,67 @@ export function getMessageText(message: UIMessage): string {
   return text
 }
 
+function getActiveToolName(message: UIMessage): string | null {
+  for (const part of message.parts) {
+    if (part.type === 'tool-invocation') {
+      const state = (part as { state?: string; toolName?: string }).state
+      if (state === 'call' || state === 'partial-call') {
+        return (part as { toolName?: string }).toolName ?? null
+      }
+    }
+
+    if (
+      part.type.startsWith('tool-') &&
+      (part as { state?: string }).state === 'input-streaming'
+    ) {
+      const typed = part as { type: string; toolName?: string }
+      if (typed.toolName) {
+        return typed.toolName
+      }
+      const match = /^tool-(.+)$/.exec(typed.type)
+      if (match?.[1] && match[1] !== 'invocation') {
+        return match[1]
+      }
+    }
+  }
+
+  return null
+}
+
+export function getActiveToolStatusLabel(message: UIMessage): string {
+  const toolName = getActiveToolName(message)
+
+  if (
+    toolName === 'inspecionarDashboard' ||
+    toolName === 'oferecerAnaliseDashboard' ||
+    toolName === 'obterMapaDashboard' ||
+    toolName === 'proporPlanoAnaliseDashboard'
+  ) {
+    return toolName === 'proporPlanoAnaliseDashboard' ||
+      toolName === 'oferecerAnaliseDashboard'
+      ? 'Preparando análise do dashboard...'
+      : 'Consultando dashboard...'
+  }
+
+  if (
+    toolName === 'consultarRelatorio' ||
+    toolName === 'descreverRelatorio' ||
+    toolName === 'listarRelatoriosDisponiveis'
+  ) {
+    return 'Consultando relatório...'
+  }
+
+  if (toolName?.toLowerCase().includes('dashboard')) {
+    return 'Consultando dashboard...'
+  }
+
+  if (toolName?.toLowerCase().includes('relatorio')) {
+    return 'Consultando relatório...'
+  }
+
+  return 'Consultando dados...'
+}
+
 export function messageHasActiveToolCall(message: UIMessage): boolean {
   return message.parts.some((part) => {
     if (part.type === 'tool-invocation') {

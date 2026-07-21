@@ -209,6 +209,13 @@ const aiChatRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/ai-chat',
   component: AiChatPage,
+  validateSearch: (search: Record<string, unknown>) => {
+    const threadId =
+      typeof search.threadId === 'string' && search.threadId.trim().length > 0
+        ? search.threadId.trim()
+        : undefined
+    return { threadId }
+  },
   beforeLoad: () => {
     requireRole(AI_RBAC.menuRole)
   },

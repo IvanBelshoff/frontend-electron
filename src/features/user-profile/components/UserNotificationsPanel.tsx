@@ -95,6 +95,11 @@ export default function UserNotificationsPanel({
     closeProfile()
   }
 
+  const handleOpenAiChat = (item: UserInboxItem) => {
+    void handleMarkRead(item.id)
+    closeProfile()
+  }
+
   if (notificationsQuery.isLoading) {
     return <p className="text-xs text-vscode-text-muted">Carregando...</p>
   }
@@ -142,6 +147,7 @@ export default function UserNotificationsPanel({
             onDownload={(notification) => void handleDownload(notification)}
             onMarkRead={(notificationId) => void handleMarkRead(notificationId)}
             onOpenReport={handleOpenReport}
+            onOpenAiChat={handleOpenAiChat}
           />
         ))}
       </div>

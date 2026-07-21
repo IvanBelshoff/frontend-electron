@@ -6,9 +6,19 @@ type AiMessageListProps = {
   messages: UIMessage[]
   status: ChatStatus
   isHydrating?: boolean
+  threadId?: string
+  onChipClick?: (value: string) => void
+  onExploreRefresh?: () => void
 }
 
-export default function AiMessageList({ messages, status, isHydrating = false }: AiMessageListProps) {
+export default function AiMessageList({
+  messages,
+  status,
+  isHydrating = false,
+  threadId,
+  onChipClick,
+  onExploreRefresh,
+}: AiMessageListProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
@@ -32,6 +42,9 @@ export default function AiMessageList({ messages, status, isHydrating = false }:
             key={message.id}
             message={message}
             status={status}
+            threadId={threadId}
+            onChipClick={onChipClick}
+            onExploreRefresh={onExploreRefresh}
             isLastAssistant={
               message.role === 'assistant' &&
               messages.slice(index + 1).every((item) => item.role !== 'assistant')

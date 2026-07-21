@@ -12,16 +12,19 @@ import type { AiMention } from '@/features/ai/ai-mention-types'
 import { useAuth } from '@/features/auth/auth-context'
 import { queryKeys } from '@/lib/query-keys'
 
-export function useAiChatPage() {
+export function useAiChatPage(options?: { initialThreadId?: string }) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const userId = user?.sub ?? null
   const threadsQueryKey = queryKeys.ai.threads(userId)
-  const [activeThreadId, setActiveThreadId] = useState<string | undefined>()
+  const [activeThreadId, setActiveThreadId] = useState<string | undefined>(
+    options?.initialThreadId,
+  )
   const [isHydratingMessages, setIsHydratingMessages] = useState(false)
   const [pendingMentions, setPendingMentions] = useState<AiMention[]>([])
   const activeThreadIdRef = useRef<string | undefined>(activeThreadId)
   const pendingMentionsRef = useRef<AiMention[]>([])
+  const hydratedInitialRef = useRef(false)
 
   useEffect(() => {
     activeThreadIdRef.current = activeThreadId
@@ -82,6 +85,16 @@ export function useAiChatPage() {
     [setMessages],
   )
 
+  useEffect(() => {
+    const initial = options?.initialThreadId
+    if (!initial || hydratedInitialRef.current) {
+      return
+    }
+    hydratedInitialRef.current = true
+    setActiveThreadId(initial)
+    void hydrateThread(initial)
+  }, [hydrateThread, options?.initialThreadId])
+
   const selectThread = useCallback(
     async (thread: AiChatThread) => {
       setActiveThreadId(thread.id)
@@ -129,6 +142,13 @@ export function useAiChatPage() {
     [isBusy, queryClient, sendMessage, threadsQueryKey],
   )
 
+  const refreshActiveThread = useCallback(async () => {
+    if (!activeThreadIdRef.current) {
+      return
+    }
+    await hydrateThread(activeThreadIdRef.current)
+  }, [hydrateThread])
+
   return {
     threads: threadsQuery.data ?? [],
     threadsLoading: threadsQuery.isLoading,
@@ -143,6 +163,7 @@ export function useAiChatPage() {
     createThread: () => createThreadMutation.mutateAsync(),
     isCreatingThread: createThreadMutation.isPending,
     sendUserMessage,
+    refreshActiveThread,
     stop,
   }
 }

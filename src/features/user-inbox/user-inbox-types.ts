@@ -3,6 +3,9 @@ export type UserNotificationType =
   | 'export_failed'
   | 'snapshot_ready'
   | 'snapshot_failed'
+  | 'ai_dashboard_discovery_ready'
+  | 'ai_dashboard_explore_ready'
+  | 'ai_dashboard_explore_failed'
 
 export type UserNotificationPayload = {
   jobId?: string
@@ -16,6 +19,9 @@ export type UserNotificationPayload = {
   origem?: 'manual' | 'agendado' | null
   fileName?: string | null
   parametrosResumo?: string | null
+  threadId?: string
+  dashboardId?: number
+  dashboardNome?: string
 }
 
 export type UserInboxItem = {

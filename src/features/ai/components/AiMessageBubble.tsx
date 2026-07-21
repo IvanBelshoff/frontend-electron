@@ -1,13 +1,18 @@
 import type { ChatStatus, UIMessage } from 'ai'
 import AiMarkdown from '@/features/ai/components/AiMarkdown'
 import AiMentionChips from '@/features/ai/components/AiMentionChips'
+import AiExploreCardView from '@/features/ai/components/AiExploreCard'
 import type { AiMention } from '@/features/ai/ai-mention-types'
-import { getMessageText, messageHasActiveToolCall } from '@/features/ai/ai-chat-utils'
+import { getExploreCardFromMessage } from '@/features/ai/ai-explore-card-utils'
+import { getMessageText, getActiveToolStatusLabel, messageHasActiveToolCall } from '@/features/ai/ai-chat-utils'
 
 type AiMessageBubbleProps = {
   message: UIMessage
   status: ChatStatus
   isLastAssistant?: boolean
+  threadId?: string
+  onChipClick?: (value: string) => void
+  onExploreRefresh?: () => void
 }
 
 function getMessageMentions(message: UIMessage): AiMention[] {
@@ -22,14 +27,18 @@ export default function AiMessageBubble({
   message,
   status,
   isLastAssistant = false,
+  threadId,
+  onChipClick,
+  onExploreRefresh,
 }: AiMessageBubbleProps) {
   const isUser = message.role === 'user'
   const text = getMessageText(message)
   const mentions = isUser ? getMessageMentions(message) : []
+  const exploreCard = !isUser ? getExploreCardFromMessage(message) : null
   const isStreamingAssistant =
     !isUser && isLastAssistant && (status === 'submitted' || status === 'streaming')
   const isToolRunning = isStreamingAssistant && messageHasActiveToolCall(message)
-  const showSkeleton = isStreamingAssistant && !text && !isToolRunning
+  const showSkeleton = isStreamingAssistant && !text && !isToolRunning && !exploreCard
 
   return (
     <article
@@ -55,11 +64,25 @@ export default function AiMessageBubble({
           <div className="h-3 w-3/5 animate-pulse rounded bg-vscode-border/60" />
         </div>
       ) : isToolRunning ? (
-        <p className="text-sm text-vscode-text-muted">Consultando relatório...</p>
+        <p className="text-sm text-vscode-text-muted">{getActiveToolStatusLabel(message)}</p>
       ) : isUser ? (
         <p className="whitespace-pre-wrap break-words text-sm text-vscode-text">{text}</p>
       ) : (
-        <AiMarkdown content={text || (isStreamingAssistant ? '…' : '')} />
+        <>
+          {(text || isStreamingAssistant) && (
+            <AiMarkdown content={text || (isStreamingAssistant ? '…' : '')} />
+          )}
+          {exploreCard && (
+            <AiExploreCardView
+              card={exploreCard}
+              threadId={threadId}
+              disabled={status === 'submitted' || status === 'streaming'}
+              onChipClick={onChipClick}
+              onJobStarted={onExploreRefresh}
+              onJobFinished={onExploreRefresh}
+            />
+          )}
+        </>
       )}
     </article>
   )

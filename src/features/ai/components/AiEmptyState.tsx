@@ -24,8 +24,9 @@ export default function AiEmptyState({
       <div>
         <h2 className="text-lg font-semibold text-vscode-text">{greeting}</h2>
         <p className="mt-2 max-w-lg text-sm text-vscode-text-muted">
-          Sou o assistente de negócios do DataDash. Posso consultar relatórios autorizados para você
-          e responder com base nos dados reais, citando a fonte.
+          Sou o assistente de negócios do DataDash. Posso consultar relatórios autorizados e, ao
+          mencionar um dashboard com @, responder perguntas pontuais ou iniciar uma análise guiada
+          (mapear o painel, perguntar recortes e explorar abas) — sempre citando a fonte.
         </p>
       </div>
 
