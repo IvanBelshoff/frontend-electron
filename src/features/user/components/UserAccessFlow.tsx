@@ -8,6 +8,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import '@xyflow/react/dist/style.css'
 import { buildUserAccessFlowGraph } from '@/features/user/build-user-access-flow-graph'
+import { hasUserAccessData } from '@/features/user/has-user-access-data'
 import type { ManagedUser } from '@/features/user/user-list-types'
 import '@/features/user/user-access-flow.css'
 
@@ -76,10 +77,7 @@ function UserAccessFlowCanvas({ user, graph, flowCanvasWidth }: UserAccessFlowCa
 }
 
 export default function UserAccessFlow({ user }: UserAccessFlowProps) {
-  const hasAccessData =
-    user.regras.length > 0 ||
-    user.permissoes.length > 0 ||
-    user.permissoesDetalhadas.length > 0
+  const hasAccessData = hasUserAccessData(user)
 
   const flowCanvasRef = useRef<HTMLDivElement | null>(null)
   const [flowCanvasWidth, setFlowCanvasWidth] = useState(0)

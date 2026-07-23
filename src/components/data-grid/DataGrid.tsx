@@ -77,6 +77,8 @@ export default function DataGrid<T>({
   onToggleExpanded,
   defaultColumnSize = DEFAULT_COLUMN_SIZE,
   fillWidth: fillWidthProp,
+  detailRowEstimate = DATA_GRID_DETAIL_ROW_ESTIMATE,
+  getDetailRowEstimate,
 }: DataGridProps<T>) {
   const tableContainerRef = useRef<HTMLDivElement>(null)
   const containerWidth = useDataGridContainerWidth(tableContainerRef)
@@ -221,11 +223,21 @@ export default function DataGrid<T>({
     count: virtualItems.length,
     getScrollElement: () => tableContainerRef.current,
     getItemKey: (index) => virtualItems[index]?.key ?? index,
-    estimateSize: (index) =>
-      virtualItems[index]?.kind === 'detail' ? DATA_GRID_DETAIL_ROW_ESTIMATE : rowHeight,
+    estimateSize: (index) => {
+      const item = virtualItems[index]
+      if (item?.kind === 'detail') {
+        const row = rows[item.rowIndex]
+        return getDetailRowEstimate?.(row.original) ?? detailRowEstimate
+      }
+      return rowHeight
+    },
     overscan: 10,
     measureElement: (element) => element?.getBoundingClientRect().height ?? rowHeight,
   })
+
+  useEffect(() => {
+    rowVirtualizer.measure()
+  }, [expandedRowIds, rowVirtualizer])
 
   const remeasureVirtualizer = useCallback(() => {
     rowVirtualizer.measure()

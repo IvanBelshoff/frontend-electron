@@ -3,9 +3,11 @@ import { useMemo } from 'react'
 import type { ColumnDef, OnChangeFn, SortingState } from '@tanstack/react-table'
 import DataGrid from '@/components/data-grid/DataGrid'
 import { GRID_IDS } from '@/components/data-grid/grid-registry'
+import { DownloadIcon } from '@/components/settings/SettingsIcons'
 import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
+import IconButton from '@/components/ui/IconButton'
 import type { AdminJobListItem } from '@/features/jobs/jobs-types'
+import { EyeIcon } from '@/features/dashboards/icons/DashboardIcons'
 import { formatReportDate } from '@/features/reports/format-report-date'
 import ReportJobProgress from '@/features/reports/components/ReportJobProgress'
 import type { ReportJobStatus, ReportJobTipo } from '@/features/reports/report-types'
@@ -179,24 +181,43 @@ export default function JobsTable({
         header: 'Ações',
         enableSorting: false,
         enableResizing: false,
+        size: 96,
         meta: { lockPosition: 'end', stopRowClick: true },
-        cell: ({ row }) => (
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" onClick={() => onViewDetail(row.original)}>
-              Detalhe
-            </Button>
-            {row.original.downloadAvailable && (
-              <Button
-                variant="secondary"
-                size="sm"
-                loading={isDownloading && downloadingJobId === row.original.jobId}
-                onClick={() => onDownload(row.original.jobId)}
-              >
-                Download
-              </Button>
-            )}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const isRowDownloading =
+            isDownloading && downloadingJobId === row.original.jobId
+
+          return (
+            <div className="flex items-center gap-0.5">
+              <IconButton
+                icon={<EyeIcon className="h-3.5 w-3.5" />}
+                label="Ver detalhe do job"
+                title="Ver detalhe do job"
+                onClick={() => onViewDetail(row.original)}
+                className="h-8 w-8 rounded-full border border-vscode-border text-sky-400 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-300"
+              />
+              {row.original.downloadAvailable && (
+                <IconButton
+                  icon={
+                    isRowDownloading ? (
+                      <span
+                        className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <DownloadIcon className="h-3.5 w-3.5" />
+                    )
+                  }
+                  label="Download do arquivo"
+                  title="Download do arquivo"
+                  onClick={() => onDownload(row.original.jobId)}
+                  disabled={isRowDownloading}
+                  className="h-8 w-8 rounded-full border border-vscode-border text-emerald-400 hover:border-emerald-400/40 hover:bg-emerald-400/10 hover:text-emerald-300 disabled:opacity-40"
+                />
+              )}
+            </div>
+          )
+        },
       },
     ],
     [downloadingJobId, isDownloading, onDownload, onViewDetail],

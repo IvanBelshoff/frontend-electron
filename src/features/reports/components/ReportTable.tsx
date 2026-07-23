@@ -1,7 +1,11 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import DataGrid from '@/components/data-grid/DataGrid'
+import DataGridDetailsGrid, {
+  DataGridDetailsField,
+} from '@/components/data-grid/DataGridDetailsGrid'
 import { GRID_IDS } from '@/components/data-grid/grid-registry'
+import { useDataGridExpandedRows } from '@/components/data-grid/use-data-grid-expanded-rows'
 import IconButton from '@/components/ui/IconButton'
 import ReportEmptyState from '@/features/reports/components/ReportEmptyState'
 import ReportStatusBadges from '@/features/reports/components/ReportStatusBadges'
@@ -26,28 +30,23 @@ type ReportTableProps = {
 
 function ReportTableDetailsRow({ report }: { report: Report }) {
   return (
-    <div className="grid min-w-0 grid-cols-1 gap-2 text-xs text-vscode-text-muted sm:grid-cols-2 sm:gap-x-4 sm:gap-y-2">
-      <p className="min-w-0 break-words">
-        <strong className="font-semibold text-vscode-text-muted">Conexão:</strong>{' '}
-        {report.conexao?.nome ?? 'Não informado'}
-      </p>
-      <p className="min-w-0 break-words">
-        <strong className="font-semibold text-vscode-text-muted">Criado por:</strong>{' '}
+    <DataGridDetailsGrid>
+      <DataGridDetailsField label="Criado por">
         {report.usuarioCadastrador || 'Não informado'}
-      </p>
-      <p className="min-w-0 break-words">
-        <strong className="font-semibold text-vscode-text-muted">Data de criação:</strong>{' '}
+      </DataGridDetailsField>
+      <DataGridDetailsField label="Data de criação">
         {formatReportDate(report.dataCriacao)}
-      </p>
-      <p className="min-w-0 break-words">
-        <strong className="font-semibold text-vscode-text-muted">Atualizado por:</strong>{' '}
+      </DataGridDetailsField>
+      <DataGridDetailsField label="Atualizado por">
         {report.usuarioAtualizador || 'Não informado'}
-      </p>
-      <p className="min-w-0 break-words">
-        <strong className="font-semibold text-vscode-text-muted">Data de atualização:</strong>{' '}
+      </DataGridDetailsField>
+      <DataGridDetailsField label="Data de atualização">
         {formatReportDate(report.dataAtualizacao)}
-      </p>
-    </div>
+      </DataGridDetailsField>
+      <DataGridDetailsField label="Conexão">
+        {report.conexao?.nome ?? 'Não informado'}
+      </DataGridDetailsField>
+    </DataGridDetailsGrid>
   )
 }
 
@@ -59,15 +58,7 @@ export default function ReportTable({
   canEdit = true,
   canDelete = true,
 }: ReportTableProps) {
-  const [expandedRowIds, setExpandedRowIds] = useState<string[]>([])
-
-  const toggleRowDetails = useCallback((rowId: string) => {
-    setExpandedRowIds((current) =>
-      current.includes(rowId)
-        ? current.filter((id) => id !== rowId)
-        : [...current, rowId],
-    )
-  }, [])
+  const { expandedRowIds, toggleRowDetails } = useDataGridExpandedRows()
 
   const columns = useMemo<ColumnDef<Report>[]>(
     () => [
@@ -76,7 +67,6 @@ export default function ReportTable({
         header: 'Relatório',
         accessorKey: 'nome',
         enableSorting: true,
-        size: 320,
         cell: ({ row }) => {
           const report = row.original
 
@@ -201,6 +191,8 @@ export default function ReportTable({
       sortingMode="client"
       renderSubRow={(report) => <ReportTableDetailsRow report={report} />}
       expandedRowIds={expandedRowIds}
+      detailRowEstimate={88}
+      className="min-h-0 flex-1"
     />
   )
 }

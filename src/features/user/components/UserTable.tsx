@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import DataGrid from '@/components/data-grid/DataGrid'
 import { GRID_IDS } from '@/components/data-grid/grid-registry'
+import { useDataGridExpandedRows } from '@/components/data-grid/use-data-grid-expanded-rows'
 import IconButton from '@/components/ui/IconButton'
 import UserEmptyState from '@/features/user/components/UserEmptyState'
 import UserExpandedDetails from '@/features/user/components/UserExpandedDetails'
@@ -59,15 +60,7 @@ export default function UserTable({
   canEdit = true,
   canDelete = true,
 }: UserTableProps) {
-  const [expandedRowIds, setExpandedRowIds] = useState<string[]>([])
-
-  const toggleRowDetails = useCallback((rowId: string) => {
-    setExpandedRowIds((current) =>
-      current.includes(rowId)
-        ? current.filter((id) => id !== rowId)
-        : [...current, rowId],
-    )
-  }, [])
+  const { expandedRowIds, toggleRowDetails } = useDataGridExpandedRows()
 
   const columns = useMemo<ColumnDef<ManagedUser>[]>(
     () => [
@@ -76,6 +69,8 @@ export default function UserTable({
         header: 'Usuário',
         accessorFn: (user) => getUserDisplayName(user),
         enableSorting: true,
+        size: 280,
+        minSize: 220,
         cell: ({ row }) => {
           const user = row.original
           const displayName = getUserDisplayName(user)
@@ -134,6 +129,8 @@ export default function UserTable({
         header: 'Permissões',
         accessorFn: (user) => formatPermissoesList(user.permissoes),
         enableSorting: true,
+        size: 360,
+        minSize: 280,
         cell: ({ row }) => (
           <span className="break-words text-xs text-vscode-text-muted">
             {formatPermissoesList(row.original.permissoes)}
@@ -223,8 +220,10 @@ export default function UserTable({
       getRowId={(user) => String(user.id)}
       enableSorting
       sortingMode="client"
-      renderSubRow={(user) => <UserExpandedDetails user={user} />}
+      renderSubRow={(user) => <UserExpandedDetails user={user} variant="table" />}
       expandedRowIds={expandedRowIds}
+      detailRowEstimate={88}
+      className="min-h-0 flex-1"
     />
   )
 }

@@ -1,7 +1,11 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import DataGrid from '@/components/data-grid/DataGrid'
+import DataGridDetailsGrid, {
+  DataGridDetailsField,
+} from '@/components/data-grid/DataGridDetailsGrid'
 import { GRID_IDS } from '@/components/data-grid/grid-registry'
+import { useDataGridExpandedRows } from '@/components/data-grid/use-data-grid-expanded-rows'
 import IconButton from '@/components/ui/IconButton'
 import DashboardEmptyState from '@/features/dashboards/components/DashboardEmptyState'
 import DashboardStatusBadges from '@/features/dashboards/components/DashboardStatusBadges'
@@ -26,24 +30,20 @@ type DashboardTableProps = {
 
 function DashboardTableDetailsRow({ dashboard }: { dashboard: Dashboard }) {
   return (
-    <div className="grid min-w-0 grid-cols-1 gap-2 text-xs text-vscode-text-muted sm:grid-cols-2 sm:gap-x-4 sm:gap-y-2">
-      <p className="min-w-0 break-words">
-        <strong className="font-semibold text-vscode-text-muted">Criado por:</strong>{' '}
+    <DataGridDetailsGrid>
+      <DataGridDetailsField label="Criado por">
         {dashboard.usuarioCadastrador || 'Não informado'}
-      </p>
-      <p className="min-w-0 break-words">
-        <strong className="font-semibold text-vscode-text-muted">Data de criação:</strong>{' '}
+      </DataGridDetailsField>
+      <DataGridDetailsField label="Data de criação">
         {formatDashboardDate(dashboard.dataCriacao)}
-      </p>
-      <p className="min-w-0 break-words">
-        <strong className="font-semibold text-vscode-text-muted">Atualizado por:</strong>{' '}
+      </DataGridDetailsField>
+      <DataGridDetailsField label="Atualizado por">
         {dashboard.usuarioAtualizador || 'Não informado'}
-      </p>
-      <p className="min-w-0 break-words">
-        <strong className="font-semibold text-vscode-text-muted">Data de atualização:</strong>{' '}
+      </DataGridDetailsField>
+      <DataGridDetailsField label="Data de atualização">
         {formatDashboardDate(dashboard.dataAtualizacao)}
-      </p>
-    </div>
+      </DataGridDetailsField>
+    </DataGridDetailsGrid>
   )
 }
 
@@ -55,15 +55,7 @@ export default function DashboardTable({
   canEdit = true,
   canDelete = true,
 }: DashboardTableProps) {
-  const [expandedRowIds, setExpandedRowIds] = useState<string[]>([])
-
-  const toggleRowDetails = useCallback((rowId: string) => {
-    setExpandedRowIds((current) =>
-      current.includes(rowId)
-        ? current.filter((id) => id !== rowId)
-        : [...current, rowId],
-    )
-  }, [])
+  const { expandedRowIds, toggleRowDetails } = useDataGridExpandedRows()
 
   const columns = useMemo<ColumnDef<Dashboard>[]>(
     () => [
@@ -189,6 +181,8 @@ export default function DashboardTable({
       sortingMode="client"
       renderSubRow={(dashboard) => <DashboardTableDetailsRow dashboard={dashboard} />}
       expandedRowIds={expandedRowIds}
+      detailRowEstimate={64}
+      className="min-h-0 flex-1"
     />
   )
 }

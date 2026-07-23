@@ -63,7 +63,13 @@ export default function GerenciarConexoesPage() {
         canCreate={canCreate}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto pt-4">
+      <div
+        className={
+          viewMode === 'grid'
+            ? 'min-h-0 flex-1 space-y-4 overflow-y-auto pt-4'
+            : 'flex min-h-0 flex-1 flex-col overflow-hidden pt-4'
+        }
+      >
         {isLoading ? (
           <div className="flex items-center justify-center rounded-lg border border-vscode-border bg-vscode-sidebar px-6 py-16 text-sm text-vscode-text-muted">
             Carregando conexões...

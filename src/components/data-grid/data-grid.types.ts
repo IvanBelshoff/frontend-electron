@@ -44,6 +44,10 @@ export type DataGridProps<T> = {
   defaultColumnSize?: number
   /** When true (default), columns expand to fill the container width when there is extra space. */
   fillWidth?: boolean
+  /** Initial height estimate for virtualized detail rows (expand panels). */
+  detailRowEstimate?: number
+  /** Per-row height estimate for virtualized detail rows. Overrides detailRowEstimate when set. */
+  getDetailRowEstimate?: (row: T) => number
 }
 
 export type DataGridEmptyStateInput = {

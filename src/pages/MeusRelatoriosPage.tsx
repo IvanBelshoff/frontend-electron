@@ -77,7 +77,13 @@ export default function MeusRelatoriosPage() {
         {favoriteError && <Alert variant="error">{favoriteError}</Alert>}
       </div>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pt-4">
+      <div
+        className={
+          viewMode === 'grid'
+            ? 'min-h-0 flex-1 space-y-4 overflow-y-auto pt-4'
+            : 'flex min-h-0 flex-1 flex-col overflow-hidden pt-4'
+        }
+      >
         {isError ? (
           <Alert variant="error">{errorMessage}</Alert>
         ) : viewMode === 'grid' ? (

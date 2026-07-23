@@ -151,6 +151,7 @@ export default function MyReportTable({
       emptyMessage="Nenhum relatório encontrado para os filtros selecionados."
       onRowClick={(report) => onOpenReport(report.id)}
       showPagination
+      className="min-h-0 flex-1"
     />
   )
 }
