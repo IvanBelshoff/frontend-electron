@@ -9,8 +9,13 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import DataGridExpandPanel from '@/components/data-grid/DataGridExpandPanel'
 import DataGridHeader from '@/components/data-grid/DataGridHeader'
+import {
+  DATA_GRID_DETAIL_ROW_ESTIMATE,
+} from '@/components/data-grid/data-grid.constants'
+import { buildDataGridVirtualItems } from '@/components/data-grid/data-grid-virtual-rows'
 import DataGridPagination, {
   DATA_GRID_PAGE_SIZE_OPTIONS,
 } from '@/components/data-grid/DataGridPagination'
@@ -124,6 +129,23 @@ export default function DataGrid<T>({
   const [clientSorting, setClientSorting] = useState<SortingState>(initialSorting)
   const [columnOrder, setColumnOrder] = useState<string[]>(initialColumnOrder)
   const [columnSizing, setColumnSizing] = useState(initialColumnSizing)
+  const collapsingRowIdsRef = useRef<Set<string>>(new Set())
+  const [collapseEpoch, setCollapseEpoch] = useState(0)
+  const prevExpandedRowIdsRef = useRef<string[]>(expandedRowIds)
+
+  if (renderSubRow) {
+    const previousExpanded = prevExpandedRowIdsRef.current
+    for (const rowId of previousExpanded) {
+      if (!expandedRowIds.includes(rowId)) {
+        collapsingRowIdsRef.current.add(rowId)
+      }
+    }
+    for (const rowId of expandedRowIds) {
+      collapsingRowIdsRef.current.delete(rowId)
+    }
+  }
+
+  prevExpandedRowIdsRef.current = expandedRowIds
 
   const pagination: PaginationState = isServer
     ? {
@@ -182,6 +204,48 @@ export default function DataGrid<T>({
 
   const rows = table.getRowModel().rows
 
+  const detailRowIds = useMemo(() => {
+    return new Set([...expandedRowIds, ...collapsingRowIdsRef.current])
+  }, [expandedRowIds, collapseEpoch])
+
+  const virtualItems = useMemo(
+    () =>
+      buildDataGridVirtualItems(rows, detailRowIds, {
+        renderSubRow,
+        getRowCanExpand,
+      }),
+    [rows, detailRowIds, renderSubRow, getRowCanExpand],
+  )
+
+  const rowVirtualizer = useVirtualizer({
+    count: virtualItems.length,
+    getScrollElement: () => tableContainerRef.current,
+    getItemKey: (index) => virtualItems[index]?.key ?? index,
+    estimateSize: (index) =>
+      virtualItems[index]?.kind === 'detail' ? DATA_GRID_DETAIL_ROW_ESTIMATE : rowHeight,
+    overscan: 10,
+    measureElement: (element) => element?.getBoundingClientRect().height ?? rowHeight,
+  })
+
+  const remeasureVirtualizer = useCallback(() => {
+    rowVirtualizer.measure()
+  }, [rowVirtualizer])
+
+  const handleCollapseEnd = useCallback(
+    (rowId: string) => {
+      collapsingRowIdsRef.current.delete(rowId)
+      setCollapseEpoch((current) => current + 1)
+      rowVirtualizer.measure()
+    },
+    [rowVirtualizer],
+  )
+
+  useEffect(() => {
+    collapsingRowIdsRef.current.clear()
+    prevExpandedRowIdsRef.current = []
+    setCollapseEpoch((current) => current + 1)
+  }, [data, pagination.pageIndex, pagination.pageSize])
+
   const visibleColumns = table.getVisibleLeafColumns()
   const { tableWidth, getColumnWidth } = useMemo(() => {
     const columnSizes = visibleColumns.map((column) => column.getSize())
@@ -199,14 +263,6 @@ export default function DataGrid<T>({
         widthByColumnId.get(columnId) ?? fallback,
     }
   }, [containerWidth, fillWidth, visibleColumns, columnSizing, columnOrder])
-
-  const rowVirtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => rowHeight,
-    overscan: 10,
-    measureElement: (element) => element?.getBoundingClientRect().height ?? rowHeight,
-  })
 
   useEffect(() => {
     if (!isServer) {
@@ -305,50 +361,85 @@ export default function DataGrid<T>({
             style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const row = rows[virtualRow.index]
-              const rowClassName = resolvedStyle.getRowBackgroundClass(virtualRow.index)
-              const visibleCells = row.getVisibleCells()
-              const canExpand = getRowCanExpand?.(row.original) ?? Boolean(renderSubRow)
-              const isExpanded = expandedRowIds.includes(row.id)
+              const item = virtualItems[virtualRow.index]
+              if (!item) {
+                return null
+              }
 
-              return (
-                <Fragment key={row.id}>
+              if (item.kind === 'detail') {
+                const row = rows[item.rowIndex]
+                const isDetailExpanded = expandedRowIds.includes(item.rowId)
+
+                return (
                   <tr
+                    key={item.key}
                     ref={rowVirtualizer.measureElement}
                     data-index={virtualRow.index}
+                    data-virtual-key={item.key}
                     className={clsx(
-                      'absolute left-0 top-0 flex w-full',
+                      'absolute left-0 top-0 flex w-full bg-vscode-input-bg/20',
                       resolvedStyle.showRowLines && 'border-b border-vscode-border',
-                      rowClassName,
-                      onRowClick
-                        ? 'cursor-pointer hover:bg-vscode-activity-bar/60'
-                        : 'cursor-default select-none',
                     )}
                     style={{
-                      minHeight: `${rowHeight}px`,
-                      height: `${virtualRow.size}px`,
                       transform: `translateY(${virtualRow.start}px)`,
                     }}
-                    onClick={() => onRowClick?.(row.original)}
                   >
-                    {visibleCells.map((cell, cellIndex) => {
-                      const columnWidth = getColumnWidth(cell.column.id, cell.column.getSize())
+                    <td className="w-full p-0" colSpan={visibleColumns.length}>
+                      <DataGridExpandPanel
+                        expanded={isDetailExpanded}
+                        onHeightChange={remeasureVirtualizer}
+                        onCollapseEnd={() => handleCollapseEnd(item.rowId)}
+                      >
+                        {renderSubRow?.(row.original)}
+                      </DataGridExpandPanel>
+                    </td>
+                  </tr>
+                )
+              }
 
-                      return (
-                        <td
-                          key={cell.id}
-                          className={clsx(
-                            resolvedStyle.cellClass,
-                            resolvedStyle.getBodyColumnLineClass(
-                              cellIndex === visibleCells.length - 1,
-                            ),
-                            cell.column.columnDef.meta?.truncate && 'truncate',
-                          )}
-                          style={{
-                            width: columnWidth,
-                            minWidth: columnWidth,
-                            flex: `0 0 ${columnWidth}px`,
-                          }}
+              const row = rows[item.rowIndex]
+              const rowClassName = resolvedStyle.getRowBackgroundClass(item.rowIndex)
+              const visibleCells = row.getVisibleCells()
+
+              return (
+                <tr
+                  key={item.key}
+                  ref={rowVirtualizer.measureElement}
+                  data-index={virtualRow.index}
+                  data-virtual-key={item.key}
+                  className={clsx(
+                    'absolute left-0 top-0 flex w-full',
+                    resolvedStyle.showRowLines && 'border-b border-vscode-border',
+                    rowClassName,
+                    onRowClick
+                      ? 'cursor-pointer hover:bg-vscode-activity-bar/60'
+                      : 'cursor-default select-none',
+                  )}
+                  style={{
+                    minHeight: `${rowHeight}px`,
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                  onClick={() => onRowClick?.(row.original)}
+                >
+                  {visibleCells.map((cell, cellIndex) => {
+                    const columnWidth = getColumnWidth(cell.column.id, cell.column.getSize())
+
+                    return (
+                      <td
+                        key={cell.id}
+                        className={clsx(
+                          resolvedStyle.cellClass,
+                          resolvedStyle.getBodyColumnLineClass(
+                            cellIndex === visibleCells.length - 1,
+                          ),
+                          cell.column.columnDef.meta?.truncate && 'truncate',
+                        )}
+                        style={{
+                          width: columnWidth,
+                          minWidth: columnWidth,
+                          flex: `0 0 ${columnWidth}px`,
+                        }}
                         title={
                           typeof cell.getValue() === 'string'
                             ? (cell.getValue() as string)
@@ -362,26 +453,9 @@ export default function DataGrid<T>({
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
-                      )
-                    })}
-                  </tr>
-
-                  {canExpand && isExpanded && renderSubRow ? (
-                    <tr
-                      className={clsx(
-                        'absolute left-0 flex w-full bg-vscode-input-bg/20',
-                        resolvedStyle.showRowLines && 'border-b border-vscode-border',
-                      )}
-                      style={{
-                        transform: `translateY(${virtualRow.start + virtualRow.size}px)`,
-                      }}
-                    >
-                      <td className="w-full px-4 py-3" colSpan={row.getVisibleCells().length}>
-                        {renderSubRow(row.original)}
-                      </td>
-                    </tr>
-                  ) : null}
-                </Fragment>
+                    )
+                  })}
+                </tr>
               )
             })}
           </tbody>

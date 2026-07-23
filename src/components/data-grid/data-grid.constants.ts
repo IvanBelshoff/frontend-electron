@@ -1,4 +1,6 @@
 export const DATA_GRID_ROW_MIN_HEIGHT = 52
+export const DATA_GRID_DETAIL_ROW_ESTIMATE = 64
+export const DATA_GRID_EXPAND_TRANSITION_MS = 200
 export const DATA_GRID_CELL_CLASS =
   'flex min-w-0 items-center whitespace-normal px-4 py-3 text-sm text-vscode-text'
 export const DATA_GRID_HEADER_CELL_CLASS =

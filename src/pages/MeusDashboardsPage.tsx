@@ -31,8 +31,6 @@ export default function MeusDashboardsPage() {
     goToNextPage,
     goToPage,
     onPageSizeChange,
-    sorting,
-    onSortingChange,
     isLoading,
     isFetching,
     isError,
@@ -121,8 +119,6 @@ export default function MeusDashboardsPage() {
             page={page}
             pageSize={pageSize}
             totalPages={totalPages}
-            sorting={sorting}
-            onSortingChange={onSortingChange}
             isFavorite={isFavorite}
             togglingFavoriteId={togglingFavoriteId}
             onToggleFavorite={toggleFavorite}

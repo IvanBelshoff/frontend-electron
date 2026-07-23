@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { ColumnDef, OnChangeFn, SortingState } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import DataGrid from '@/components/data-grid/DataGrid'
 import { GRID_IDS } from '@/components/data-grid/grid-registry'
 import DashboardStatusBadges from '@/features/dashboards/components/DashboardStatusBadges'
@@ -14,8 +14,6 @@ type MyDashboardTableProps = {
   page: number
   pageSize: number
   totalPages: number
-  sorting: SortingState
-  onSortingChange: OnChangeFn<SortingState>
   isFavorite: (dashboardId: number) => boolean
   togglingFavoriteId: number | null
   onToggleFavorite: (dashboardId: number) => void
@@ -33,8 +31,6 @@ export default function MyDashboardTable({
   page,
   pageSize,
   totalPages,
-  sorting,
-  onSortingChange,
   isFavorite,
   togglingFavoriteId,
   onToggleFavorite,
@@ -68,8 +64,9 @@ export default function MyDashboardTable({
         id: 'nome',
         header: 'Dashboard',
         accessorKey: 'nome',
-        enableSorting: true,
+        enableSorting: false,
         size: 320,
+        minSize: 220,
         cell: ({ row }) => (
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-vscode-accent/25 bg-vscode-accent/10 text-vscode-accent">
@@ -87,7 +84,7 @@ export default function MyDashboardTable({
         id: 'privacidade',
         header: 'Privacidade',
         accessorKey: 'privacidade',
-        enableSorting: true,
+        enableSorting: false,
         cell: ({ row }) => (
           <DashboardStatusBadges dashboard={row.original} field="privacidade" />
         ),
@@ -96,7 +93,7 @@ export default function MyDashboardTable({
         id: 'temporario',
         header: 'Temporalidade',
         accessorKey: 'temporario',
-        enableSorting: true,
+        enableSorting: false,
         cell: ({ row }) => <DashboardStatusBadges dashboard={row.original} field="temporario" />,
       },
     ],
@@ -131,10 +128,6 @@ export default function MyDashboardTable({
           onPageChange(next.pageIndex + 1)
         }
       }}
-      enableSorting
-      sortingMode="server"
-      sorting={sorting}
-      onSortingChange={onSortingChange}
       isLoading={isLoading}
       isFetching={isFetching}
       emptyMessage="Nenhum dashboard encontrado para os filtros selecionados."

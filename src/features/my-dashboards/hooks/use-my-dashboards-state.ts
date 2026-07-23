@@ -1,9 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import type { OnChangeFn, SortingState } from '@tanstack/react-table'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { serializeSortingState, sortingStateFromApiSort } from '@/components/data-grid/data-grid-sort.utils'
-import { GRID_IDS } from '@/components/data-grid/grid-registry'
 import { useAuth } from '@/features/auth/use-auth'
 import { ApiError } from '@/features/auth/auth-types'
 import {
@@ -42,14 +39,13 @@ export function useMyDashboardsState() {
   const [filterDialogOpen, setFilterDialogOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(MY_DASHBOARDS_PAGE_SIZE)
-  const [sort, setSort] = useState<string | undefined>(undefined)
   const [favoriteIds, setFavoriteIds] = useState<number[]>([])
   const [favoriteError, setFavoriteError] = useState<string | null>(null)
   const [togglingFavoriteId, setTogglingFavoriteId] = useState<number | null>(null)
 
   const listParams = useMemo(
-    () => buildMyDashboardListParams(search, filters, page, pageSize, sort),
-    [filters, page, pageSize, search, sort],
+    () => buildMyDashboardListParams(search, filters, page, pageSize),
+    [filters, page, pageSize, search],
   )
 
   const dashboardsQuery = useQuery({
@@ -69,19 +65,6 @@ export function useMyDashboardsState() {
   const filteredCount = dashboards.length
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const showPagination = totalCount > pageSize
-
-  const sorting: SortingState = useMemo(
-    () => sortingStateFromApiSort(sort, GRID_IDS.myDashboards),
-    [sort],
-  )
-
-  const onSortingChange: OnChangeFn<SortingState> = useCallback((updater) => {
-    const currentSorting = sortingStateFromApiSort(sort, GRID_IDS.myDashboards)
-    const nextSorting = typeof updater === 'function' ? updater(currentSorting) : updater
-
-    setSort(serializeSortingState(nextSorting, GRID_IDS.myDashboards))
-    setPage(1)
-  }, [sort])
 
   const setViewMode = useCallback((mode: MyDashboardViewMode) => {
     setViewModeState(mode)
@@ -234,8 +217,6 @@ export function useMyDashboardsState() {
     goToNextPage,
     goToPage,
     onPageSizeChange: handlePageSizeChange,
-    sorting,
-    onSortingChange,
     isLoading: dashboardsQuery.isLoading,
     isFetching: dashboardsQuery.isFetching,
     isError: dashboardsQuery.isError,
