@@ -12,6 +12,7 @@ import {
   DASHBOARD_RBAC,
   METRICS_RBAC,
   JOBS_RBAC,
+  AUDIT_RBAC,
   AI_RBAC,
   REPORT_RBAC,
   USER_RBAC,
@@ -20,6 +21,7 @@ import { requirePermission, requireRole } from '@/features/auth/route-guards'
 import AppShell from '@/layouts/AppShell'
 import MetricasPage from '@/pages/MetricasPage'
 import JobsPage from '@/pages/JobsPage'
+import AuditoriaPage from '@/pages/AuditoriaPage'
 import AiChatPage from '@/pages/AiChatPage'
 import ConfiguracoesPage from '@/pages/ConfiguracoesPage'
 import CriarConexaoPage from '@/pages/CriarConexaoPage'
@@ -223,6 +225,15 @@ const jobsRoute = createRoute({
   },
 })
 
+const auditoriaRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/auditoria',
+  component: AuditoriaPage,
+  beforeLoad: () => {
+    requireRole(AUDIT_RBAC.menuRole)
+  },
+})
+
 const metricasRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/metricas',
@@ -268,6 +279,7 @@ const routeTree = rootRoute.addChildren([
     configuracoesRoute,
     aiChatRoute,
     jobsRoute,
+    auditoriaRoute,
     metricasRoute,
   ]),
   loginRoute,

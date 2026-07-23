@@ -7,6 +7,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   DatabaseIcon,
+  HistoryIcon,
   LayoutDashboardIcon,
   MyReportsIcon,
   SettingsIcon,
@@ -101,6 +102,19 @@ const MANAGE_NAV: MainNavItem[] = [
   },
 ]
 
+function SidebarDivider({ expanded }: { expanded: boolean }) {
+  return (
+    <div
+      className={clsx(
+        'my-2 border-t border-vscode-border',
+        expanded ? '-mx-2' : '-mx-1',
+      )}
+      role="separator"
+      aria-hidden="true"
+    />
+  )
+}
+
 export default function Sidebar() {
   const { logout, rbac } = useAuth()
   const { isEligible: isAiEligible } = useAiAccess()
@@ -186,16 +200,7 @@ export default function Sidebar() {
       >
         {visibleUserNavItems.map(renderNavItem)}
 
-        {visibleManageNavItems.length > 0 && (
-          <div
-            className={clsx(
-              'my-2 border-t border-vscode-border',
-              expanded ? 'mx-1' : 'mx-0',
-            )}
-            role="separator"
-            aria-hidden="true"
-          />
-        )}
+        {visibleManageNavItems.length > 0 && <SidebarDivider expanded={expanded} />}
 
         {visibleManageNavItems.map(renderNavItem)}
       </nav>
@@ -206,13 +211,6 @@ export default function Sidebar() {
           expanded ? 'px-2' : 'px-1',
         )}
       >
-        <SidebarNavItem
-          to="/configuracoes"
-          label="Configurações"
-          icon={<SettingsIcon />}
-          expanded={expanded}
-        />
-
         {isAdmin(rbac) && (
           <>
             <SidebarNavItem
@@ -227,16 +225,26 @@ export default function Sidebar() {
               icon={<WorkHistoryIcon />}
               expanded={expanded}
             />
+            <SidebarNavItem
+              to="/auditoria"
+              label="Auditoria"
+              icon={<HistoryIcon />}
+              expanded={expanded}
+            />
+
+            <SidebarDivider expanded={expanded} />
           </>
         )}
-      </div>
 
-      <div
-        className={clsx(
-          'flex flex-col gap-1 border-t border-vscode-border py-3',
-          expanded ? 'px-2' : 'px-1',
-        )}
-      >
+        <SidebarNavItem
+          to="/configuracoes"
+          label="Configurações"
+          icon={<SettingsIcon />}
+          expanded={expanded}
+        />
+
+        <SidebarDivider expanded={expanded} />
+
         <button
           type="button"
           onClick={() => void handleLogout()}

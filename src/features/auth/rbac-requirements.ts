@@ -70,6 +70,10 @@ export const JOBS_RBAC = {
   menuRole: RBAC_ROLES.ADMIN,
 } as const
 
+export const AUDIT_RBAC = {
+  menuRole: RBAC_ROLES.ADMIN,
+} as const
+
 export const AI_RBAC = {
   menuRole: RBAC_ROLES.IA,
 } as const

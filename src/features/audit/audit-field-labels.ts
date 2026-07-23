@@ -1,0 +1,37 @@
+const FIELD_LABELS: Record<string, string> = {
+  nome: 'Nome',
+  sobrenome: 'Sobrenome',
+  email: 'E-mail',
+  bloqueado: 'Bloqueado',
+  regrasIds: 'Regras',
+  permissoesIds: 'Permissões',
+  usuarioIds: 'Usuários com acesso',
+  permitirConhecimentoIa: 'Conhecimento IA',
+  url: 'URL',
+  icone: 'Ícone',
+  privacidade: 'Privacidade',
+  visivel: 'Visível',
+  temporario: 'Temporário',
+  data_expiracao_inicial: 'Expiração inicial',
+  data_expiracao_final: 'Expiração final',
+  query: 'Query SQL',
+  estado: 'Estado',
+  limite_linhas: 'Limite de linhas',
+  timeout_ms: 'Timeout (ms)',
+  id_conexao: 'Conexão',
+  parametros: 'Parâmetros',
+  ativo: 'Ativo',
+  frequencia: 'Frequência',
+  intervalo: 'Intervalo',
+  horas: 'Horas',
+  minutos: 'Minutos',
+  dias_semana: 'Dias da semana',
+  cronExpression: 'Expressão cron',
+  tipo: 'Tipo',
+  entidade_tipo: 'Tipo de entidade',
+  entidade_id: 'ID da entidade',
+}
+
+export function getAuditFieldLabel(field: string): string {
+  return FIELD_LABELS[field] ?? field
+}

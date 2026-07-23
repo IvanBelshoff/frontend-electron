@@ -71,6 +71,9 @@ export const queryKeys = {
   adminJobs: (filters?: Record<string, unknown>) => ['admin-jobs', filters] as const,
   adminScheduleExecutions: (filters?: Record<string, unknown>) =>
     ['admin-schedule-executions', filters] as const,
+  adminAuditLogs: (filters?: Record<string, unknown>) => ['admin-audit', 'logs', filters] as const,
+  adminAuditLog: (id?: string) => ['admin-audit', 'detail', id] as const,
+  adminAuditActions: ['admin-audit', 'actions'] as const,
   userInbox: {
     list: (params?: { page?: number; pageSize?: number; unreadOnly?: boolean }) =>
       ['user-inbox', 'list', params] as const,
