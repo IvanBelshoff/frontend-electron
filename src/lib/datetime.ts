@@ -1,9 +1,10 @@
 /**
  * Date/time formatting for API values.
  *
- * - TIMESTAMP (no TZ in DB): wall-clock values. JSON may include a trailing Z from
- *   serialization; we strip timezone info and interpret the clock in getAppTimeZone().
- * - TIMESTAMPTZ: true UTC instants — use formatDateTimeInstant / parseApiDateTime({ instant: true }).
+ * - API JSON dates (ISO with Z or offset): UTC instants from NestJS Date serialization.
+ *   Parsed with parseISO and displayed in getAppTimeZone().
+ * - Timezone-less datetimes: wall-clock in getAppTimeZone() (rare raw API values).
+ * - TIMESTAMPTZ: same as Z-suffixed ISO — use formatDateTimeInstant.
  * - DATE: date-only fields — use formatDateOnly.
  */
 import {
@@ -47,10 +48,7 @@ export function getAppTimeZone(): string {
 }
 
 type ParseApiDateTimeOptions = {
-  /**
-   * Use for PostgreSQL TIMESTAMPTZ values serialized as true UTC instants.
-   * Default parsing treats TIMESTAMP (without TZ) wall-clock values from the API.
-   */
+  /** Force UTC instant parsing (TIMESTAMPTZ). Z/offset strings already use parseISO by default. */
   instant?: boolean
 }
 
@@ -103,7 +101,7 @@ export function parseApiDateTime(
     return isValid(parsed) ? parsed : null
   }
 
-  if (options.instant) {
+  if (options.instant || TIMEZONE_SUFFIX_PATTERN.test(trimmed)) {
     const parsed = parseISO(trimmed)
     return isValid(parsed) ? parsed : null
   }
