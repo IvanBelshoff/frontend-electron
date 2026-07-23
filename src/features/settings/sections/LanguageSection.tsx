@@ -11,13 +11,16 @@ export default function LanguageSection() {
   const { language } = useUserPreferences()
 
   return (
-    <SettingsCard className="h-full">
-      <SettingsCardHeader
-        icon={<LanguageIcon />}
-        title="Idioma"
-        description="Selecione o idioma principal da experiência."
-      />
+    <SettingsCard className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="shrink-0">
+        <SettingsCardHeader
+          icon={<LanguageIcon />}
+          title="Idioma"
+          description="Selecione o idioma principal da experiência."
+        />
+      </div>
 
+      <div className="min-h-0 flex-1 overflow-y-auto pt-5">
       <SettingsField label="Idioma da interface" htmlFor="settingsLanguage">
         <SettingsSelect
           id="settingsLanguage"
@@ -31,6 +34,7 @@ export default function LanguageSection() {
           <option value="es-ES">Español</option>
         </SettingsSelect>
       </SettingsField>
+      </div>
     </SettingsCard>
   )
 }

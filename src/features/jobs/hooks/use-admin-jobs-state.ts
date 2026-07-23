@@ -1,5 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import type { OnChangeFn, SortingState } from '@tanstack/react-table'
 import { useCallback, useMemo, useState } from 'react'
+import { serializeSortingState, sortingStateFromApiSort } from '@/components/data-grid/data-grid-sort.utils'
+import { GRID_IDS } from '@/components/data-grid/grid-registry'
 import { listAdminJobs, listAdminScheduleExecutions } from '@/features/jobs/jobs-api'
 import type {
   AdminJobListItem,
@@ -17,11 +20,13 @@ const ACTIVE_JOB_POLL_MS = 5000
 const DEFAULT_JOBS_FILTERS: AdminJobsFilters = {
   page: 1,
   pageSize: DEFAULT_PAGE_SIZE,
+  sort: 'created_at:desc',
 }
 
 const DEFAULT_SCHEDULE_FILTERS: AdminScheduleExecutionsFilters = {
   page: 1,
   pageSize: DEFAULT_PAGE_SIZE,
+  sort: 'iniciado_em:desc',
 }
 
 function isActiveJobStatus(status: ReportJobStatus): boolean {
@@ -66,6 +71,42 @@ export function useAdminJobsState() {
     const total = schedulesQuery.data?.total ?? 0
     return Math.max(1, Math.ceil(total / scheduleFilters.pageSize))
   }, [scheduleFilters.pageSize, schedulesQuery.data?.total])
+
+  const jobsSorting: SortingState = useMemo(
+    () => sortingStateFromApiSort(jobsFilters.sort, GRID_IDS.adminJobs),
+    [jobsFilters.sort],
+  )
+
+  const schedulesSorting: SortingState = useMemo(
+    () => sortingStateFromApiSort(scheduleFilters.sort, GRID_IDS.adminScheduleExecutions),
+    [scheduleFilters.sort],
+  )
+
+  const onJobsSortingChange: OnChangeFn<SortingState> = useCallback((updater) => {
+    setJobsFilters((current) => {
+      const currentSorting = sortingStateFromApiSort(current.sort, GRID_IDS.adminJobs)
+      const nextSorting = typeof updater === 'function' ? updater(currentSorting) : updater
+
+      return {
+        ...current,
+        page: 1,
+        sort: serializeSortingState(nextSorting, GRID_IDS.adminJobs),
+      }
+    })
+  }, [])
+
+  const onSchedulesSortingChange: OnChangeFn<SortingState> = useCallback((updater) => {
+    setScheduleFilters((current) => {
+      const currentSorting = sortingStateFromApiSort(current.sort, GRID_IDS.adminScheduleExecutions)
+      const nextSorting = typeof updater === 'function' ? updater(currentSorting) : updater
+
+      return {
+        ...current,
+        page: 1,
+        sort: serializeSortingState(nextSorting, GRID_IDS.adminScheduleExecutions),
+      }
+    })
+  }, [])
 
   const setJobsStatus = useCallback((status?: ReportJobStatus) => {
     setJobsFilters((current) => ({ ...current, page: 1, status }))
@@ -117,6 +158,14 @@ export function useAdminJobsState() {
     setScheduleFilters((current) => ({ ...current, page }))
   }, [])
 
+  const setJobsPageSize = useCallback((pageSize: number) => {
+    setJobsFilters((current) => ({ ...current, page: 1, pageSize }))
+  }, [])
+
+  const setSchedulesPageSize = useCallback((pageSize: number) => {
+    setScheduleFilters((current) => ({ ...current, page: 1, pageSize }))
+  }, [])
+
   const openJobDetail = useCallback((job: AdminJobListItem) => {
     setSelectedJob(job)
   }, [])
@@ -150,8 +199,11 @@ export function useAdminJobsState() {
     jobs: jobsQuery.data?.items ?? [],
     jobsTotal: jobsQuery.data?.total ?? 0,
     jobsPage: jobsFilters.page,
+    jobsPageSize: jobsFilters.pageSize,
     jobsTotalPages,
     jobsFilters,
+    jobsSorting,
+    onJobsSortingChange,
     jobIdSearch,
     setJobIdSearch,
     applyJobIdSearch,
@@ -161,23 +213,30 @@ export function useAdminJobsState() {
     setJobsDateRange,
     clearJobsFilters,
     goToJobsPage,
+    setJobsPageSize,
     isJobsLoading: jobsQuery.isLoading,
     isJobsError: jobsQuery.isError,
     jobsError: jobsQuery.error,
+    isJobsFetching: jobsQuery.isFetching,
     isJobsRefreshing: jobsQuery.isFetching && !jobsQuery.isLoading,
     refreshJobs,
     schedules: schedulesQuery.data?.items ?? [],
     schedulesTotal: schedulesQuery.data?.total ?? 0,
     schedulesPage: scheduleFilters.page,
+    schedulesPageSize: scheduleFilters.pageSize,
     schedulesTotalPages,
     scheduleFilters,
+    schedulesSorting,
+    onSchedulesSortingChange,
     setScheduleStatus,
     setScheduleRelatorioId,
     setScheduleDateRange,
     goToSchedulesPage,
+    setSchedulesPageSize,
     isSchedulesLoading: schedulesQuery.isLoading,
     isSchedulesError: schedulesQuery.isError,
     schedulesError: schedulesQuery.error,
+    isSchedulesFetching: schedulesQuery.isFetching,
     isSchedulesRefreshing: schedulesQuery.isFetching && !schedulesQuery.isLoading,
     refreshSchedules,
     refreshAll,

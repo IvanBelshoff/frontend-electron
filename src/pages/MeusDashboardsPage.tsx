@@ -24,11 +24,17 @@ export default function MeusDashboardsPage() {
     viewMode,
     setViewMode,
     page,
+    pageSize,
     totalPages,
     showPagination,
     goToPreviousPage,
     goToNextPage,
+    goToPage,
+    onPageSizeChange,
+    sorting,
+    onSortingChange,
     isLoading,
+    isFetching,
     isError,
     error,
     isRefreshing,
@@ -73,39 +79,59 @@ export default function MeusDashboardsPage() {
         {favoriteError && <Alert variant="error">{favoriteError}</Alert>}
       </div>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pt-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center rounded-xl border border-vscode-border bg-vscode-sidebar px-6 py-20 text-sm text-vscode-text-muted">
-            Carregando dashboards...
-          </div>
-        ) : isError ? (
+      <div
+        className={
+          viewMode === 'grid'
+            ? 'min-h-0 flex-1 space-y-4 overflow-y-auto pt-4'
+            : 'flex min-h-0 flex-1 flex-col overflow-hidden pt-4'
+        }
+      >
+        {isError ? (
           <Alert variant="error">{errorMessage}</Alert>
         ) : viewMode === 'grid' ? (
-          <MyDashboardCardGrid
-            dashboards={dashboards}
-            isFavorite={isFavorite}
-            togglingFavoriteId={togglingFavoriteId}
-            onToggleFavorite={toggleFavorite}
-            onOpenDashboard={openDashboard}
-            onClearFilters={clearFilters}
-          />
+          <>
+            {isLoading ? (
+              <div className="flex items-center justify-center rounded-xl border border-vscode-border bg-vscode-sidebar px-6 py-20 text-sm text-vscode-text-muted">
+                Carregando dashboards...
+              </div>
+            ) : (
+              <MyDashboardCardGrid
+                dashboards={dashboards}
+                isFavorite={isFavorite}
+                togglingFavoriteId={togglingFavoriteId}
+                onToggleFavorite={toggleFavorite}
+                onOpenDashboard={openDashboard}
+                onClearFilters={clearFilters}
+              />
+            )}
+
+            {showPagination && !isLoading && (
+              <MyDashboardPagination
+                page={page}
+                totalPages={totalPages}
+                onPrevious={goToPreviousPage}
+                onNext={goToNextPage}
+              />
+            )}
+          </>
         ) : (
           <MyDashboardTable
             dashboards={dashboards}
+            total={totalCount}
+            page={page}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
             isFavorite={isFavorite}
             togglingFavoriteId={togglingFavoriteId}
             onToggleFavorite={toggleFavorite}
             onOpenDashboard={openDashboard}
             onClearFilters={clearFilters}
-          />
-        )}
-
-        {showPagination && !isLoading && !isError && (
-          <MyDashboardPagination
-            page={page}
-            totalPages={totalPages}
-            onPrevious={goToPreviousPage}
-            onNext={goToNextPage}
+            onPageChange={goToPage}
+            onPageSizeChange={onPageSizeChange}
+            isLoading={isLoading}
+            isFetching={isFetching}
           />
         )}
       </div>

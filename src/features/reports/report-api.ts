@@ -244,6 +244,10 @@ export async function getReportData(
     searchParams.set('parametros', JSON.stringify(queryParams.parametros))
   }
 
+  if (queryParams.sort) {
+    searchParams.set('sort', queryParams.sort)
+  }
+
   const data = await apiRequest<ReportDataApiRecord>(
     `/relatorios/${id}/dados?${searchParams.toString()}`,
   )

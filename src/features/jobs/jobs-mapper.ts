@@ -152,7 +152,7 @@ export function buildAdminJobsQuery(filters: AdminJobsFilters): string {
     job_id: filters.jobId,
     created_from: filters.createdFrom,
     created_to: filters.createdTo,
-    sort: 'created_at:desc',
+    sort: filters.sort ?? 'created_at:desc',
   })
 }
 
@@ -166,6 +166,6 @@ export function buildAdminScheduleExecutionsQuery(
     relatorio_id: filters.relatorioId,
     created_from: filters.createdFrom,
     created_to: filters.createdTo,
-    sort: 'iniciado_em:desc',
+    sort: filters.sort ?? 'iniciado_em:desc',
   })
 }

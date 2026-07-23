@@ -22,4 +22,5 @@ export type ListMyReportsParams = {
   favoritos?: boolean
   privacidade?: Privacidade
   temporario?: boolean
+  sort?: string
 }

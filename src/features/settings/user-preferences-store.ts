@@ -1,5 +1,7 @@
 import {
+  DEFAULT_DATA_GRID_STYLE,
   DEFAULT_USER_PREFERENCES,
+  type DataGridLayoutPreference,
   type UpdateUserPreferencesInput,
   type UserPreferencesUi,
 } from '@/features/settings/user-preferences-types'
@@ -32,6 +34,35 @@ function clearLegacyStorage() {
   }
 }
 
+function mergeGridLayoutPreference(
+  current: DataGridLayoutPreference | undefined,
+  patch: DataGridLayoutPreference,
+): DataGridLayoutPreference {
+  return {
+    columnOrder: patch.columnOrder ?? current?.columnOrder,
+    columnSizing: {
+      ...current?.columnSizing,
+      ...patch.columnSizing,
+    },
+    sorting: patch.sorting ?? current?.sorting,
+  }
+}
+
+function mergeGridLayouts(
+  current: Record<string, DataGridLayoutPreference> | undefined,
+  patch: Record<string, DataGridLayoutPreference>,
+): Record<string, DataGridLayoutPreference> {
+  const merged: Record<string, DataGridLayoutPreference> = {
+    ...current,
+  }
+
+  for (const [gridId, gridPatch] of Object.entries(patch)) {
+    merged[gridId] = mergeGridLayoutPreference(current?.[gridId], gridPatch)
+  }
+
+  return merged
+}
+
 function mergePreferences(
   current: UserPreferencesUi,
   patch: UpdateUserPreferencesInput,
@@ -45,6 +76,14 @@ function mergePreferences(
       style: patch.notification?.style ?? current.notification.style,
       placement: patch.notification?.placement ?? current.notification.placement,
     },
+    dataGridStyle: {
+      columnLines: patch.dataGridStyle?.columnLines ?? current.dataGridStyle.columnLines,
+      stripedRows: patch.dataGridStyle?.stripedRows ?? current.dataGridStyle.stripedRows,
+      showRowLines: patch.dataGridStyle?.showRowLines ?? current.dataGridStyle.showRowLines,
+      stickyHeader: patch.dataGridStyle?.stickyHeader ?? current.dataGridStyle.stickyHeader,
+    },
+    grids:
+      patch.grids !== undefined ? mergeGridLayouts(current.grids, patch.grids) : current.grids,
   }
 }
 
@@ -60,6 +99,11 @@ export const userPreferencesStore = {
             ...DEFAULT_USER_PREFERENCES.notification,
             ...next.notification,
           },
+          dataGridStyle: {
+            ...DEFAULT_DATA_GRID_STYLE,
+            ...next.dataGridStyle,
+          },
+          grids: next.grids ? { ...next.grids } : undefined,
         }
       : { ...DEFAULT_USER_PREFERENCES }
     hydrated = true
@@ -78,6 +122,11 @@ export const userPreferencesStore = {
         ...DEFAULT_USER_PREFERENCES.notification,
         ...next.notification,
       },
+      dataGridStyle: {
+        ...DEFAULT_DATA_GRID_STYLE,
+        ...next.dataGridStyle,
+      },
+      grids: next.grids ? { ...next.grids } : undefined,
     }
     notify()
   },

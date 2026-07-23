@@ -8,8 +8,8 @@ export default function GeneralInfoSection() {
   const environmentLabel = import.meta.env.MODE === 'production' ? 'Produção' : 'Desenvolvimento'
 
   return (
-    <SettingsCard>
-      <header className="mb-4 flex flex-wrap items-start gap-3">
+    <SettingsCard className="flex max-h-full min-h-0 flex-col overflow-hidden">
+      <header className="mb-4 flex shrink-0 flex-wrap items-start gap-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-vscode-accent/15 text-vscode-accent">
           <InfoIcon />
         </span>
@@ -37,6 +37,7 @@ export default function GeneralInfoSection() {
         </div>
       </header>
 
+      <div className="min-h-0 overflow-y-auto">
       <SettingsInfoGrid
         items={[
           { label: 'Versão do sistema', value: 'v0.1.0' },
@@ -45,6 +46,7 @@ export default function GeneralInfoSection() {
           { label: 'Plataforma', value: 'Desktop (Electron)' },
         ]}
       />
+      </div>
     </SettingsCard>
   )
 }

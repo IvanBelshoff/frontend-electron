@@ -30,6 +30,7 @@ export function buildMyReportListParams(
   filters: MyReportFilters,
   page: number,
   limit = MY_REPORTS_PAGE_SIZE,
+  sort?: string,
 ): ListMyReportsParams {
   const params: ListMyReportsParams = {
     page,
@@ -51,6 +52,10 @@ export function buildMyReportListParams(
 
   if (filters.temporario !== 'all') {
     params.temporario = filters.temporario
+  }
+
+  if (sort) {
+    params.sort = sort
   }
 
   return params

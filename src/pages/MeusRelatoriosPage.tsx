@@ -24,11 +24,15 @@ export default function MeusRelatoriosPage() {
     viewMode,
     setViewMode,
     page,
+    pageSize,
     totalPages,
     showPagination,
     goToPreviousPage,
     goToNextPage,
+    goToPage,
+    onPageSizeChange,
     isLoading,
+    isFetching,
     isError,
     error,
     isRefreshing,
@@ -74,38 +78,50 @@ export default function MeusRelatoriosPage() {
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pt-4">
-        {isLoading ? (
-          <div className="flex items-center justify-center rounded-xl border border-vscode-border bg-vscode-sidebar px-6 py-20 text-sm text-vscode-text-muted">
-            Carregando relatórios...
-          </div>
-        ) : isError ? (
+        {isError ? (
           <Alert variant="error">{errorMessage}</Alert>
         ) : viewMode === 'grid' ? (
-          <MyReportCardGrid
-            reports={reports}
-            isFavorite={isFavorite}
-            togglingFavoriteId={togglingFavoriteId}
-            onToggleFavorite={toggleFavorite}
-            onOpenReport={openReport}
-            onClearFilters={clearFilters}
-          />
+          <>
+            {isLoading ? (
+              <div className="flex items-center justify-center rounded-xl border border-vscode-border bg-vscode-sidebar px-6 py-20 text-sm text-vscode-text-muted">
+                Carregando relatórios...
+              </div>
+            ) : (
+              <MyReportCardGrid
+                reports={reports}
+                isFavorite={isFavorite}
+                togglingFavoriteId={togglingFavoriteId}
+                onToggleFavorite={toggleFavorite}
+                onOpenReport={openReport}
+                onClearFilters={clearFilters}
+              />
+            )}
+
+            {showPagination && !isLoading && (
+              <MyReportPagination
+                page={page}
+                totalPages={totalPages}
+                onPrevious={goToPreviousPage}
+                onNext={goToNextPage}
+              />
+            )}
+          </>
         ) : (
           <MyReportTable
             reports={reports}
+            total={totalCount}
+            page={page}
+            pageSize={pageSize}
+            totalPages={totalPages}
             isFavorite={isFavorite}
             togglingFavoriteId={togglingFavoriteId}
             onToggleFavorite={toggleFavorite}
             onOpenReport={openReport}
             onClearFilters={clearFilters}
-          />
-        )}
-
-        {showPagination && !isLoading && !isError && (
-          <MyReportPagination
-            page={page}
-            totalPages={totalPages}
-            onPrevious={goToPreviousPage}
-            onNext={goToNextPage}
+            onPageChange={goToPage}
+            onPageSizeChange={onPageSizeChange}
+            isLoading={isLoading}
+            isFetching={isFetching}
           />
         )}
       </div>

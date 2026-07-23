@@ -140,6 +140,7 @@ export type ReportDataQueryParams = {
   parametros?: ReportExecutionParams
   page?: number
   pageSize?: number
+  sort?: string
 }
 
 export type ReportJobStatus = 'queued' | 'processing' | 'completed' | 'failed'

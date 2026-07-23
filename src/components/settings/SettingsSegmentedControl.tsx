@@ -12,6 +12,7 @@ type SettingsSegmentedControlProps<T extends string> = {
   value: T
   onChange: (value: T) => void
   ariaLabel: string
+  disabled?: boolean
 }
 
 export default function SettingsSegmentedControl<T extends string>({
@@ -19,12 +20,14 @@ export default function SettingsSegmentedControl<T extends string>({
   value,
   onChange,
   ariaLabel,
+  disabled = false,
 }: SettingsSegmentedControlProps<T>) {
   return (
     <div
-      className="grid grid-cols-3 gap-2"
+      className={clsx('grid grid-cols-3 gap-2', disabled && 'pointer-events-none opacity-50')}
       role="group"
       aria-label={ariaLabel}
+      aria-disabled={disabled}
     >
       {options.map((option) => {
         const isActive = option.value === value
@@ -33,6 +36,7 @@ export default function SettingsSegmentedControl<T extends string>({
           <button
             key={option.value}
             type="button"
+            disabled={disabled}
             onClick={() => onChange(option.value)}
             className={clsx(
               'flex flex-col items-center gap-1.5 rounded-md border px-2 py-2.5 text-xs transition-colors',

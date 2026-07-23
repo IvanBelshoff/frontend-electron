@@ -19,6 +19,7 @@ type ThemeContextValue = {
   accentColor: string
   setAccentColor: (color: string) => void
   resetAccentColor: () => void
+  resetThemePreferences: () => void
   resolvedTheme: ResolvedTheme
 }
 
@@ -70,6 +71,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     scheduleUserPreferencesPersist({ accentColor: DEFAULT_ACCENT_COLOR })
   }, [])
 
+  const resetThemePreferences = useCallback(() => {
+    scheduleUserPreferencesPersist({
+      theme: 'system',
+      accentColor: DEFAULT_ACCENT_COLOR,
+    })
+  }, [])
+
   useEffect(() => {
     const resolved = applyThemeToDocument(theme, accentColor)
     setResolvedTheme(resolved)
@@ -99,9 +107,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       accentColor,
       setAccentColor,
       resetAccentColor,
+      resetThemePreferences,
       resolvedTheme,
     }),
-    [theme, setTheme, accentColor, setAccentColor, resetAccentColor, resolvedTheme],
+    [theme, setTheme, accentColor, setAccentColor, resetAccentColor, resetThemePreferences, resolvedTheme],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

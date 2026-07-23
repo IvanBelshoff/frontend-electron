@@ -1,7 +1,7 @@
 import SettingsCard from '@/components/settings/SettingsCard'
 import Alert from '@/components/ui/Alert'
 import Button from '@/components/ui/Button'
-import ReportDataTable from '@/features/reports/components/ReportDataTable'
+import ReportExecutionGrid from '@/features/reports/components/ReportExecutionGrid'
 import ReportExportControls from '@/features/reports/components/ReportExportControls'
 import ReportParamForm from '@/features/reports/components/ReportParamForm'
 import ReportSnapshotControls from '@/features/reports/components/ReportSnapshotControls'
@@ -47,6 +47,9 @@ export default function ReportExecutionTab({
     pageSize,
     pageCount,
     onPaginationChange,
+    sorting,
+    onSortingChange,
+    sortingMode,
     needsSnapshotRegeneration,
   } = useReportExecutionPreviewState(reportId, report, enabled)
 
@@ -155,7 +158,7 @@ export default function ReportExecutionTab({
               </p>
             </div>
           ) : (
-            <ReportDataTable
+            <ReportExecutionGrid
               className="h-full min-h-0"
               colunas={dataResult?.colunas ?? []}
               dados={dataResult?.dados ?? []}
@@ -166,6 +169,9 @@ export default function ReportExecutionTab({
               pageSize={pageSize}
               pageCount={pageCount}
               onPaginationChange={onPaginationChange}
+              sorting={sorting}
+              onSortingChange={onSortingChange}
+              sortingMode={sortingMode}
               isFetching={isFetchingPage}
             />
           )}

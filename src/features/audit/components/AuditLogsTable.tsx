@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
-import type { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef, OnChangeFn, SortingState } from '@tanstack/react-table'
 import clsx from 'clsx'
 import DataGrid from '@/components/data-grid/DataGrid'
+import { GRID_IDS } from '@/components/data-grid/grid-registry'
 import type { AuditLogItem } from '@/features/audit/audit-types'
 import {
   getAuditActionLabel,
@@ -18,6 +19,8 @@ type AuditLogsTableProps = {
   page: number
   pageSize: number
   totalPages: number
+  sorting: SortingState
+  onSortingChange: OnChangeFn<SortingState>
   isLoading?: boolean
   isFetching?: boolean
   onRowClick: (log: AuditLogItem) => void
@@ -47,6 +50,8 @@ export default function AuditLogsTable({
   page,
   pageSize,
   totalPages,
+  sorting,
+  onSortingChange,
   isLoading = false,
   isFetching = false,
   onRowClick,
@@ -60,24 +65,29 @@ export default function AuditLogsTable({
         id: 'criado_em',
         header: 'Data/hora',
         accessorKey: 'criado_em',
+        enableSorting: true,
         cell: ({ row }) => formatUserDate(row.original.criado_em),
       },
       {
-        id: 'ator',
+        id: 'actor_email',
         header: 'Ator',
+        accessorKey: 'actor_email',
+        enableSorting: true,
         cell: ({ row }) =>
           getAuditActorLabel(row.original.actor_type, row.original.actor_email),
       },
       {
-        id: 'acao',
+        id: 'action',
         header: 'Ação',
         accessorKey: 'action',
+        enableSorting: true,
         cell: ({ row }) => getAuditActionLabel(row.original.action),
       },
       {
-        id: 'categoria',
+        id: 'category',
         header: 'Categoria',
         accessorKey: 'category',
+        enableSorting: true,
         cell: ({ row }) => (
           <span className="rounded bg-vscode-input-bg px-2 py-0.5 text-xs text-vscode-text-muted">
             {getAuditCategoryLabel(row.original.category)}
@@ -85,23 +95,27 @@ export default function AuditLogsTable({
         ),
       },
       {
-        id: 'resultado',
+        id: 'outcome',
         header: 'Resultado',
         accessorKey: 'outcome',
+        enableSorting: true,
         cell: ({ row }) => <OutcomeBadge outcome={row.original.outcome} />,
       },
       {
-        id: 'recurso',
+        id: 'resource_type',
         header: 'Recurso',
+        accessorKey: 'resource_type',
+        enableSorting: true,
         cell: ({ row }) =>
           getAuditResourceLabel(row.original.resource_type, row.original.resource_id),
       },
       {
         id: 'detalhes',
         header: '',
-        cell: () => (
-          <span className="text-xs text-vscode-accent">Detalhes</span>
-        ),
+        enableSorting: false,
+        enableResizing: false,
+        meta: { lockPosition: 'end' },
+        cell: () => <span className="text-xs text-vscode-accent">Detalhes</span>,
       },
     ],
     [],
@@ -109,6 +123,7 @@ export default function AuditLogsTable({
 
   return (
     <DataGrid
+      gridId={GRID_IDS.auditLogs}
       data={logs}
       columns={columns}
       getRowId={(row) => row.id}
@@ -130,13 +145,14 @@ export default function AuditLogsTable({
           onPageChange(next.pageIndex + 1)
         }
       }}
+      enableSorting
+      sortingMode="server"
+      sorting={sorting}
+      onSortingChange={onSortingChange}
       isLoading={isLoading}
       isFetching={isFetching}
       emptyMessage="Nenhum log de auditoria encontrado para os filtros selecionados."
       onRowClick={onRowClick}
-      rowHeight={36}
-      stickyHeader
-      showGridLines
       showPagination
       className={className}
     />

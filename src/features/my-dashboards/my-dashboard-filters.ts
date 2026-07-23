@@ -33,6 +33,7 @@ export function buildMyDashboardListParams(
   filters: MyDashboardFilters,
   page: number,
   limit = MY_DASHBOARDS_PAGE_SIZE,
+  sort?: string,
 ): ListMyDashboardsParams {
   const params: ListMyDashboardsParams = {
     page,
@@ -54,6 +55,10 @@ export function buildMyDashboardListParams(
 
   if (filters.temporario !== 'all') {
     params.temporario = filters.temporario
+  }
+
+  if (sort) {
+    params.sort = sort
   }
 
   return params

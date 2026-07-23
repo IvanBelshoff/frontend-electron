@@ -26,5 +26,6 @@ export function buildAuditQuery(filters: AuditFilters): string {
     resourceId: filters.resourceId,
     from: filters.from,
     to: filters.to,
+    sort: filters.sort,
   })
 }

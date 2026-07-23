@@ -40,6 +40,8 @@ export default function AuditoriaPage() {
     removeAdvancedFilter,
     goToPage,
     setPageSize,
+    sorting,
+    onSortingChange,
     refresh,
     filterDialogOpen,
     openFilterDialog,
@@ -112,6 +114,8 @@ export default function AuditoriaPage() {
             onRowClick={handleRowClick}
             onPageChange={goToPage}
             onPageSizeChange={setPageSize}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
             className="min-h-0 flex-1"
           />
         )}

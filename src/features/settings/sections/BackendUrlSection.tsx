@@ -24,8 +24,9 @@ export default function BackendUrlSection() {
   } = useBackendUrlSettings()
 
   return (
-    <SettingsCard className="h-full">
-      <SettingsCardHeader
+    <SettingsCard className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="shrink-0">
+        <SettingsCardHeader
         icon={<LinkIcon />}
         title="URL do backend"
         description="Endpoint padrão para comunicação da aplicação."
@@ -48,7 +49,9 @@ export default function BackendUrlSection() {
           </>
         }
       />
+      </div>
 
+      <div className="min-h-0 flex-1 overflow-y-auto pt-5">
       {isEditing ? (
         <div className="space-y-4">
           <SettingsField label="URL base da API" htmlFor="settingsBackendUrl">
@@ -98,6 +101,7 @@ export default function BackendUrlSection() {
           </p>
         </SettingsField>
       )}
+      </div>
     </SettingsCard>
   )
 }

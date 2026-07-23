@@ -1,4 +1,8 @@
 import { Link } from '@tanstack/react-router'
+import { useMemo } from 'react'
+import type { ColumnDef, OnChangeFn, SortingState } from '@tanstack/react-table'
+import DataGrid from '@/components/data-grid/DataGrid'
+import { GRID_IDS } from '@/components/data-grid/grid-registry'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -11,9 +15,17 @@ import { dayEndIso, dayStartIso, toDateInputValue } from '@/lib/datetime'
 type ScheduledExecutionsTableProps = {
   executions: AdminScheduleExecutionItem[]
   filters: AdminScheduleExecutionsFilters
-  isLoading?: boolean
-  isRefreshing?: boolean
   total: number
+  page: number
+  pageSize: number
+  totalPages: number
+  sorting: SortingState
+  onSortingChange: OnChangeFn<SortingState>
+  onPageChange: (page: number) => void
+  onPageSizeChange: (pageSize: number) => void
+  isLoading?: boolean
+  isFetching?: boolean
+  isRefreshing?: boolean
   onStatusChange: (status?: AgendamentoExecucaoStatus) => void
   onRelatorioIdChange: (relatorioId?: number) => void
   onDateRangeChange: (createdFrom?: string, createdTo?: string) => void
@@ -59,22 +71,108 @@ async function copyToClipboard(value: string): Promise<void> {
 export default function ScheduledExecutionsTable({
   executions,
   filters,
-  isLoading = false,
-  isRefreshing = false,
   total,
+  page,
+  pageSize,
+  totalPages,
+  sorting,
+  onSortingChange,
+  onPageChange,
+  onPageSizeChange,
+  isLoading = false,
+  isFetching = false,
+  isRefreshing = false,
   onStatusChange,
   onRelatorioIdChange,
   onDateRangeChange,
   onRefresh,
   onSelectJob,
 }: ScheduledExecutionsTableProps) {
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center rounded-lg border border-vscode-border px-6 py-12 text-sm text-vscode-text-muted">
-        Carregando execuções agendadas...
-      </div>
-    )
-  }
+  const columns = useMemo<ColumnDef<AdminScheduleExecutionItem>[]>(
+    () => [
+      {
+        id: 'relatorioNome',
+        header: 'Relatório',
+        accessorKey: 'relatorioNome',
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.relatorioId ? (
+            <Link
+              to="/relatorios/$relatorioId/editar"
+              params={{ relatorioId: String(row.original.relatorioId) }}
+              className="text-vscode-accent hover:underline"
+            >
+              {row.original.relatorioNome ?? `Relatório #${row.original.relatorioId}`}
+            </Link>
+          ) : (
+            '—'
+          ),
+      },
+      {
+        id: 'agendamentoNome',
+        header: 'Agendamento',
+        accessorKey: 'agendamentoNome',
+        enableSorting: false,
+        cell: ({ row }) => row.original.agendamentoNome,
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        accessorKey: 'status',
+        enableSorting: false,
+        cell: ({ row }) => getStatusBadge(row.original.status),
+      },
+      {
+        id: 'iniciadoEm',
+        header: 'Início',
+        accessorKey: 'iniciadoEm',
+        enableSorting: true,
+        cell: ({ row }) => formatReportDate(row.original.iniciadoEm),
+      },
+      {
+        id: 'concluidoEm',
+        header: 'Conclusão',
+        accessorKey: 'concluidoEm',
+        enableSorting: false,
+        cell: ({ row }) =>
+          row.original.concluidoEm ? formatReportDate(row.original.concluidoEm) : '—',
+      },
+      {
+        id: 'jobId',
+        header: 'Job vinculado',
+        accessorKey: 'jobId',
+        enableSorting: false,
+        meta: { stopRowClick: true },
+        cell: ({ row }) =>
+          row.original.jobId ? (
+            <button
+              type="button"
+              className="font-mono text-xs text-vscode-accent hover:underline"
+              title="Ver job"
+              onClick={() => {
+                if (onSelectJob) {
+                  onSelectJob(row.original.jobId!)
+                } else {
+                  void copyToClipboard(row.original.jobId!)
+                }
+              }}
+            >
+              {truncateJobId(row.original.jobId)}
+            </button>
+          ) : (
+            '—'
+          ),
+      },
+      {
+        id: 'erro',
+        header: 'Detalhe',
+        accessorKey: 'erro',
+        enableSorting: false,
+        cell: ({ row }) => row.original.erro ?? '—',
+      },
+    ],
+    [onSelectJob],
+  )
 
   return (
     <div className="space-y-4">
@@ -148,77 +246,38 @@ export default function ScheduledExecutionsTable({
         </div>
       </div>
 
-      {executions.length === 0 ? (
-        <div className="flex items-center justify-center rounded-lg border border-dashed border-vscode-border bg-vscode-sidebar/40 px-6 py-12 text-sm text-vscode-text-muted">
-          Nenhuma execução agendada encontrada.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-vscode-border">
-          <table className="min-w-full divide-y divide-vscode-border text-sm">
-            <thead className="bg-vscode-sidebar/60">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Relatório</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Agendamento</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Status</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Início</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Conclusão</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Job vinculado</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Detalhe</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-vscode-border bg-vscode-bg/40">
-              {executions.map((execution) => (
-                <tr key={execution.id}>
-                  <td className="px-4 py-3">
-                    {execution.relatorioId ? (
-                      <Link
-                        to="/relatorios/$relatorioId/editar"
-                        params={{ relatorioId: String(execution.relatorioId) }}
-                        className="text-vscode-accent hover:underline"
-                      >
-                        {execution.relatorioNome ?? `Relatório #${execution.relatorioId}`}
-                      </Link>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-vscode-text">{execution.agendamentoNome}</td>
-                  <td className="px-4 py-3">{getStatusBadge(execution.status)}</td>
-                  <td className="px-4 py-3 text-vscode-text">
-                    {formatReportDate(execution.iniciadoEm)}
-                  </td>
-                  <td className="px-4 py-3 text-vscode-text">
-                    {execution.concluidoEm ? formatReportDate(execution.concluidoEm) : '—'}
-                  </td>
-                  <td className="px-4 py-3">
-                    {execution.jobId ? (
-                      <button
-                        type="button"
-                        className="font-mono text-xs text-vscode-accent hover:underline"
-                        title="Ver job"
-                        onClick={() => {
-                          if (onSelectJob) {
-                            onSelectJob(execution.jobId!)
-                          } else {
-                            void copyToClipboard(execution.jobId!)
-                          }
-                        }}
-                      >
-                        {truncateJobId(execution.jobId)}
-                      </button>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td className="max-w-xs px-4 py-3 text-vscode-text-muted">
-                    {execution.erro ?? '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataGrid
+        gridId={GRID_IDS.adminScheduleExecutions}
+        data={executions}
+        columns={columns}
+        getRowId={(row) => String(row.id)}
+        paginationMode="server"
+        pageIndex={page - 1}
+        pageSize={pageSize}
+        pageCount={totalPages}
+        totalRows={total}
+        onPaginationChange={(updater) => {
+          const current = { pageIndex: page - 1, pageSize }
+          const next = typeof updater === 'function' ? updater(current) : updater
+
+          if (next.pageSize !== pageSize) {
+            onPageSizeChange(next.pageSize)
+            return
+          }
+
+          if (next.pageIndex !== page - 1) {
+            onPageChange(next.pageIndex + 1)
+          }
+        }}
+        enableSorting
+        sortingMode="server"
+        sorting={sorting}
+        onSortingChange={onSortingChange}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        emptyMessage="Nenhuma execução agendada encontrada."
+        showPagination
+      />
     </div>
   )
 }

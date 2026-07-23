@@ -5,7 +5,7 @@ import { ApiError } from '@/features/auth/auth-types'
 import MyReportInfoDrawer from '@/features/my-reports/components/MyReportInfoDrawer'
 import MyReportViewerHeader from '@/features/my-reports/components/MyReportViewerHeader'
 import { useExecuteReportState } from '@/features/my-reports/hooks/use-execute-report-state'
-import ReportDataTable from '@/features/reports/components/ReportDataTable'
+import ReportExecutionGrid from '@/features/reports/components/ReportExecutionGrid'
 import ReportExportControls from '@/features/reports/components/ReportExportControls'
 import ReportParamForm from '@/features/reports/components/ReportParamForm'
 import ReportStatusBadges from '@/features/reports/components/ReportStatusBadges'
@@ -49,6 +49,9 @@ export default function ExecutarRelatorioPage() {
     pageSize,
     pageCount,
     onPaginationChange,
+    sorting,
+    onSortingChange,
+    sortingMode,
     snapshotInvalid,
   } = useExecuteReportState(relatorioId)
 
@@ -193,7 +196,7 @@ export default function ExecutarRelatorioPage() {
                   </p>
                 </div>
               ) : (
-                <ReportDataTable
+                <ReportExecutionGrid
                   colunas={reportData?.colunas ?? []}
                   dados={reportData?.dados ?? []}
                   hasLoaded={hasLoadedData}
@@ -203,6 +206,9 @@ export default function ExecutarRelatorioPage() {
                   pageSize={pageSize}
                   pageCount={pageCount}
                   onPaginationChange={onPaginationChange}
+                  sorting={sorting}
+                  onSortingChange={onSortingChange}
+                  sortingMode={sortingMode}
                   isFetching={isFetchingPage}
                 />
               )}

@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { OnChangeFn, PaginationState } from '@tanstack/react-table'
+import type { OnChangeFn, PaginationState, SortingState } from '@tanstack/react-table'
+import { serializeSortingState } from '@/components/data-grid/data-grid-sort.utils'
+import { GRID_IDS } from '@/components/data-grid/grid-registry'
+import { DATA_GRID_PAGE_SIZE_OPTIONS } from '@/components/data-grid/DataGridPagination'
 import { saveBlobAsFile } from '@/lib/api-client'
 import { useAuth } from '@/features/auth/use-auth'
 import { ApiError } from '@/features/auth/auth-types'
@@ -14,7 +17,6 @@ import {
   updateMyReportFavorites,
 } from '@/features/my-reports/my-report-api'
 import type { MyReportListResult } from '@/features/my-reports/my-report-types'
-import { REPORT_DATA_PAGE_SIZE_OPTIONS } from '@/features/reports/components/ReportDataTablePagination'
 import { formatReportParamDefaults } from '@/features/reports/format-report-param-defaults'
 import { useReportJob } from '@/features/reports/hooks/use-report-job'
 import type {
@@ -27,7 +29,7 @@ import { boostInboxPolling } from '@/features/user-inbox/inbox-polling'
 import { notify } from '@/features/notifications/notification-api'
 
 const POLL_INTERVAL_MS = 3000
-const DEFAULT_PAGE_SIZE = REPORT_DATA_PAGE_SIZE_OPTIONS[0]
+const DEFAULT_PAGE_SIZE = DATA_GRID_PAGE_SIZE_OPTIONS[0]
 
 function readFavoriteIdsFromCache(
   queryClient: ReturnType<typeof useQueryClient>,
@@ -103,6 +105,7 @@ export function useExecuteReportState(relatorioId: number) {
   const [isDownloading, setIsDownloading] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
+  const [sort, setSort] = useState<string | undefined>(undefined)
   const [offlineEnabled, setOfflineEnabled] = useState(false)
   const initializedReportIdRef = useRef<number | null>(null)
   const wasGeneratingRef = useRef(false)
@@ -123,7 +126,17 @@ export function useExecuteReportState(relatorioId: number) {
   const report = reportQuery.data ?? null
   const parametros = report?.parametros ?? []
   const isOfflineMode = report?.estado === 'offline'
-  const paramsKey = useMemo(() => stableParamsKey(paramValues), [paramValues])
+  const paramsKey = useMemo(
+    () => `${stableParamsKey(paramValues)}|sort:${sort ?? ''}`,
+    [paramValues, sort],
+  )
+  const sorting: SortingState = useMemo(
+    () =>
+      sort
+        ? [{ id: sort.split(':')[0], desc: sort.endsWith(':desc') }]
+        : [],
+    [sort],
+  )
 
   useEffect(() => {
     const cachedFavoriteIds = readFavoriteIdsFromCache(queryClient)
@@ -168,6 +181,7 @@ export function useExecuteReportState(relatorioId: number) {
         page,
         pageSize,
         parametros: paramValues,
+        sort,
       }),
     enabled:
       offlineEnabled &&
@@ -272,6 +286,7 @@ export function useExecuteReportState(relatorioId: number) {
         page: 1,
         pageSize,
         parametros: paramValues,
+        sort,
       })
     },
     onMutate: () => {
@@ -327,6 +342,12 @@ export function useExecuteReportState(relatorioId: number) {
     setPage(next.pageIndex + 1)
     setPageSize(next.pageSize)
   }, [page, pageSize])
+
+  const onSortingChange: OnChangeFn<SortingState> = useCallback((updater) => {
+    const next = typeof updater === 'function' ? updater(sorting) : updater
+    setPage(1)
+    setSort(serializeSortingState(next, GRID_IDS.reportExecution))
+  }, [sorting])
 
   const exportCsv = useCallback(() => {
     void exportMutation.mutateAsync()
@@ -498,6 +519,9 @@ export function useExecuteReportState(relatorioId: number) {
     pageSize,
     pageCount,
     onPaginationChange,
+    sorting,
+    onSortingChange,
+    sortingMode: (isOfflineMode ? 'server' : 'client') as 'server' | 'client',
     snapshotInvalid,
   }
 }

@@ -20,3 +20,12 @@ export function writePreferredNotificationStyle(style: NotificationDisplayStyle)
 export function writePreferredNotificationPlacement(placement: NotificationPlacement) {
   scheduleUserPreferencesPersist({ notification: { placement } })
 }
+
+export function resetNotificationPreferences() {
+  scheduleUserPreferencesPersist({
+    notification: {
+      style: DEFAULT_NOTIFICATION_STYLE,
+      placement: DEFAULT_NOTIFICATION_PLACEMENT,
+    },
+  })
+}

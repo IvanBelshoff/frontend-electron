@@ -12,7 +12,6 @@ import ScheduledExecutionsTable from '@/features/jobs/components/ScheduledExecut
 import { useAdminJobsState } from '@/features/jobs/hooks/use-admin-jobs-state'
 import type { AdminJobListItem } from '@/features/jobs/jobs-types'
 import { ApiError } from '@/features/auth/auth-types'
-import MyReportPagination from '@/features/my-reports/components/MyReportPagination'
 import { downloadReportExport } from '@/features/reports/report-job-api'
 
 type JobsTabButtonProps = {
@@ -57,8 +56,11 @@ export default function JobsPage() {
     jobs,
     jobsTotal,
     jobsPage,
+    jobsPageSize,
     jobsTotalPages,
     jobsFilters,
+    jobsSorting,
+    onJobsSortingChange,
     jobIdSearch,
     setJobIdSearch,
     applyJobIdSearch,
@@ -68,23 +70,30 @@ export default function JobsPage() {
     setJobsDateRange,
     clearJobsFilters,
     goToJobsPage,
+    setJobsPageSize,
     isJobsLoading,
     isJobsError,
     jobsError,
+    isJobsFetching,
     isJobsRefreshing,
     refreshJobs,
     schedules,
     schedulesTotal,
     schedulesPage,
+    schedulesPageSize,
     schedulesTotalPages,
     scheduleFilters,
+    schedulesSorting,
+    onSchedulesSortingChange,
     setScheduleStatus,
     setScheduleRelatorioId,
     setScheduleDateRange,
     goToSchedulesPage,
+    setSchedulesPageSize,
     isSchedulesLoading,
     isSchedulesError,
     schedulesError,
+    isSchedulesFetching,
     isSchedulesRefreshing,
     refreshSchedules,
     refreshAll,
@@ -209,25 +218,23 @@ export default function JobsPage() {
                 {getErrorMessage(jobsError, 'Não foi possível carregar os jobs.')}
               </Alert>
             ) : (
-              <>
-                <JobsTable
-                  jobs={jobs}
-                  isLoading={isJobsLoading}
-                  onViewDetail={openJobDetail}
-                  onDownload={(jobId) => void handleDownload(jobId)}
-                  isDownloading={isDownloading}
-                  downloadingJobId={downloadingJobId}
-                />
-
-                {jobsTotalPages > 1 && (
-                  <MyReportPagination
-                    page={jobsPage}
-                    totalPages={jobsTotalPages}
-                    onPrevious={() => goToJobsPage(Math.max(1, jobsPage - 1))}
-                    onNext={() => goToJobsPage(Math.min(jobsTotalPages, jobsPage + 1))}
-                  />
-                )}
-              </>
+              <JobsTable
+                jobs={jobs}
+                total={jobsTotal}
+                page={jobsPage}
+                pageSize={jobsPageSize}
+                totalPages={jobsTotalPages}
+                sorting={jobsSorting}
+                onSortingChange={onJobsSortingChange}
+                onPageChange={goToJobsPage}
+                onPageSizeChange={setJobsPageSize}
+                isLoading={isJobsLoading}
+                isFetching={isJobsFetching}
+                onViewDetail={openJobDetail}
+                onDownload={(jobId) => void handleDownload(jobId)}
+                isDownloading={isDownloading}
+                downloadingJobId={downloadingJobId}
+              />
             )}
           </div>
         ) : (
@@ -240,31 +247,26 @@ export default function JobsPage() {
                 )}
               </Alert>
             ) : (
-              <>
-                <ScheduledExecutionsTable
-                  executions={schedules}
-                  filters={scheduleFilters}
-                  isLoading={isSchedulesLoading}
-                  isRefreshing={isSchedulesRefreshing}
-                  total={schedulesTotal}
-                  onStatusChange={setScheduleStatus}
-                  onRelatorioIdChange={setScheduleRelatorioId}
-                  onDateRangeChange={setScheduleDateRange}
-                  onRefresh={refreshSchedules}
-                  onSelectJob={handleSelectJobFromSchedule}
-                />
-
-                {schedulesTotalPages > 1 && (
-                  <MyReportPagination
-                    page={schedulesPage}
-                    totalPages={schedulesTotalPages}
-                    onPrevious={() => goToSchedulesPage(Math.max(1, schedulesPage - 1))}
-                    onNext={() =>
-                      goToSchedulesPage(Math.min(schedulesTotalPages, schedulesPage + 1))
-                    }
-                  />
-                )}
-              </>
+              <ScheduledExecutionsTable
+                executions={schedules}
+                filters={scheduleFilters}
+                total={schedulesTotal}
+                page={schedulesPage}
+                pageSize={schedulesPageSize}
+                totalPages={schedulesTotalPages}
+                sorting={schedulesSorting}
+                onSortingChange={onSchedulesSortingChange}
+                onPageChange={goToSchedulesPage}
+                onPageSizeChange={setSchedulesPageSize}
+                isLoading={isSchedulesLoading}
+                isFetching={isSchedulesFetching}
+                isRefreshing={isSchedulesRefreshing}
+                onStatusChange={setScheduleStatus}
+                onRelatorioIdChange={setScheduleRelatorioId}
+                onDateRangeChange={setScheduleDateRange}
+                onRefresh={refreshSchedules}
+                onSelectJob={handleSelectJobFromSchedule}
+              />
             )}
           </div>
         )}

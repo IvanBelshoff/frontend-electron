@@ -1,3 +1,7 @@
+import { useMemo } from 'react'
+import type { ColumnDef } from '@tanstack/react-table'
+import DataGrid from '@/components/data-grid/DataGrid'
+import { GRID_IDS } from '@/components/data-grid/grid-registry'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { formatReportDate } from '@/features/reports/format-report-date'
@@ -81,13 +85,74 @@ export default function ReportSnapshotHistoryTable({
   isRefreshing = false,
   onRefresh,
 }: ReportSnapshotHistoryTableProps) {
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center rounded-lg border border-vscode-border px-6 py-12 text-sm text-vscode-text-muted">
-        Carregando histórico...
-      </div>
-    )
-  }
+  const columns = useMemo<ColumnDef<SnapshotHistoryItem>[]>(
+    () => [
+      {
+        id: 'origem',
+        header: 'Origem',
+        accessorKey: 'origem',
+        enableSorting: true,
+        cell: ({ row }) => origemBadge(row.original.origem),
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        accessorKey: 'status',
+        enableSorting: true,
+        cell: ({ row }) => (
+          <Badge variant={statusBadgeVariant(row.original.status)}>
+            {statusLabel(row.original.status)}
+          </Badge>
+        ),
+      },
+      {
+        id: 'userNome',
+        header: 'Solicitante',
+        accessorKey: 'userNome',
+        enableSorting: true,
+        cell: ({ row }) => row.original.userNome || `Usuário #${row.original.userId}`,
+      },
+      {
+        id: 'createdAt',
+        header: 'Início',
+        accessorKey: 'createdAt',
+        enableSorting: true,
+        cell: ({ row }) => formatReportDate(row.original.createdAt),
+      },
+      {
+        id: 'completedAt',
+        header: 'Conclusão',
+        accessorKey: 'completedAt',
+        enableSorting: true,
+        cell: ({ row }) =>
+          row.original.completedAt ? formatReportDate(row.original.completedAt) : '—',
+      },
+      {
+        id: 'jobId',
+        header: 'Job',
+        accessorKey: 'jobId',
+        enableSorting: false,
+        meta: { stopRowClick: true },
+        cell: ({ row }) => (
+          <button
+            type="button"
+            className="font-mono text-xs text-vscode-accent hover:underline"
+            title="Copiar job ID"
+            onClick={() => void copyToClipboard(row.original.jobId)}
+          >
+            {truncateJobId(row.original.jobId)}
+          </button>
+        ),
+      },
+      {
+        id: 'detalhe',
+        header: 'Detalhe',
+        enableSorting: false,
+        cell: ({ row }) => renderDetail(row.original),
+      },
+    ],
+    [],
+  )
 
   return (
     <div className="space-y-3">
@@ -99,65 +164,17 @@ export default function ReportSnapshotHistoryTable({
         </div>
       )}
 
-      {items.length === 0 ? (
-        <div className="flex items-center justify-center rounded-lg border border-dashed border-vscode-border bg-vscode-sidebar/40 px-6 py-12 text-sm text-vscode-text-muted">
-          Nenhuma atualização de snapshot registrada ainda.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-lg border border-vscode-border">
-          <table className="min-w-full divide-y divide-vscode-border text-sm">
-            <thead className="bg-vscode-sidebar/60">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Origem</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Status</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">
-                  Solicitante
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Início</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">
-                  Conclusão
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Job</th>
-                <th className="px-4 py-3 text-left font-medium text-vscode-text-muted">Detalhe</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-vscode-border bg-vscode-bg/40">
-              {items.map((item) => (
-                <tr key={item.jobId}>
-                  <td className="px-4 py-3">{origemBadge(item.origem)}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={statusBadgeVariant(item.status)}>
-                      {statusLabel(item.status)}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-vscode-text">
-                    {item.userNome || `Usuário #${item.userId}`}
-                  </td>
-                  <td className="px-4 py-3 text-vscode-text">
-                    {formatReportDate(item.createdAt)}
-                  </td>
-                  <td className="px-4 py-3 text-vscode-text">
-                    {item.completedAt ? formatReportDate(item.completedAt) : '—'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      className="font-mono text-xs text-vscode-accent hover:underline"
-                      title="Copiar job ID"
-                      onClick={() => void copyToClipboard(item.jobId)}
-                    >
-                      {truncateJobId(item.jobId)}
-                    </button>
-                  </td>
-                  <td className="max-w-xs px-4 py-3 text-vscode-text-muted">
-                    {renderDetail(item)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataGrid
+        gridId={GRID_IDS.reportSnapshotHistory}
+        data={items}
+        columns={columns}
+        getRowId={(row) => row.jobId}
+        enableSorting
+        sortingMode="client"
+        isLoading={isLoading}
+        isFetching={isRefreshing}
+        emptyMessage="Nenhuma atualização de snapshot registrada ainda."
+      />
     </div>
   )
 }

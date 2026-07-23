@@ -38,13 +38,14 @@ export function useMyReportsState() {
   const [viewMode, setViewModeState] = useState<MyReportViewMode>(readStoredViewMode)
   const [filterDialogOpen, setFilterDialogOpen] = useState(false)
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(MY_REPORTS_PAGE_SIZE)
   const [favoriteIds, setFavoriteIds] = useState<number[]>([])
   const [favoriteError, setFavoriteError] = useState<string | null>(null)
   const [togglingFavoriteId, setTogglingFavoriteId] = useState<number | null>(null)
 
   const listParams = useMemo(
-    () => buildMyReportListParams(search, filters, page, MY_REPORTS_PAGE_SIZE),
-    [filters, page, search],
+    () => buildMyReportListParams(search, filters, page, pageSize),
+    [filters, page, pageSize, search],
   )
 
   const reportsQuery = useQuery({
@@ -62,8 +63,8 @@ export function useMyReportsState() {
   const reports = reportsQuery.data?.items ?? []
   const totalCount = reportsQuery.data?.totalCount ?? 0
   const filteredCount = reports.length
-  const totalPages = Math.max(1, Math.ceil(totalCount / MY_REPORTS_PAGE_SIZE))
-  const showPagination = totalCount > MY_REPORTS_PAGE_SIZE
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const showPagination = totalCount > pageSize
 
   const setViewMode = useCallback((mode: MyReportViewMode) => {
     setViewModeState(mode)
@@ -175,6 +176,15 @@ export function useMyReportsState() {
     setPage((current) => Math.min(totalPages, current + 1))
   }, [totalPages])
 
+  const goToPage = useCallback((nextPage: number) => {
+    setPage(nextPage)
+  }, [])
+
+  const handlePageSizeChange = useCallback((nextPageSize: number) => {
+    setPageSize(nextPageSize)
+    setPage(1)
+  }, [])
+
   const openReport = useCallback(
     (relatorioId: number) => {
       void navigate({
@@ -200,11 +210,15 @@ export function useMyReportsState() {
     viewMode,
     setViewMode,
     page,
+    pageSize,
     totalPages,
     showPagination,
     goToPreviousPage,
     goToNextPage,
+    goToPage,
+    onPageSizeChange: handlePageSizeChange,
     isLoading: reportsQuery.isLoading,
+    isFetching: reportsQuery.isFetching,
     isError: reportsQuery.isError,
     error: reportsQuery.error,
     isRefreshing: reportsQuery.isFetching && !reportsQuery.isLoading,

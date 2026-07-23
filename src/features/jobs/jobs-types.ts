@@ -37,6 +37,7 @@ export type AdminJobsFilters = {
   jobId?: string
   createdFrom?: string
   createdTo?: string
+  sort?: string
 }
 
 export type AdminScheduleExecutionItem = {
@@ -66,6 +67,7 @@ export type AdminScheduleExecutionsFilters = {
   relatorioId?: number
   createdFrom?: string
   createdTo?: string
+  sort?: string
 }
 
 export type JobsPageTab = 'jobs' | 'schedules'

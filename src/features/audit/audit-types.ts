@@ -55,6 +55,7 @@ export interface AuditFilters {
   page: number
   pageSize: number
   search?: string
+  sort?: string
   actorUserId?: number
   action?: string
   category?: AuditCategory

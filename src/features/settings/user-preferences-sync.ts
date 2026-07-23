@@ -2,7 +2,7 @@ import { authStore } from '@/features/auth/auth-store'
 import { notify } from '@/features/notifications/notification-api'
 import { updateUserPreferences } from '@/features/settings/user-preferences-api'
 import { userPreferencesStore } from '@/features/settings/user-preferences-store'
-import type { UpdateUserPreferencesInput } from '@/features/settings/user-preferences-types'
+import type { UpdateUserPreferencesInput, DataGridLayoutPreference } from '@/features/settings/user-preferences-types'
 
 let persistTimer: ReturnType<typeof setTimeout> | null = null
 let pendingPatch: UpdateUserPreferencesInput = {}
@@ -21,7 +21,39 @@ function mergePendingPatch(
           ...next.notification,
         }
       : current.notification,
+    dataGridStyle: next.dataGridStyle
+      ? {
+          ...current.dataGridStyle,
+          ...next.dataGridStyle,
+        }
+      : current.dataGridStyle,
+    grids:
+      next.grids !== undefined
+        ? mergeGridLayoutsInPatch(current.grids, next.grids)
+        : current.grids,
   }
+}
+
+function mergeGridLayoutsInPatch(
+  current: Record<string, DataGridLayoutPreference> | undefined,
+  next: Record<string, DataGridLayoutPreference>,
+): Record<string, DataGridLayoutPreference> {
+  const merged: Record<string, DataGridLayoutPreference> = {
+    ...current,
+  }
+
+  for (const [gridId, gridPatch] of Object.entries(next)) {
+    merged[gridId] = {
+      columnOrder: gridPatch.columnOrder ?? current?.[gridId]?.columnOrder,
+      columnSizing: {
+        ...current?.[gridId]?.columnSizing,
+        ...gridPatch.columnSizing,
+      },
+      sorting: gridPatch.sorting ?? current?.[gridId]?.sorting,
+    }
+  }
+
+  return merged
 }
 
 async function flushPendingPatch() {

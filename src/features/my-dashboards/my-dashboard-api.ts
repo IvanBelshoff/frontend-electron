@@ -37,6 +37,10 @@ function buildMyDashboardsQuery(params: ListMyDashboardsParams): string {
     searchParams.set('temporario', String(params.temporario))
   }
 
+  if (params.sort) {
+    searchParams.set('sort', params.sort)
+  }
+
   return searchParams.toString()
 }
 

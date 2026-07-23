@@ -1,5 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { OnChangeFn, SortingState } from '@tanstack/react-table'
+import { serializeSortingState } from '@/components/data-grid/data-grid-sort.utils'
+import { GRID_IDS } from '@/components/data-grid/grid-registry'
 import { getAuditLog, listAuditActions, listAuditLogs } from '@/features/audit/audit-api'
 import type { AuditAdvancedFilters, AuditFilters } from '@/features/audit/audit-types'
 import { queryKeys } from '@/lib/query-keys'
@@ -139,6 +142,34 @@ export function useAdminAuditState() {
     setAppliedFilters((current) => ({ ...current, page: 1, pageSize }))
   }, [])
 
+  const onSortingChange: OnChangeFn<SortingState> = useCallback((updater) => {
+    setAppliedFilters((current) => {
+      const currentSorting: SortingState = current.sort
+        ? [{ id: current.sort.split(':')[0], desc: current.sort.endsWith(':desc') }]
+        : []
+      const nextSorting = typeof updater === 'function' ? updater(currentSorting) : updater
+
+      return {
+        ...current,
+        page: 1,
+        sort: serializeSortingState(nextSorting, GRID_IDS.auditLogs),
+      }
+    })
+  }, [])
+
+  const sorting: SortingState = useMemo(
+    () =>
+      appliedFilters.sort
+        ? [
+            {
+              id: appliedFilters.sort.split(':')[0],
+              desc: appliedFilters.sort.endsWith(':desc'),
+            },
+          ]
+        : [],
+    [appliedFilters.sort],
+  )
+
   const refresh = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['admin-audit'] })
   }, [queryClient])
@@ -170,6 +201,8 @@ export function useAdminAuditState() {
     removeAdvancedFilter,
     goToPage,
     setPageSize,
+    sorting,
+    onSortingChange,
     refresh,
     filterDialogOpen,
     openFilterDialog,

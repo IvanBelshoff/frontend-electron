@@ -21,4 +21,5 @@ export type ListMyDashboardsParams = {
   favoritos?: boolean
   privacidade?: Privacidade
   temporario?: boolean
+  sort?: string
 }

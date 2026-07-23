@@ -62,6 +62,10 @@ function buildMyReportsQuery(params: ListMyReportsParams): string {
     searchParams.set('temporario', String(params.temporario))
   }
 
+  if (params.sort) {
+    searchParams.set('sort', params.sort)
+  }
+
   return searchParams.toString()
 }
 
@@ -140,6 +144,10 @@ export async function getMyReportData(
 
   if (queryParams.parametros && Object.keys(queryParams.parametros).length > 0) {
     searchParams.set('parametros', JSON.stringify(queryParams.parametros))
+  }
+
+  if (queryParams.sort) {
+    searchParams.set('sort', queryParams.sort)
   }
 
   const data = await apiRequest<ReportDataApiRecord>(

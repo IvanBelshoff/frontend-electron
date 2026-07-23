@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { OnChangeFn, PaginationState } from '@tanstack/react-table'
+import type { OnChangeFn, PaginationState, SortingState } from '@tanstack/react-table'
+import { serializeSortingState } from '@/components/data-grid/data-grid-sort.utils'
+import { GRID_IDS } from '@/components/data-grid/grid-registry'
+import { DATA_GRID_PAGE_SIZE_OPTIONS } from '@/components/data-grid/DataGridPagination'
 import { saveBlobAsFile } from '@/lib/api-client'
 import { ApiError } from '@/features/auth/auth-types'
-import { REPORT_DATA_PAGE_SIZE_OPTIONS } from '@/features/reports/components/ReportDataTablePagination'
 import { formatReportParamDefaults } from '@/features/reports/format-report-param-defaults'
 import { useReportJob } from '@/features/reports/hooks/use-report-job'
 import {
@@ -20,7 +22,7 @@ import { boostInboxPolling } from '@/features/user-inbox/inbox-polling'
 import { notify } from '@/features/notifications/notification-api'
 
 const STATUS_POLL_MS = 3000
-const DEFAULT_PAGE_SIZE = REPORT_DATA_PAGE_SIZE_OPTIONS[0]
+const DEFAULT_PAGE_SIZE = DATA_GRID_PAGE_SIZE_OPTIONS[0]
 
 function stableParamsKey(params: ReportExecutionParams): string {
   return JSON.stringify(params)
@@ -42,10 +44,21 @@ export function useReportExecutionPreviewState(
   const [isDownloading, setIsDownloading] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
+  const [sort, setSort] = useState<string | undefined>(undefined)
   const [offlineEnabled, setOfflineEnabled] = useState(false)
 
   const isOfflineMode = report?.estado === 'offline'
-  const paramsKey = useMemo(() => stableParamsKey(parametros), [parametros])
+  const paramsKey = useMemo(
+    () => `${stableParamsKey(parametros)}|sort:${sort ?? ''}`,
+    [parametros, sort],
+  )
+  const sorting: SortingState = useMemo(
+    () =>
+      sort
+        ? [{ id: sort.split(':')[0], desc: sort.endsWith(':desc') }]
+        : [],
+    [sort],
+  )
 
   useEffect(() => {
     if (!report?.parametros) {
@@ -65,6 +78,7 @@ export function useReportExecutionPreviewState(
     setExportError(null)
     setPage(1)
     setPageSize(DEFAULT_PAGE_SIZE)
+    setSort(undefined)
     setOfflineEnabled(false)
   }, [reportId])
 
@@ -103,6 +117,7 @@ export function useReportExecutionPreviewState(
         page,
         pageSize,
         parametros,
+        sort,
       }),
     enabled:
       enabled &&
@@ -151,6 +166,7 @@ export function useReportExecutionPreviewState(
         page: 1,
         pageSize,
         parametros: params,
+        sort,
       })
     },
     onSuccess: (result) => {
@@ -272,6 +288,12 @@ export function useReportExecutionPreviewState(
     [page, pageSize],
   )
 
+  const onSortingChange: OnChangeFn<SortingState> = useCallback((updater) => {
+    const next = typeof updater === 'function' ? updater(sorting) : updater
+    setPage(1)
+    setSort(serializeSortingState(next, GRID_IDS.reportExecution))
+  }, [sorting])
+
   const canExecute = useMemo(() => {
     if (!report) {
       return false
@@ -346,6 +368,9 @@ export function useReportExecutionPreviewState(
     pageSize,
     pageCount,
     onPaginationChange,
+    sorting,
+    onSortingChange,
+    sortingMode: (isOfflineMode ? 'server' : 'client') as 'server' | 'client',
     needsSnapshotRegeneration,
   }
 }
