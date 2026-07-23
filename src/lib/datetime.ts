@@ -1,3 +1,11 @@
+/**
+ * Date/time formatting for API values.
+ *
+ * - TIMESTAMP (no TZ in DB): wall-clock values. JSON may include a trailing Z from
+ *   serialization; we strip timezone info and interpret the clock in getAppTimeZone().
+ * - TIMESTAMPTZ: true UTC instants — use formatDateTimeInstant / parseApiDateTime({ instant: true }).
+ * - DATE: date-only fields — use formatDateOnly.
+ */
 import {
   endOfDay,
   isValid,
@@ -12,9 +20,20 @@ export const FALLBACK_TIMEZONE = 'America/Sao_Paulo'
 export const EMPTY_DATE_LABEL = 'Não informado'
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
-const OFFSET_PATTERN = /[+-]\d{2}:\d{2}$/
+const TIMEZONE_SUFFIX_PATTERN = /(Z|[+-]\d{2}:\d{2})$/
+
+let appTimeZoneOverride: string | null = null
+
+/** @internal Overrides getAppTimeZone in unit tests only. */
+export function setAppTimeZoneOverrideForTests(timeZone: string | null): void {
+  appTimeZoneOverride = timeZone
+}
 
 export function getAppTimeZone(): string {
+  if (appTimeZoneOverride) {
+    return appTimeZoneOverride
+  }
+
   try {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     if (timeZone && timeZone !== 'UTC' && timeZone.length > 0) {
@@ -40,7 +59,7 @@ function stripFractionalSeconds(value: string): string {
 }
 
 function parseWallClockDateTime(value: string): Date | null {
-  const normalized = stripFractionalSeconds(value.replace(/Z$/, ''))
+  const normalized = stripFractionalSeconds(value.replace(TIMEZONE_SUFFIX_PATTERN, ''))
   const parsed = fromZonedTime(parseISO(normalized), getAppTimeZone())
   return isValid(parsed) ? parsed : null
 }
@@ -84,12 +103,7 @@ export function parseApiDateTime(
     return isValid(parsed) ? parsed : null
   }
 
-  if (OFFSET_PATTERN.test(trimmed)) {
-    const parsed = parseISO(trimmed)
-    return isValid(parsed) ? parsed : null
-  }
-
-  if (OFFSET_PATTERN.test(trimmed) || trimmed.endsWith('Z')) {
+  if (options.instant) {
     const parsed = parseISO(trimmed)
     return isValid(parsed) ? parsed : null
   }
@@ -119,7 +133,8 @@ export function formatDateTime(value?: string | Date | null): string {
 }
 
 export function formatDateTimeInstant(value?: string | Date | null): string {
-  return formatDateTime(value)
+  const parsed = parseApiDateTime(value, { instant: true })
+  return formatWithAppTimeZone(parsed, 'dd/MM/yyyy, HH:mm')
 }
 
 export function formatDateOnly(value?: string | Date | null): string {

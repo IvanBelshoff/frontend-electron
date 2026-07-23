@@ -1,4 +1,5 @@
 import Badge from '@/components/ui/Badge'
+import { useAiAccess } from '@/features/ai/hooks/use-ai-access'
 import {
   CalendarIcon,
   ClockIcon,
@@ -76,6 +77,8 @@ function getEstadoBadge(report: Pick<Report, 'estado'>) {
 }
 
 export default function ReportStatusBadges({ report, field }: ReportStatusBadgesProps) {
+  const { canAccessAiAssistant } = useAiAccess()
+
   if (field === 'estado') {
     return getEstadoBadge(report)
   }
@@ -114,7 +117,7 @@ export default function ReportStatusBadges({ report, field }: ReportStatusBadges
   }
 
   if (field === 'ia') {
-    if (!report.permitirConhecimentoIa) {
+    if (!canAccessAiAssistant || !report.permitirConhecimentoIa) {
       return null
     }
 

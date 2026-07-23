@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useAiAccess } from '@/features/ai/hooks/use-ai-access'
 import { DashboardMaterialIcon } from '@/features/dashboards/icons/DashboardIcons'
 import FavoriteStarButton from '@/features/my-dashboards/components/FavoriteStarButton'
 import MyReportEmptyState from '@/features/my-reports/components/MyReportEmptyState'
@@ -22,6 +23,8 @@ export default function MyReportTable({
   onOpenReport,
   onClearFilters,
 }: MyReportTableProps) {
+  const { canAccessAiAssistant } = useAiAccess()
+
   if (reports.length === 0) {
     return <MyReportEmptyState onClearFilters={onClearFilters} />
   }
@@ -46,9 +49,11 @@ export default function MyReportTable({
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
               Temporalidade
             </th>
-            <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
-              IA
-            </th>
+            {canAccessAiAssistant && (
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
+                IA
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -89,9 +94,11 @@ export default function MyReportTable({
               <td className="px-4 py-3">
                 <ReportStatusBadges report={report} field="temporario" />
               </td>
-              <td className="px-4 py-3">
-                <ReportStatusBadges report={report} field="ia" />
-              </td>
+              {canAccessAiAssistant && (
+                <td className="px-4 py-3">
+                  <ReportStatusBadges report={report} field="ia" />
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

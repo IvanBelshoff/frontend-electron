@@ -20,12 +20,14 @@ export function useAiAccess() {
 
   // Admin is always eligible on the backend; keep the nav visible while access loads.
   const isEligible = adminUser || Boolean(accessQuery.data?.eligible)
+  const canAccessAiAssistant = hasAiRole && isEligible
 
   return {
     hasAiRole,
     access: accessQuery.data,
     isLoading: hasAiRole && accessQuery.isLoading,
     isEligible,
+    canAccessAiAssistant,
     refetch: accessQuery.refetch,
   }
 }

@@ -1,4 +1,5 @@
 import type { UIMessage } from 'ai'
+import { EMPTY_DATE_LABEL, formatDateTime } from '@/lib/datetime'
 
 export function getMessageText(message: UIMessage): string {
   const text = message.parts
@@ -38,15 +39,6 @@ export function messageHasActiveToolCall(message: UIMessage): boolean {
 }
 
 export function formatThreadDate(value: string): string {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-
-  return date.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const formatted = formatDateTime(value)
+  return formatted === EMPTY_DATE_LABEL ? '' : formatted
 }
