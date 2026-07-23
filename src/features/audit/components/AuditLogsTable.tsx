@@ -3,7 +3,7 @@ import type { ColumnDef, OnChangeFn, SortingState } from '@tanstack/react-table'
 import clsx from 'clsx'
 import DataGrid from '@/components/data-grid/DataGrid'
 import { GRID_IDS } from '@/components/data-grid/grid-registry'
-import type { AuditLogItem } from '@/features/audit/audit-types'
+import type { AuditLogListItem } from '@/features/audit/audit-types'
 import {
   getAuditActionLabel,
   getAuditActorLabel,
@@ -14,7 +14,7 @@ import {
 import { formatUserDate } from '@/features/user/format-user-date'
 
 type AuditLogsTableProps = {
-  logs: AuditLogItem[]
+  logs: AuditLogListItem[]
   total: number
   page: number
   pageSize: number
@@ -23,13 +23,13 @@ type AuditLogsTableProps = {
   onSortingChange: OnChangeFn<SortingState>
   isLoading?: boolean
   isFetching?: boolean
-  onRowClick: (log: AuditLogItem) => void
+  onRowClick: (log: AuditLogListItem) => void
   onPageChange: (page: number) => void
   onPageSizeChange: (pageSize: number) => void
   className?: string
 }
 
-function OutcomeBadge({ outcome }: { outcome: AuditLogItem['outcome'] }) {
+function OutcomeBadge({ outcome }: { outcome: AuditLogListItem['outcome'] }) {
   return (
     <span
       className={clsx(
@@ -59,7 +59,7 @@ export default function AuditLogsTable({
   onPageSizeChange,
   className,
 }: AuditLogsTableProps) {
-  const columns = useMemo<ColumnDef<AuditLogItem>[]>(
+  const columns = useMemo<ColumnDef<AuditLogListItem>[]>(
     () => [
       {
         id: 'criado_em',

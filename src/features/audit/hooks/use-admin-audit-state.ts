@@ -7,7 +7,7 @@ import { getAuditLog, listAuditActions, listAuditLogs } from '@/features/audit/a
 import type { AuditAdvancedFilters, AuditFilters } from '@/features/audit/audit-types'
 import { queryKeys } from '@/lib/query-keys'
 
-const DEFAULT_PAGE_SIZE = 50
+const DEFAULT_PAGE_SIZE = 25
 const QUICK_SEARCH_DEBOUNCE_MS = 400
 const ACTIONS_STALE_TIME_MS = 5 * 60 * 1000
 
@@ -214,6 +214,8 @@ export function useAdminAuditState() {
     selectedLogId,
     selectedLog: detailQuery.data ?? null,
     isDetailLoading: detailQuery.isLoading,
+    isDetailError: detailQuery.isError,
+    detailError: detailQuery.error,
     openLogDetail,
     closeLogDetail,
   }

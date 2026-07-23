@@ -56,7 +56,7 @@ export const GRID_REGISTRY: Record<GridId, GridRegistryEntry> = {
   },
   [GRID_IDS.auditLogs]: {
     enableColumnReorder: false,
-    enableColumnResize: true,
+    enableColumnResize: false,
     persistLayout: true,
   },
   [GRID_IDS.adminJobs]: {

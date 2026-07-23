@@ -35,6 +35,19 @@ export interface AuditHttpContext {
   user_agent?: string
 }
 
+export interface AuditLogListItem {
+  id: string
+  actor_user_id: number | null
+  actor_email: string | null
+  actor_type: AuditActorType
+  action: string
+  category: AuditCategory
+  outcome: AuditOutcome
+  resource_type: string | null
+  resource_id: string | number | null
+  criado_em: string
+}
+
 export interface AuditLogItem {
   id: string
   actor_user_id: number | null
@@ -67,7 +80,7 @@ export interface AuditFilters {
 }
 
 export interface AuditLogsListResult {
-  items: AuditLogItem[]
+  items: AuditLogListItem[]
   page: number
   pageSize: number
   total: number

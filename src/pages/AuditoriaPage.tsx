@@ -7,7 +7,7 @@ import AuditLogDetailDrawer from '@/features/audit/components/AuditLogDetailDraw
 import AuditLogsTable from '@/features/audit/components/AuditLogsTable'
 import AuditToolbar from '@/features/audit/components/AuditToolbar'
 import { useAdminAuditState } from '@/features/audit/hooks/use-admin-audit-state'
-import type { AuditLogItem } from '@/features/audit/audit-types'
+import type { AuditLogListItem } from '@/features/audit/audit-types'
 import { ApiError } from '@/features/auth/auth-types'
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -50,13 +50,16 @@ export default function AuditoriaPage() {
     isFetching,
     isError,
     error,
+    selectedLogId,
     selectedLog,
     isDetailLoading,
+    isDetailError,
+    detailError,
     openLogDetail,
     closeLogDetail,
   } = useAdminAuditState()
 
-  const handleRowClick = (log: AuditLogItem) => {
+  const handleRowClick = (log: AuditLogListItem) => {
     openLogDetail(log.id)
   }
 
@@ -132,8 +135,15 @@ export default function AuditoriaPage() {
       />
 
       <AuditLogDetailDrawer
+        isOpen={selectedLogId != null}
         log={selectedLog}
         isLoading={isDetailLoading}
+        isError={isDetailError}
+        errorMessage={
+          isDetailError
+            ? getErrorMessage(detailError, 'Não foi possível carregar o detalhe do log.')
+            : undefined
+        }
         onClose={closeLogDetail}
       />
     </div>

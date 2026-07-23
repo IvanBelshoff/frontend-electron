@@ -26,8 +26,11 @@ import {
 import { formatUserDate } from '@/features/user/format-user-date'
 
 type AuditLogDetailDrawerProps = {
+  isOpen: boolean
   log: AuditLogItem | null
   isLoading?: boolean
+  isError?: boolean
+  errorMessage?: string
   onClose: () => void
 }
 
@@ -65,11 +68,7 @@ function DetailSection({ title, children }: { title: string; children: ReactNode
   )
 }
 
-export default function AuditLogDetailDrawer({
-  log,
-  isLoading = false,
-  onClose,
-}: AuditLogDetailDrawerProps) {
+function AuditLogDetailContent({ log }: { log: AuditLogItem }) {
   const [diffViewMode, setDiffViewModeState] = useState<AuditDiffViewMode>(readStoredAuditDiffViewMode)
 
   const setDiffViewMode = useCallback((mode: AuditDiffViewMode) => {
@@ -77,15 +76,97 @@ export default function AuditLogDetailDrawer({
     storeAuditDiffViewMode(mode)
   }, [])
 
-  if (!log) {
-    return null
-  }
-
   const changes = getAuditChanges(log.metadata ?? {})
   const changeMode = inferAuditChangeMode(log.action)
   const showDiffViewToggle = changes.length > 0 && changeMode === 'update'
   const showLegacyMetadata = hasLegacyMetadata(log.metadata ?? {})
   const legacyMetadataJson = JSON.stringify(getLegacyMetadataDisplay(log.metadata ?? {}), null, 2)
+
+  return (
+    <>
+      <DetailSection title="Ator">
+        <p>{getAuditActorLabel(log.actor_type, log.actor_email)}</p>
+        {log.actor_user_id != null ? (
+          <p className="mt-1 text-xs text-vscode-text-muted">ID: {log.actor_user_id}</p>
+        ) : null}
+      </DetailSection>
+
+      <DetailSection title="Ação">
+        <p>{getAuditActionLabel(log.action)}</p>
+        <p className="mt-1 font-mono text-xs text-vscode-text-muted">{log.action}</p>
+        <p className="mt-2 text-xs text-vscode-text-muted">
+          Categoria: {getAuditCategoryLabel(log.category)}
+        </p>
+        <p className="mt-1 text-xs text-vscode-text-muted">
+          Resultado: {getAuditOutcomeLabel(log.outcome)}
+        </p>
+        <p className="mt-1 text-xs text-vscode-text-muted">Em: {formatUserDate(log.criado_em)}</p>
+      </DetailSection>
+
+      <DetailSection title="Recurso">
+        <p>{getAuditResourceLabel(log.resource_type, log.resource_id)}</p>
+      </DetailSection>
+
+      <section className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
+            Alterações
+          </h4>
+          {showDiffViewToggle ? (
+            <AuditDiffViewToggle value={diffViewMode} onChange={setDiffViewMode} />
+          ) : null}
+        </div>
+        <AuditChangeDiff action={log.action} changes={changes} viewMode={diffViewMode} />
+      </section>
+
+      {log.http ? (
+        <DetailSection title="HTTP">
+          <div className="space-y-1 text-xs">
+            {log.http.method ? <p>Método: {log.http.method}</p> : null}
+            {log.http.path ? <p>Caminho: {log.http.path}</p> : null}
+            {log.http.status_code != null ? <p>Status: {log.http.status_code}</p> : null}
+            {log.http.ip ? <p>IP: {log.http.ip}</p> : null}
+            {log.http.user_agent ? (
+              <p className="break-all">User-Agent: {log.http.user_agent}</p>
+            ) : null}
+          </div>
+        </DetailSection>
+      ) : null}
+
+      {showLegacyMetadata ? (
+        <DetailSection title="Contexto">
+          <pre className="max-h-64 overflow-auto rounded border border-vscode-border bg-vscode-input-bg p-3 font-mono text-xs text-vscode-text">
+            {legacyMetadataJson}
+          </pre>
+        </DetailSection>
+      ) : null}
+
+      {log.correlation_id ? (
+        <DetailSection title="Correlation ID">
+          <button
+            type="button"
+            className="break-all font-mono text-xs text-vscode-accent hover:underline"
+            onClick={() => void copyToClipboard(log.correlation_id!)}
+          >
+            {log.correlation_id}
+          </button>
+        </DetailSection>
+      ) : null}
+    </>
+  )
+}
+
+export default function AuditLogDetailDrawer({
+  isOpen,
+  log,
+  isLoading = false,
+  isError = false,
+  errorMessage,
+  onClose,
+}: AuditLogDetailDrawerProps) {
+  if (!isOpen) {
+    return null
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
@@ -104,90 +185,15 @@ export default function AuditLogDetailDrawer({
         </div>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
-          {isLoading ? (
+          {isLoading && !log ? (
             <p className="text-sm text-vscode-text-muted">Carregando detalhes…</p>
-          ) : (
-            <>
-              <DetailSection title="Ator">
-                <p>{getAuditActorLabel(log.actor_type, log.actor_email)}</p>
-                {log.actor_user_id != null ? (
-                  <p className="mt-1 text-xs text-vscode-text-muted">
-                    ID: {log.actor_user_id}
-                  </p>
-                ) : null}
-              </DetailSection>
-
-              <DetailSection title="Ação">
-                <p>{getAuditActionLabel(log.action)}</p>
-                <p className="mt-1 font-mono text-xs text-vscode-text-muted">{log.action}</p>
-                <p className="mt-2 text-xs text-vscode-text-muted">
-                  Categoria: {getAuditCategoryLabel(log.category)}
-                </p>
-                <p className="mt-1 text-xs text-vscode-text-muted">
-                  Resultado: {getAuditOutcomeLabel(log.outcome)}
-                </p>
-                <p className="mt-1 text-xs text-vscode-text-muted">
-                  Em: {formatUserDate(log.criado_em)}
-                </p>
-              </DetailSection>
-
-              <DetailSection title="Recurso">
-                <p>{getAuditResourceLabel(log.resource_type, log.resource_id)}</p>
-              </DetailSection>
-
-              <section className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-vscode-text-muted">
-                    Alterações
-                  </h4>
-                  {showDiffViewToggle ? (
-                    <AuditDiffViewToggle value={diffViewMode} onChange={setDiffViewMode} />
-                  ) : null}
-                </div>
-                <AuditChangeDiff
-                  action={log.action}
-                  changes={changes}
-                  viewMode={diffViewMode}
-                />
-              </section>
-
-              {log.http ? (
-                <DetailSection title="HTTP">
-                  <div className="space-y-1 text-xs">
-                    {log.http.method ? <p>Método: {log.http.method}</p> : null}
-                    {log.http.path ? <p>Caminho: {log.http.path}</p> : null}
-                    {log.http.status_code != null ? (
-                      <p>Status: {log.http.status_code}</p>
-                    ) : null}
-                    {log.http.ip ? <p>IP: {log.http.ip}</p> : null}
-                    {log.http.user_agent ? (
-                      <p className="break-all">User-Agent: {log.http.user_agent}</p>
-                    ) : null}
-                  </div>
-                </DetailSection>
-              ) : null}
-
-              {showLegacyMetadata ? (
-                <DetailSection title="Contexto">
-                  <pre className="max-h-64 overflow-auto rounded border border-vscode-border bg-vscode-input-bg p-3 font-mono text-xs text-vscode-text">
-                    {legacyMetadataJson}
-                  </pre>
-                </DetailSection>
-              ) : null}
-
-              {log.correlation_id ? (
-                <DetailSection title="Correlation ID">
-                  <button
-                    type="button"
-                    className="break-all font-mono text-xs text-vscode-accent hover:underline"
-                    onClick={() => void copyToClipboard(log.correlation_id!)}
-                  >
-                    {log.correlation_id}
-                  </button>
-                </DetailSection>
-              ) : null}
-            </>
-          )}
+          ) : isError ? (
+            <p className="text-sm text-red-400">
+              {errorMessage ?? 'Não foi possível carregar o detalhe do log.'}
+            </p>
+          ) : log ? (
+            <AuditLogDetailContent log={log} />
+          ) : null}
         </div>
       </aside>
     </div>
