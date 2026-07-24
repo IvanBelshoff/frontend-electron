@@ -232,25 +232,34 @@ export default function DataGrid<T>({
       return rowHeight
     },
     overscan: 10,
-    measureElement: (element) => element?.getBoundingClientRect().height ?? rowHeight,
+    ...(renderSubRow
+      ? {
+          measureElement: (element: Element | null) =>
+            element?.getBoundingClientRect().height ?? rowHeight,
+        }
+      : {}),
   })
 
+  const rowVirtualizerRef = useRef(rowVirtualizer)
+  rowVirtualizerRef.current = rowVirtualizer
+
   useEffect(() => {
-    rowVirtualizer.measure()
-  }, [expandedRowIds, rowVirtualizer])
+    if (!renderSubRow) {
+      return
+    }
+
+    rowVirtualizerRef.current.measure()
+  }, [expandedRowIds, collapseEpoch, renderSubRow])
 
   const remeasureVirtualizer = useCallback(() => {
-    rowVirtualizer.measure()
-  }, [rowVirtualizer])
+    rowVirtualizerRef.current.measure()
+  }, [])
 
-  const handleCollapseEnd = useCallback(
-    (rowId: string) => {
-      collapsingRowIdsRef.current.delete(rowId)
-      setCollapseEpoch((current) => current + 1)
-      rowVirtualizer.measure()
-    },
-    [rowVirtualizer],
-  )
+  const handleCollapseEnd = useCallback((rowId: string) => {
+    collapsingRowIdsRef.current.delete(rowId)
+    setCollapseEpoch((current) => current + 1)
+    rowVirtualizerRef.current.measure()
+  }, [])
 
   useEffect(() => {
     collapsingRowIdsRef.current.clear()
@@ -416,7 +425,7 @@ export default function DataGrid<T>({
               return (
                 <tr
                   key={item.key}
-                  ref={rowVirtualizer.measureElement}
+                  ref={renderSubRow ? rowVirtualizer.measureElement : undefined}
                   data-index={virtualRow.index}
                   data-virtual-key={item.key}
                   className={clsx(

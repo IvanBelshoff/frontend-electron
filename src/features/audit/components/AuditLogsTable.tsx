@@ -13,6 +13,10 @@ import {
 } from '@/features/audit/audit-labels'
 import { formatUserDate } from '@/features/user/format-user-date'
 
+type AuditLogTableRow = AuditLogListItem & {
+  criado_em_label: string
+}
+
 type AuditLogsTableProps = {
   logs: AuditLogListItem[]
   total: number
@@ -59,14 +63,23 @@ export default function AuditLogsTable({
   onPageSizeChange,
   className,
 }: AuditLogsTableProps) {
-  const columns = useMemo<ColumnDef<AuditLogListItem>[]>(
+  const tableRows = useMemo<AuditLogTableRow[]>(
+    () =>
+      logs.map((log) => ({
+        ...log,
+        criado_em_label: formatUserDate(log.criado_em),
+      })),
+    [logs],
+  )
+
+  const columns = useMemo<ColumnDef<AuditLogTableRow>[]>(
     () => [
       {
         id: 'criado_em',
         header: 'Data/hora',
         accessorKey: 'criado_em',
         enableSorting: true,
-        cell: ({ row }) => formatUserDate(row.original.criado_em),
+        cell: ({ row }) => row.original.criado_em_label,
       },
       {
         id: 'actor_email',
@@ -124,7 +137,7 @@ export default function AuditLogsTable({
   return (
     <DataGrid
       gridId={GRID_IDS.auditLogs}
-      data={logs}
+      data={tableRows}
       columns={columns}
       getRowId={(row) => row.id}
       paginationMode="server"

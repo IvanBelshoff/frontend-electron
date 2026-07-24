@@ -24,10 +24,12 @@ const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 const TIMEZONE_SUFFIX_PATTERN = /(Z|[+-]\d{2}:\d{2})$/
 
 let appTimeZoneOverride: string | null = null
+let cachedAppTimeZone: string | null = null
 
 /** @internal Overrides getAppTimeZone in unit tests only. */
 export function setAppTimeZoneOverrideForTests(timeZone: string | null): void {
   appTimeZoneOverride = timeZone
+  cachedAppTimeZone = null
 }
 
 export function getAppTimeZone(): string {
@@ -35,15 +37,21 @@ export function getAppTimeZone(): string {
     return appTimeZoneOverride
   }
 
+  if (cachedAppTimeZone) {
+    return cachedAppTimeZone
+  }
+
   try {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     if (timeZone && timeZone !== 'UTC' && timeZone.length > 0) {
+      cachedAppTimeZone = timeZone
       return timeZone
     }
   } catch {
     // Electron or restricted environments may not expose a timezone.
   }
 
+  cachedAppTimeZone = FALLBACK_TIMEZONE
   return FALLBACK_TIMEZONE
 }
 
