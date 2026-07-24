@@ -11,6 +11,19 @@ export type AuditChangeEntry = {
   content: string
 }
 
+type AuditChangeInput = {
+  field: string
+  from: unknown | null
+  to: unknown | null
+  fromDisplay?: string[] | null
+  toDisplay?: string[] | null
+  summary?: string
+  added?: number[]
+  removed?: number[]
+  addedDisplay?: string[]
+  removedDisplay?: string[]
+}
+
 export type AuditSimpleChangePanels = {
   before: string[]
   after: string[]
@@ -34,15 +47,37 @@ function pushEntry(
   entries.push({ side, content })
 }
 
+function formatUsuarioIdsList(
+  label: string,
+  displayItems: string[] | null | undefined,
+  fallbackValue: unknown,
+): string {
+  if (displayItems?.length) {
+    return `${label}:\n${displayItems.map((item) => `- ${item}`).join('\n')}`
+  }
+
+  return `${label}: ${formatAuditValue(fallbackValue)}`
+}
+
+function formatCompactUsuarioIdsChange(
+  label: string,
+  action: 'adicionados' | 'removidos',
+  displayItems: string[] | undefined,
+  ids: number[] | undefined,
+): string {
+  if (displayItems?.length) {
+    return `${label}: ${action} ${displayItems.join(', ')}`
+  }
+
+  if (ids?.length) {
+    return `${label}: ${action} [${ids.join(', ')}]`
+  }
+
+  return `${label}: ${action}`
+}
+
 export function buildChangeEntries(
-  changes: Array<{
-    field: string
-    from: unknown | null
-    to: unknown | null
-    summary?: string
-    added?: number[]
-    removed?: number[]
-  }>,
+  changes: AuditChangeInput[],
   mode: AuditChangeMode,
   getFieldLabel: (field: string) => string,
   options?: {
@@ -54,6 +89,61 @@ export function buildChangeEntries(
 
   for (const change of changes) {
     const label = getFieldLabel(change.field)
+
+    if (change.field === 'usuarioIds') {
+      if (change.added?.length || change.removed?.length) {
+        if (mode !== 'create' && change.removed?.length) {
+          pushEntry(
+            entries,
+            'before',
+            formatCompactUsuarioIdsChange(
+              label,
+              'removidos',
+              change.removedDisplay,
+              change.removed,
+            ),
+          )
+        }
+        if (mode !== 'delete' && change.added?.length) {
+          pushEntry(
+            entries,
+            'after',
+            formatCompactUsuarioIdsChange(
+              label,
+              'adicionados',
+              change.addedDisplay,
+              change.added,
+            ),
+          )
+        }
+        continue
+      }
+
+      const fromText = formatUsuarioIdsList(label, change.fromDisplay, change.from)
+      const toText = formatUsuarioIdsList(label, change.toDisplay, change.to)
+
+      if (mode === 'delete') {
+        if (change.from != null) {
+          pushEntry(entries, 'before', fromText)
+        }
+        continue
+      }
+
+      if (mode === 'create') {
+        if (change.to != null) {
+          pushEntry(entries, 'after', toText)
+        }
+        continue
+      }
+
+      if (change.from != null) {
+        pushEntry(entries, 'before', fromText)
+      }
+      if (change.to != null) {
+        pushEntry(entries, 'after', toText)
+      }
+      continue
+    }
 
     if (change.summary === 'modified' && change.field === 'query') {
       if (mode === 'delete') {
@@ -125,14 +215,7 @@ export function buildChangeEntries(
 }
 
 export function buildSimpleChangePanels(
-  changes: Array<{
-    field: string
-    from: unknown | null
-    to: unknown | null
-    summary?: string
-    added?: number[]
-    removed?: number[]
-  }>,
+  changes: AuditChangeInput[],
   mode: AuditChangeMode,
   getFieldLabel: (field: string) => string,
 ): AuditSimpleChangePanels {
@@ -147,14 +230,7 @@ export function buildSimpleChangePanels(
 }
 
 export function buildUnifiedChangeRows(
-  changes: Array<{
-    field: string
-    from: unknown | null
-    to: unknown | null
-    summary?: string
-    added?: number[]
-    removed?: number[]
-  }>,
+  changes: AuditChangeInput[],
   mode: AuditChangeMode,
   getFieldLabel: (field: string) => string,
 ): AuditLineDiffRow[] {

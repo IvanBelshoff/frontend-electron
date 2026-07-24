@@ -100,4 +100,78 @@ describe('audit-line-diff util', () => {
       after: [],
     })
   })
+
+  it('renders usuarioIds with display labels', () => {
+    const panels = buildSimpleChangePanels(
+      [
+        {
+          field: 'usuarioIds',
+          from: [4, 1],
+          to: [3, 4, 1],
+          fromDisplay: [
+            'Maria Souza (maria@empresa.com) #4',
+            'Admin (admin@silexcode.com) #1',
+          ],
+          toDisplay: [
+            'João Silva (joao@empresa.com) #3',
+            'Maria Souza (maria@empresa.com) #4',
+            'Admin (admin@silexcode.com) #1',
+          ],
+        },
+      ],
+      'update',
+      getAuditFieldLabel,
+    )
+
+    expect(panels.before).toEqual([
+      'Usuários com acesso:\n- Maria Souza (maria@empresa.com) #4\n- Admin (admin@silexcode.com) #1',
+    ])
+    expect(panels.after).toEqual([
+      'Usuários com acesso:\n- João Silva (joao@empresa.com) #3\n- Maria Souza (maria@empresa.com) #4\n- Admin (admin@silexcode.com) #1',
+    ])
+  })
+
+  it('renders compact usuarioIds with display labels', () => {
+    const rows = buildUnifiedChangeRows(
+      [
+        {
+          field: 'usuarioIds',
+          from: null,
+          to: null,
+          added: [3],
+          removed: [9],
+          addedDisplay: ['João Silva (joao@empresa.com) #3'],
+          removedDisplay: ['Usuário #9'],
+        },
+      ],
+      'update',
+      getAuditFieldLabel,
+    )
+
+    expect(rows).toEqual([
+      {
+        type: 'remove',
+        lineNumber: 1,
+        content: 'Usuários com acesso: removidos Usuário #9',
+      },
+      {
+        type: 'add',
+        lineNumber: 2,
+        content: 'Usuários com acesso: adicionados João Silva (joao@empresa.com) #3',
+      },
+    ])
+  })
+
+  it('falls back to usuarioIds when display labels are missing', () => {
+    const panels = buildSimpleChangePanels(
+      [{ field: 'usuarioIds', from: [4, 1], to: [3, 4, 1] }],
+      'update',
+      getAuditFieldLabel,
+    )
+
+    expect(panels.before[0]).toContain('4')
+    expect(panels.before[0]).toContain('1')
+    expect(panels.after[0]).toContain('3')
+    expect(panels.after[0]).toContain('4')
+  })
 })
