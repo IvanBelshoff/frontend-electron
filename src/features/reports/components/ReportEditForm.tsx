@@ -1,7 +1,9 @@
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import SettingsCard from '@/components/settings/SettingsCard'
 import SettingsField from '@/components/settings/SettingsField'
+import SqlQueryEditor from '@/components/sql-editor/SqlQueryEditor'
 import ReportTimeoutField from '@/features/reports/components/ReportTimeoutField'
 import { PencilIcon } from '@/components/settings/SettingsIcons'
 import Alert from '@/components/ui/Alert'
@@ -13,6 +15,8 @@ import {
   FilterOptionButton,
 } from '@/features/dashboards/icons/DashboardIcons'
 import ConnectionSelect from '@/features/reports/components/ConnectionSelect'
+import { listConnections } from '@/features/connections/connection-api'
+import { queryKeys } from '@/lib/query-keys'
 import type {
   ParametroRelatorio,
   ReportEditDraft,
@@ -79,6 +83,22 @@ export default function ReportEditForm(props: ReportEditFormProps) {
   const [parametrosJsonError, setParametrosJsonError] = useState<string | null>(null)
   const isCreateMode = props.mode === 'create'
 
+  const connectionsQuery = useQuery({
+    queryKey: queryKeys.connection.list({ limit: 200 }),
+    queryFn: () => listConnections({ limit: 200 }),
+  })
+
+  const connectionTipo = useMemo(() => {
+    if (!draft.idConexao) {
+      return null
+    }
+
+    return (
+      connectionsQuery.data?.items.find((connection) => connection.id === draft.idConexao)?.tipo ??
+      null
+    )
+  }, [connectionsQuery.data?.items, draft.idConexao])
+
   useEffect(() => {
     setParametrosJson(formatParametrosJson(draft.parametros))
     setParametrosJsonError(null)
@@ -141,18 +161,14 @@ export default function ReportEditForm(props: ReportEditFormProps) {
           )}
 
           <SettingsField label="Query" htmlFor="reportEditQuery">
-            <textarea
+            <SqlQueryEditor
               id="reportEditQuery"
               value={draft.query}
-              onChange={(event) => updateDraft({ query: event.target.value })}
-              rows={6}
+              onChange={(query) => updateDraft({ query })}
+              connectionTipo={connectionTipo}
+              parametros={draft.parametros}
+              hasError={Boolean(fieldErrors.query)}
               placeholder={isCreateMode ? 'SELECT ...' : undefined}
-              className={clsx(
-                'w-full rounded border bg-vscode-input-bg px-3 py-2 font-mono text-sm text-vscode-text placeholder:text-vscode-text-muted focus:outline-none focus:ring-2',
-                fieldErrors.query
-                  ? 'border-vscode-error focus:ring-vscode-error/30'
-                  : 'border-vscode-border focus:ring-vscode-accent/30',
-              )}
             />
             {fieldErrors.query && (
               <p className="text-xs text-vscode-error">{fieldErrors.query}</p>
