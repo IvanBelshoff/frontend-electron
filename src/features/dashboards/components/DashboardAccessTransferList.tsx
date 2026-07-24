@@ -1,5 +1,5 @@
-import DashboardAccessMoveButtons from '@/features/dashboards/components/DashboardAccessMoveButtons'
-import DashboardAccessUserColumn from '@/features/dashboards/components/DashboardAccessUserColumn'
+import TransferList from '@/components/transfer-list/TransferList'
+import DashboardAccessUserRow from '@/features/dashboards/components/DashboardAccessUserRow'
 import type { AccessUser } from '@/features/user/user-types'
 
 type DashboardAccessTransferListProps = {
@@ -60,50 +60,70 @@ export default function DashboardAccessTransferList({
       ? filteredGrantedUsers.filter((user) => Number(user.id) !== Number(ownerId)).length
       : filteredGrantedUsers.length
 
+  const isOwner = (user: AccessUser) =>
+    ownerId != null && Number(user.id) === Number(ownerId)
+
   return (
-    <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-stretch">
-      <DashboardAccessUserColumn
-        title="Usuários disponíveis"
-        count={availableUsers.length}
-        helper="Selecione um ou mais usuários para conceder acesso."
-        users={filteredAvailableUsers}
-        selectedIds={selectedAvailableIds}
-        search={availableSearch}
-        onSearchChange={onAvailableSearchChange}
-        onToggleUser={onToggleAvailableUser}
-        onToggleSelectAll={onToggleSelectAllAvailable}
-        isAllSelected={isAllAvailableSelected}
-        disabled={disabled}
-      />
-
-      <DashboardAccessMoveButtons
-        disabled={disabled}
-        canMoveSelectedRight={selectedAvailableIds.length > 0}
-        canMoveSelectedLeft={selectedGrantedIds.length > 0}
-        canMoveAllRight={filteredAvailableUsers.length > 0}
-        canMoveAllLeft={grantedSelectableCount > 0}
-        onMoveSelectedRight={onMoveSelectedRight}
-        onMoveAllRight={onMoveAllRight}
-        onMoveSelectedLeft={onMoveSelectedLeft}
-        onMoveAllLeft={onMoveAllLeft}
-      />
-
-      <DashboardAccessUserColumn
-        title="Usuários com acesso"
-        count={grantedUsers.length}
-        helper="Selecione usuários para remover acesso, exceto o proprietário."
-        users={filteredGrantedUsers}
-        selectedIds={selectedGrantedIds}
-        search={grantedSearch}
-        onSearchChange={onGrantedSearchChange}
-        onToggleUser={onToggleGrantedUser}
-        onToggleSelectAll={onToggleSelectAllGranted}
-        isAllSelected={isAllGrantedSelected}
-        disabled={disabled}
-        ownerId={ownerId}
-        showAiKnowledge={showAiKnowledge}
-        onToggleAiKnowledge={onToggleAiKnowledge}
-      />
-    </div>
+    <TransferList
+      available={{
+        title: 'Usuários disponíveis',
+        count: availableUsers.length,
+        helper: 'Selecione um ou mais usuários para conceder acesso.',
+        items: filteredAvailableUsers,
+        search: availableSearch,
+        searchPlaceholder: 'Pesquisar por nome',
+        emptyMessage: 'Nenhum usuário encontrado.',
+        selectedIds: selectedAvailableIds,
+        isAllSelected: isAllAvailableSelected,
+        onSearchChange: onAvailableSearchChange,
+        onToggleSelectAll: onToggleSelectAllAvailable,
+      }}
+      granted={{
+        title: 'Usuários com acesso',
+        count: grantedUsers.length,
+        helper: 'Selecione usuários para remover acesso, exceto o proprietário.',
+        items: filteredGrantedUsers,
+        search: grantedSearch,
+        searchPlaceholder: 'Pesquisar por nome',
+        emptyMessage: 'Nenhum usuário encontrado.',
+        selectedIds: selectedGrantedIds,
+        isAllSelected: isAllGrantedSelected,
+        onSearchChange: onGrantedSearchChange,
+        onToggleSelectAll: onToggleSelectAllGranted,
+      }}
+      getItemId={(user) => user.id}
+      isItemSelectable={(user, side) =>
+        side === 'available' || !isOwner(user)
+      }
+      renderItem={(user, ctx) => (
+        <DashboardAccessUserRow
+          user={user}
+          selected={ctx.selected}
+          selectionDisabled={ctx.selectionDisabled}
+          iaDisabled={disabled}
+          isOwner={isOwner(user)}
+          showAiKnowledge={ctx.side === 'granted' && showAiKnowledge}
+          onToggleAiKnowledge={
+            ctx.side === 'granted' && onToggleAiKnowledge
+              ? () => onToggleAiKnowledge(user.id)
+              : undefined
+          }
+          onToggle={ctx.onToggle}
+        />
+      )}
+      onToggleItem={(side, userId) => {
+        if (side === 'available') {
+          onToggleAvailableUser(userId)
+          return
+        }
+        onToggleGrantedUser(userId)
+      }}
+      onMoveSelectedRight={onMoveSelectedRight}
+      onMoveAllRight={onMoveAllRight}
+      onMoveSelectedLeft={onMoveSelectedLeft}
+      onMoveAllLeft={onMoveAllLeft}
+      canMoveAllLeft={grantedSelectableCount}
+      disabled={disabled}
+    />
   )
 }

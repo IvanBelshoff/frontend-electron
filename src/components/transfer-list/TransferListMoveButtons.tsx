@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-type DashboardAccessMoveButtonsProps = {
+type TransferListMoveButtonsProps = {
   disabled?: boolean
   canMoveSelectedRight?: boolean
   canMoveSelectedLeft?: boolean
@@ -41,7 +41,7 @@ function MoveButton({
   )
 }
 
-export default function DashboardAccessMoveButtons({
+export default function TransferListMoveButtons({
   disabled = false,
   canMoveSelectedRight = false,
   canMoveSelectedLeft = false,
@@ -51,7 +51,7 @@ export default function DashboardAccessMoveButtons({
   onMoveAllRight,
   onMoveSelectedLeft,
   onMoveAllLeft,
-}: DashboardAccessMoveButtonsProps) {
+}: TransferListMoveButtonsProps) {
   const moveAllRightDisabled = disabled || !canMoveAllRight
   const moveAllLeftDisabled = disabled || !canMoveAllLeft
 

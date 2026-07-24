@@ -1,5 +1,6 @@
-import clsx from 'clsx'
 import AccessOwnerBadge from '@/components/access/AccessOwnerBadge'
+import AiKnowledgeToggleButton from '@/components/transfer-list/AiKnowledgeToggleButton'
+import TransferListSelectableRow from '@/components/transfer-list/TransferListSelectableRow'
 import { getAccessUserFullName } from '@/features/dashboards/dashboard-access-utils'
 import type { AccessUser } from '@/features/user/user-types'
 import UserAvatar from '@/features/user/UserAvatar'
@@ -27,62 +28,34 @@ export default function DashboardAccessUserRow({
 }: DashboardAccessUserRowProps) {
   const fullName = getAccessUserFullName(user)
 
+  const actions =
+    showAiKnowledge && onToggleAiKnowledge ? (
+      <AiKnowledgeToggleButton
+        active={user.permitirConhecimentoIa}
+        disabled={iaDisabled}
+        onClick={onToggleAiKnowledge}
+      />
+    ) : undefined
+
   return (
-    <div
-      className={clsx(
-        'flex items-center gap-2 rounded-md border px-3 py-2 transition-colors',
-        selected
-          ? 'border-vscode-accent bg-vscode-accent/10'
-          : 'border-vscode-border bg-vscode-bg/40 hover:border-vscode-accent/40',
-      )}
+    <TransferListSelectableRow
+      selected={selected}
+      selectionDisabled={selectionDisabled}
+      onToggle={onToggle}
+      itemId={user.id}
+      actions={actions}
     >
-      <label
-        className={clsx(
-          'flex min-w-0 flex-1 cursor-pointer items-center gap-3',
-          selectionDisabled && 'cursor-not-allowed opacity-70',
-        )}
-      >
-        <input
-          type="checkbox"
-          checked={selected}
-          disabled={selectionDisabled}
-          onChange={onToggle}
-          className="h-4 w-4 rounded border-vscode-border accent-vscode-accent"
-        />
+      <UserAvatar
+        userId={user.id}
+        nome={user.nome}
+        sobrenome={user.sobrenome}
+        foto={user.foto}
+      />
 
-        <UserAvatar
-          userId={user.id}
-          nome={user.nome}
-          sobrenome={user.sobrenome}
-          foto={user.foto}
-        />
-
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm text-vscode-text">{fullName}</span>
-          {isOwner && <AccessOwnerBadge />}
-        </span>
-      </label>
-
-      {showAiKnowledge && onToggleAiKnowledge && (
-        <button
-          type="button"
-          title="Permitir conhecimento da IA"
-          disabled={iaDisabled}
-          onClick={(event) => {
-            event.stopPropagation()
-            onToggleAiKnowledge()
-          }}
-          className={clsx(
-            'shrink-0 rounded border px-2 py-1 text-[10px] font-medium uppercase tracking-wide transition-colors',
-            user.permitirConhecimentoIa
-              ? 'border-vscode-accent/50 bg-vscode-accent/15 text-vscode-accent'
-              : 'border-vscode-border text-vscode-text-muted hover:border-vscode-accent/40 hover:text-vscode-text',
-            iaDisabled && 'cursor-not-allowed opacity-60',
-          )}
-        >
-          IA
-        </button>
-      )}
-    </div>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm text-vscode-text">{fullName}</span>
+        {isOwner && <AccessOwnerBadge />}
+      </span>
+    </TransferListSelectableRow>
   )
 }

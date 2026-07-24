@@ -1,8 +1,9 @@
-import DashboardAccessMoveButtons from '@/features/dashboards/components/DashboardAccessMoveButtons'
+import TransferList from '@/components/transfer-list/TransferList'
+import UserAccessReportRow from '@/features/user/components/UserAccessReportRow'
 import {
   countSelectableGrantedReports,
+  isOwnerReport,
 } from '@/features/user/user-report-access-utils'
-import UserAccessReportColumn from '@/features/user/components/UserAccessReportColumn'
 import type { AccessReport } from '@/features/user/user-report-access-types'
 
 type UserReportAccessTransferListProps = {
@@ -59,49 +60,66 @@ export default function UserReportAccessTransferList({
   const grantedSelectableCount = countSelectableGrantedReports(filteredGrantedReports, userId)
 
   return (
-    <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-stretch">
-      <UserAccessReportColumn
-        title="Relatórios disponíveis"
-        count={availableReports.length}
-        helper="Selecione um ou mais relatórios para conceder acesso ao usuário."
-        reports={filteredAvailableReports}
-        selectedIds={selectedAvailableIds}
-        search={availableSearch}
-        onSearchChange={onAvailableSearchChange}
-        onToggleReport={onToggleAvailableReport}
-        onToggleSelectAll={onToggleSelectAllAvailable}
-        isAllSelected={isAllAvailableSelected}
-        disabled={disabled}
-      />
-
-      <DashboardAccessMoveButtons
-        disabled={disabled}
-        canMoveSelectedRight={selectedAvailableIds.length > 0}
-        canMoveSelectedLeft={selectedGrantedIds.length > 0}
-        canMoveAllRight={filteredAvailableReports.length > 0}
-        canMoveAllLeft={grantedSelectableCount > 0}
-        onMoveSelectedRight={onMoveSelectedRight}
-        onMoveAllRight={onMoveAllRight}
-        onMoveSelectedLeft={onMoveSelectedLeft}
-        onMoveAllLeft={onMoveAllLeft}
-      />
-
-      <UserAccessReportColumn
-        title="Relatórios com acesso"
-        count={grantedReports.length}
-        helper="Lista de relatórios atualmente vinculados ao usuário."
-        reports={filteredGrantedReports}
-        selectedIds={selectedGrantedIds}
-        search={grantedSearch}
-        onSearchChange={onGrantedSearchChange}
-        onToggleReport={onToggleGrantedReport}
-        onToggleSelectAll={onToggleSelectAllGranted}
-        isAllSelected={isAllGrantedSelected}
-        disabled={disabled}
-        userId={userId}
-        showAiKnowledge
-        onToggleAiKnowledge={onToggleAiKnowledge}
-      />
-    </div>
+    <TransferList
+      available={{
+        title: 'Relatórios disponíveis',
+        count: availableReports.length,
+        helper: 'Selecione um ou mais relatórios para conceder acesso ao usuário.',
+        items: filteredAvailableReports,
+        search: availableSearch,
+        searchPlaceholder: 'Pesquisar por nome do relatório',
+        emptyMessage: 'Nenhum relatório encontrado.',
+        selectedIds: selectedAvailableIds,
+        isAllSelected: isAllAvailableSelected,
+        onSearchChange: onAvailableSearchChange,
+        onToggleSelectAll: onToggleSelectAllAvailable,
+      }}
+      granted={{
+        title: 'Relatórios com acesso',
+        count: grantedReports.length,
+        helper: 'Lista de relatórios atualmente vinculados ao usuário.',
+        items: filteredGrantedReports,
+        search: grantedSearch,
+        searchPlaceholder: 'Pesquisar por nome do relatório',
+        emptyMessage: 'Nenhum relatório encontrado.',
+        selectedIds: selectedGrantedIds,
+        isAllSelected: isAllGrantedSelected,
+        onSearchChange: onGrantedSearchChange,
+        onToggleSelectAll: onToggleSelectAllGranted,
+      }}
+      getItemId={(report) => report.id}
+      isItemSelectable={(report, side) =>
+        side === 'available' || !isOwnerReport(report, userId)
+      }
+      renderItem={(report, ctx) => (
+        <UserAccessReportRow
+          report={report}
+          selected={ctx.selected}
+          selectionDisabled={ctx.selectionDisabled}
+          iaDisabled={disabled}
+          isOwner={isOwnerReport(report, userId)}
+          showAiKnowledge={ctx.side === 'granted'}
+          onToggleAiKnowledge={
+            ctx.side === 'granted' && onToggleAiKnowledge
+              ? () => onToggleAiKnowledge(report.id)
+              : undefined
+          }
+          onToggle={ctx.onToggle}
+        />
+      )}
+      onToggleItem={(side, reportId) => {
+        if (side === 'available') {
+          onToggleAvailableReport(reportId)
+          return
+        }
+        onToggleGrantedReport(reportId)
+      }}
+      onMoveSelectedRight={onMoveSelectedRight}
+      onMoveAllRight={onMoveAllRight}
+      onMoveSelectedLeft={onMoveSelectedLeft}
+      onMoveAllLeft={onMoveAllLeft}
+      canMoveAllLeft={grantedSelectableCount}
+      disabled={disabled}
+    />
   )
 }

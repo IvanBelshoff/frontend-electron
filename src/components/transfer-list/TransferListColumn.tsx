@@ -1,43 +1,33 @@
 import clsx from 'clsx'
 import Input from '@/components/ui/Input'
-import UserAccessDashboardRow from '@/features/user/components/UserAccessDashboardRow'
-import { isOwnerDashboard } from '@/features/user/user-dashboard-access-utils'
-import type { AccessDashboard } from '@/features/user/user-dashboard-access-types'
 import { SearchIcon } from '@/features/dashboards/icons/DashboardIcons'
+import type { TransferListColumnProps } from '@/components/transfer-list/types'
 
-type UserAccessDashboardColumnProps = {
-  title: string
-  count: number
-  helper: string
-  dashboards: AccessDashboard[]
-  selectedIds: number[]
-  search: string
-  onSearchChange: (value: string) => void
-  onToggleDashboard: (dashboardId: number) => void
-  onToggleSelectAll: () => void
-  isAllSelected: boolean
-  disabled?: boolean
-  userId?: number
-}
-
-export default function UserAccessDashboardColumn({
-  title,
-  count,
-  helper,
-  dashboards,
-  selectedIds,
-  search,
-  onSearchChange,
-  onToggleDashboard,
-  onToggleSelectAll,
-  isAllSelected,
+export default function TransferListColumn<T>({
+  side,
+  config,
+  getItemId,
+  isItemSelectable,
+  renderItem,
+  onToggleItem,
   disabled = false,
-  userId,
-}: UserAccessDashboardColumnProps) {
-  const selectableCount =
-    userId !== undefined
-      ? dashboards.filter((dashboard) => !isOwnerDashboard(dashboard, userId)).length
-      : dashboards.length
+  listRef,
+}: TransferListColumnProps<T>) {
+  const {
+    title,
+    count,
+    helper,
+    items,
+    search,
+    searchPlaceholder,
+    emptyMessage,
+    selectedIds,
+    isAllSelected,
+    onSearchChange,
+    onToggleSelectAll,
+  } = config
+
+  const selectableCount = items.filter((item) => isItemSelectable(item, side)).length
   const selectAllDisabled = disabled || selectableCount === 0
 
   return (
@@ -74,30 +64,34 @@ export default function UserAccessDashboardColumn({
         <Input
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Pesquisar por nome do dashboard"
+          placeholder={searchPlaceholder}
           disabled={disabled}
           className="pl-9"
         />
       </div>
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-        {dashboards.length === 0 ? (
-          <p className="py-8 text-center text-sm text-vscode-text-muted">
-            Nenhum dashboard encontrado.
-          </p>
+      <div
+        ref={listRef}
+        data-transfer-list-side={side}
+        className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1"
+      >
+        {items.length === 0 ? (
+          <p className="py-8 text-center text-sm text-vscode-text-muted">{emptyMessage}</p>
         ) : (
-          dashboards.map((dashboard) => {
-            const isOwner = userId !== undefined && isOwnerDashboard(dashboard, userId)
+          items.map((item) => {
+            const itemId = getItemId(item)
+            const selectable = isItemSelectable(item, side)
+            const selected = selectedIds.includes(itemId)
 
             return (
-              <UserAccessDashboardRow
-                key={dashboard.id}
-                dashboard={dashboard}
-                selected={selectedIds.includes(dashboard.id)}
-                disabled={disabled || isOwner}
-                isOwner={isOwner}
-                onToggle={() => onToggleDashboard(dashboard.id)}
-              />
+              <div key={itemId}>
+                {renderItem(item, {
+                  side,
+                  selected,
+                  selectionDisabled: disabled || !selectable,
+                  onToggle: () => onToggleItem(side, itemId),
+                })}
+              </div>
             )
           })
         )}

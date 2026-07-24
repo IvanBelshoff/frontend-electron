@@ -1,5 +1,5 @@
-import clsx from 'clsx'
 import AccessOwnerBadge from '@/components/access/AccessOwnerBadge'
+import TransferListSelectableRow from '@/components/transfer-list/TransferListSelectableRow'
 import { DashboardMaterialIcon } from '@/features/dashboards/icons/DashboardIcons'
 import type { AccessDashboard } from '@/features/user/user-dashboard-access-types'
 
@@ -19,23 +19,12 @@ export default function UserAccessDashboardRow({
   onToggle,
 }: UserAccessDashboardRowProps) {
   return (
-    <label
-      className={clsx(
-        'flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2 transition-colors',
-        selected
-          ? 'border-vscode-accent bg-vscode-accent/10'
-          : 'border-vscode-border bg-vscode-bg/40 hover:border-vscode-accent/40',
-        disabled && 'cursor-not-allowed opacity-70',
-      )}
+    <TransferListSelectableRow
+      selected={selected}
+      selectionDisabled={disabled}
+      onToggle={onToggle}
+      itemId={dashboard.id}
     >
-      <input
-        type="checkbox"
-        checked={selected}
-        disabled={disabled}
-        onChange={onToggle}
-        className="h-4 w-4 rounded border-vscode-border accent-vscode-accent"
-      />
-
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-vscode-accent/25 bg-vscode-accent/10 text-vscode-accent">
         <DashboardMaterialIcon name={dashboard.icone} className="text-[1.15rem]" filled />
       </span>
@@ -44,6 +33,6 @@ export default function UserAccessDashboardRow({
         <span className="block truncate text-sm text-vscode-text">{dashboard.nome}</span>
         {isOwner && <AccessOwnerBadge />}
       </span>
-    </label>
+    </TransferListSelectableRow>
   )
 }
