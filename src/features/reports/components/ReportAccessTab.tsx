@@ -31,6 +31,7 @@ export default function ReportAccessTab({ reportId, report, enabled }: ReportAcc
     moveAllRight,
     moveSelectedLeft,
     moveAllLeft,
+    moveItem,
     isLoading,
     isSaving,
     isError,
@@ -98,6 +99,7 @@ export default function ReportAccessTab({ reportId, report, enabled }: ReportAcc
             onMoveAllRight={() => void moveAllRight()}
             onMoveSelectedLeft={() => void moveSelectedLeft()}
             onMoveAllLeft={() => void moveAllLeft()}
+            onMoveItem={moveItem}
             disabled={controlsDisabled || isSaving}
             ownerId={ownerId}
             showAiKnowledge

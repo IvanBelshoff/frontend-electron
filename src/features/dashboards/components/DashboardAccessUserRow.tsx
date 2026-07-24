@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import AccessOwnerBadge from '@/components/access/AccessOwnerBadge'
 import AiKnowledgeToggleButton from '@/components/transfer-list/AiKnowledgeToggleButton'
 import TransferListSelectableRow from '@/components/transfer-list/TransferListSelectableRow'
@@ -14,6 +15,9 @@ type DashboardAccessUserRowProps = {
   showAiKnowledge?: boolean
   onToggleAiKnowledge?: () => void
   onToggle: () => void
+  dragHandle?: ReactNode
+  isDragging?: boolean
+  isOverlay?: boolean
 }
 
 export default function DashboardAccessUserRow({
@@ -25,11 +29,14 @@ export default function DashboardAccessUserRow({
   showAiKnowledge = false,
   onToggleAiKnowledge,
   onToggle,
+  dragHandle,
+  isDragging = false,
+  isOverlay = false,
 }: DashboardAccessUserRowProps) {
   const fullName = getAccessUserFullName(user)
 
   const actions =
-    showAiKnowledge && onToggleAiKnowledge ? (
+    !isOverlay && showAiKnowledge && onToggleAiKnowledge ? (
       <AiKnowledgeToggleButton
         active={user.permitirConhecimentoIa}
         disabled={iaDisabled}
@@ -44,6 +51,9 @@ export default function DashboardAccessUserRow({
       onToggle={onToggle}
       itemId={user.id}
       actions={actions}
+      dragHandle={dragHandle}
+      isDragging={isDragging}
+      isOverlay={isOverlay}
     >
       <UserAvatar
         userId={user.id}

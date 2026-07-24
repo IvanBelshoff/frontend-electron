@@ -1,4 +1,5 @@
 import TransferList from '@/components/transfer-list/TransferList'
+import type { TransferListSide } from '@/components/transfer-list/types'
 import UserAccessDashboardRow from '@/features/user/components/UserAccessDashboardRow'
 import {
   countSelectableGrantedDashboards,
@@ -28,6 +29,7 @@ type UserAccessTransferListProps = {
   onMoveAllRight: () => void
   onMoveSelectedLeft: () => void
   onMoveAllLeft: () => void
+  onMoveItem?: (fromSide: TransferListSide, itemId: number) => void | Promise<void>
   disabled?: boolean
 }
 
@@ -53,6 +55,7 @@ export default function UserAccessTransferList({
   onMoveAllRight,
   onMoveSelectedLeft,
   onMoveAllLeft,
+  onMoveItem,
   disabled = false,
 }: UserAccessTransferListProps) {
   const grantedSelectableCount = countSelectableGrantedDashboards(
@@ -99,6 +102,9 @@ export default function UserAccessTransferList({
           disabled={ctx.selectionDisabled}
           isOwner={isOwnerDashboard(dashboard, userId)}
           onToggle={ctx.onToggle}
+          dragHandle={ctx.dragHandle}
+          isDragging={ctx.isDragging}
+          isOverlay={ctx.isOverlay}
         />
       )}
       onToggleItem={(side, dashboardId) => {
@@ -114,6 +120,8 @@ export default function UserAccessTransferList({
       onMoveAllLeft={onMoveAllLeft}
       canMoveAllLeft={grantedSelectableCount}
       disabled={disabled}
+      enableDragAndDrop={!disabled}
+      onMoveItem={onMoveItem ? (fromSide, itemId) => void onMoveItem(fromSide, itemId) : undefined}
     />
   )
 }

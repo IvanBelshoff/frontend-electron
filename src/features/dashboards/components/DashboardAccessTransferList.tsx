@@ -1,4 +1,5 @@
 import TransferList from '@/components/transfer-list/TransferList'
+import type { TransferListSide } from '@/components/transfer-list/types'
 import DashboardAccessUserRow from '@/features/dashboards/components/DashboardAccessUserRow'
 import type { AccessUser } from '@/features/user/user-types'
 
@@ -23,6 +24,7 @@ type DashboardAccessTransferListProps = {
   onMoveAllRight: () => void
   onMoveSelectedLeft: () => void
   onMoveAllLeft: () => void
+  onMoveItem?: (fromSide: TransferListSide, itemId: number) => void | Promise<void>
   disabled?: boolean
   ownerId?: number | null
   showAiKnowledge?: boolean
@@ -50,6 +52,7 @@ export default function DashboardAccessTransferList({
   onMoveAllRight,
   onMoveSelectedLeft,
   onMoveAllLeft,
+  onMoveItem,
   disabled = false,
   ownerId = null,
   showAiKnowledge = false,
@@ -109,6 +112,9 @@ export default function DashboardAccessTransferList({
               : undefined
           }
           onToggle={ctx.onToggle}
+          dragHandle={ctx.dragHandle}
+          isDragging={ctx.isDragging}
+          isOverlay={ctx.isOverlay}
         />
       )}
       onToggleItem={(side, userId) => {
@@ -124,6 +130,8 @@ export default function DashboardAccessTransferList({
       onMoveAllLeft={onMoveAllLeft}
       canMoveAllLeft={grantedSelectableCount}
       disabled={disabled}
+      enableDragAndDrop={!disabled}
+      onMoveItem={onMoveItem ? (fromSide, itemId) => void onMoveItem(fromSide, itemId) : undefined}
     />
   )
 }

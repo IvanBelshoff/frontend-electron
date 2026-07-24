@@ -7,8 +7,11 @@ type TransferListSelectableRowProps = {
   onToggle: () => void
   children: ReactNode
   actions?: ReactNode
+  dragHandle?: ReactNode
   itemId?: number
   rowRef?: Ref<HTMLDivElement>
+  isDragging?: boolean
+  isOverlay?: boolean
 }
 
 export default function TransferListSelectableRow({
@@ -17,14 +20,19 @@ export default function TransferListSelectableRow({
   onToggle,
   children,
   actions,
+  dragHandle,
   itemId,
   rowRef,
+  isDragging = false,
+  isOverlay = false,
 }: TransferListSelectableRowProps) {
   const rowClassName = clsx(
     'flex items-center gap-2 rounded-md border px-3 py-2 transition-colors',
     selected
       ? 'border-vscode-accent bg-vscode-accent/10'
       : 'border-vscode-border bg-vscode-bg/40 hover:border-vscode-accent/40',
+    isDragging && 'opacity-40',
+    isOverlay && 'shadow-lg ring-1 ring-vscode-accent/20',
   )
 
   const labelClassName = clsx(
@@ -32,24 +40,29 @@ export default function TransferListSelectableRow({
     selectionDisabled && 'cursor-not-allowed opacity-70',
   )
 
-  if (actions) {
+  const checkbox = isOverlay ? null : (
+    <input
+      type="checkbox"
+      checked={selected}
+      disabled={selectionDisabled}
+      onChange={onToggle}
+      className="h-4 w-4 rounded border-vscode-border accent-vscode-accent"
+    />
+  )
+
+  if (actions || dragHandle) {
     return (
       <div
         ref={rowRef}
         className={rowClassName}
         data-transfer-item-id={itemId}
       >
+        {dragHandle}
         <label className={labelClassName}>
-          <input
-            type="checkbox"
-            checked={selected}
-            disabled={selectionDisabled}
-            onChange={onToggle}
-            className="h-4 w-4 rounded border-vscode-border accent-vscode-accent"
-          />
+          {checkbox}
           {children}
         </label>
-        {actions}
+        {!isOverlay ? actions : null}
       </div>
     )
   }
@@ -60,13 +73,7 @@ export default function TransferListSelectableRow({
       className={clsx(rowClassName, labelClassName, 'gap-3')}
       data-transfer-item-id={itemId}
     >
-      <input
-        type="checkbox"
-        checked={selected}
-        disabled={selectionDisabled}
-        onChange={onToggle}
-        className="h-4 w-4 rounded border-vscode-border accent-vscode-accent"
-      />
+      {checkbox}
       {children}
     </label>
   )

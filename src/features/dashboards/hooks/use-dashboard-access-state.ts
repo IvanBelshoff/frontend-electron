@@ -253,6 +253,38 @@ export function useDashboardAccessState(
     )
   }, [availableUsers, filteredGrantedUsers, grantedUsers, ownerId, persistGrantedUsers])
 
+  const moveItem = useCallback(
+    async (fromSide: AccessColumn, itemId: number) => {
+      if (fromSide === 'available') {
+        const movingUser = availableUsers.find((user) => user.id === itemId)
+        if (!movingUser) {
+          return
+        }
+
+        await persistGrantedUsers(
+          [...grantedUsers, movingUser],
+          availableUsers.filter((user) => user.id !== itemId),
+        )
+        return
+      }
+
+      if (ownerId === itemId) {
+        return
+      }
+
+      const movingUser = grantedUsers.find((user) => user.id === itemId)
+      if (!movingUser) {
+        return
+      }
+
+      await persistGrantedUsers(
+        grantedUsers.filter((user) => user.id !== itemId),
+        [...availableUsers, movingUser],
+      )
+    },
+    [availableUsers, grantedUsers, ownerId, persistGrantedUsers],
+  )
+
   const controlsDisabled =
     isPublicDashboard ||
     (accessQuery.isLoading && !accessQuery.data) ||
@@ -278,6 +310,7 @@ export function useDashboardAccessState(
     moveAllRight,
     moveSelectedLeft,
     moveAllLeft,
+    moveItem,
     isLoading: accessQuery.isLoading,
     isSaving: persistMutation.isPending,
     isError: accessQuery.isError,

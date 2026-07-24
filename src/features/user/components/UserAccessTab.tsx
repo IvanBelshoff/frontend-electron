@@ -181,6 +181,7 @@ export default function UserAccessTab({
                 onMoveAllRight={() => void accessState.moveAllRight()}
                 onMoveSelectedLeft={() => void accessState.moveSelectedLeft()}
                 onMoveAllLeft={() => void accessState.moveAllLeft()}
+                onMoveItem={accessState.moveItem}
                 disabled={accessState.controlsDisabled || accessState.isSaving}
               />
             </div>

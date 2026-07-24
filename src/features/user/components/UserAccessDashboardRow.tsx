@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import AccessOwnerBadge from '@/components/access/AccessOwnerBadge'
 import TransferListSelectableRow from '@/components/transfer-list/TransferListSelectableRow'
 import { DashboardMaterialIcon } from '@/features/dashboards/icons/DashboardIcons'
@@ -9,6 +10,9 @@ type UserAccessDashboardRowProps = {
   disabled?: boolean
   isOwner?: boolean
   onToggle: () => void
+  dragHandle?: ReactNode
+  isDragging?: boolean
+  isOverlay?: boolean
 }
 
 export default function UserAccessDashboardRow({
@@ -17,6 +21,9 @@ export default function UserAccessDashboardRow({
   disabled = false,
   isOwner = false,
   onToggle,
+  dragHandle,
+  isDragging = false,
+  isOverlay = false,
 }: UserAccessDashboardRowProps) {
   return (
     <TransferListSelectableRow
@@ -24,6 +31,9 @@ export default function UserAccessDashboardRow({
       selectionDisabled={disabled}
       onToggle={onToggle}
       itemId={dashboard.id}
+      dragHandle={dragHandle}
+      isDragging={isDragging}
+      isOverlay={isOverlay}
     >
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-vscode-accent/25 bg-vscode-accent/10 text-vscode-accent">
         <DashboardMaterialIcon name={dashboard.icone} className="text-[1.15rem]" filled />

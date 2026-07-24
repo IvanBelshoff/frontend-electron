@@ -100,6 +100,7 @@ export default function UserReportAccessSection({ user, enabled }: UserReportAcc
             onMoveAllRight={() => void accessState.moveAllRight()}
             onMoveSelectedLeft={() => void accessState.moveSelectedLeft()}
             onMoveAllLeft={() => void accessState.moveAllLeft()}
+            onMoveItem={accessState.moveItem}
             disabled={accessState.controlsDisabled || accessState.isSaving}
             onToggleAiKnowledge={(reportId) => void accessState.toggleAiKnowledge(reportId)}
           />

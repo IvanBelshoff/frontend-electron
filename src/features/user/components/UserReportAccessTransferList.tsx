@@ -1,4 +1,5 @@
 import TransferList from '@/components/transfer-list/TransferList'
+import type { TransferListSide } from '@/components/transfer-list/types'
 import UserAccessReportRow from '@/features/user/components/UserAccessReportRow'
 import {
   countSelectableGrantedReports,
@@ -28,6 +29,7 @@ type UserReportAccessTransferListProps = {
   onMoveAllRight: () => void
   onMoveSelectedLeft: () => void
   onMoveAllLeft: () => void
+  onMoveItem?: (fromSide: TransferListSide, itemId: number) => void | Promise<void>
   disabled?: boolean
   onToggleAiKnowledge?: (reportId: number) => void
 }
@@ -54,6 +56,7 @@ export default function UserReportAccessTransferList({
   onMoveAllRight,
   onMoveSelectedLeft,
   onMoveAllLeft,
+  onMoveItem,
   disabled = false,
   onToggleAiKnowledge,
 }: UserReportAccessTransferListProps) {
@@ -105,6 +108,9 @@ export default function UserReportAccessTransferList({
               : undefined
           }
           onToggle={ctx.onToggle}
+          dragHandle={ctx.dragHandle}
+          isDragging={ctx.isDragging}
+          isOverlay={ctx.isOverlay}
         />
       )}
       onToggleItem={(side, reportId) => {
@@ -120,6 +126,8 @@ export default function UserReportAccessTransferList({
       onMoveAllLeft={onMoveAllLeft}
       canMoveAllLeft={grantedSelectableCount}
       disabled={disabled}
+      enableDragAndDrop={!disabled}
+      onMoveItem={onMoveItem ? (fromSide, itemId) => void onMoveItem(fromSide, itemId) : undefined}
     />
   )
 }

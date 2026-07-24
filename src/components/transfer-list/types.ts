@@ -1,4 +1,5 @@
 import type { ReactNode, Ref } from 'react'
+import type { TransferListActiveDrag } from '@/components/transfer-list/transfer-list-dnd-utils'
 
 export type TransferListSide = 'available' | 'granted'
 
@@ -21,6 +22,9 @@ export type TransferListItemRenderContext = {
   selected: boolean
   selectionDisabled: boolean
   onToggle: () => void
+  dragHandle?: ReactNode
+  isDragging?: boolean
+  isOverlay?: boolean
 }
 
 export type TransferListProps<T> = {
@@ -37,8 +41,8 @@ export type TransferListProps<T> = {
   onMoveAllLeft: () => void
   canMoveAllLeft: number
   disabled?: boolean
-  /** Reserved for phase 2 (dnd-kit). When true, drag-and-drop will be enabled. */
   enableDragAndDrop?: boolean
+  onMoveItem?: (fromSide: TransferListSide, itemId: number) => void | Promise<void>
 }
 
 export type TransferListColumnProps<T> = {
@@ -50,9 +54,6 @@ export type TransferListColumnProps<T> = {
   onToggleItem: (side: TransferListSide, id: number) => void
   disabled?: boolean
   listRef?: Ref<HTMLDivElement>
+  enableDragAndDrop?: boolean
+  activeDrag?: TransferListActiveDrag | null
 }
-
-/**
- * Phase 2 (dnd-kit): onMove* handlers will be reused from onDragEnd when items
- * are dropped between available and granted containers.
- */

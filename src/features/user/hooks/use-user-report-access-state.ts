@@ -296,6 +296,34 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
     )
   }, [availableReports, filteredGrantedReports, grantedReports, persistGrantedReports, userId])
 
+  const moveItem = useCallback(
+    async (fromSide: AccessColumn, reportId: number) => {
+      if (fromSide === 'available') {
+        const movingReport = availableReports.find((report) => report.id === reportId)
+        if (!movingReport) {
+          return
+        }
+
+        await persistGrantedReports(
+          [...grantedReports, movingReport],
+          availableReports.filter((report) => report.id !== reportId),
+        )
+        return
+      }
+
+      const movingReport = grantedReports.find((report) => report.id === reportId)
+      if (!movingReport || isOwnerReport(movingReport, userId)) {
+        return
+      }
+
+      await persistGrantedReports(
+        grantedReports.filter((report) => report.id !== reportId),
+        [...availableReports, movingReport],
+      )
+    },
+    [availableReports, grantedReports, persistGrantedReports, userId],
+  )
+
   const controlsDisabled =
     isUserBlocked ||
     (accessQuery.isLoading && !accessQuery.data) ||
@@ -352,6 +380,7 @@ export function useUserReportAccessState(user: ManagedUser | undefined, enabled:
     moveAllRight,
     moveSelectedLeft,
     moveAllLeft,
+    moveItem,
     isLoading: accessQuery.isLoading,
     isSaving: persistMutation.isPending || aiKnowledgeMutation.isPending,
     isError: accessQuery.isError,

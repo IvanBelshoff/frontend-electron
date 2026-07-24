@@ -1,5 +1,7 @@
+import { useDroppable } from '@dnd-kit/core'
 import clsx from 'clsx'
 import Input from '@/components/ui/Input'
+import TransferListDraggableItem from '@/components/transfer-list/TransferListDraggableItem'
 import { SearchIcon } from '@/features/dashboards/icons/DashboardIcons'
 import type { TransferListColumnProps } from '@/components/transfer-list/types'
 
@@ -12,6 +14,8 @@ export default function TransferListColumn<T>({
   onToggleItem,
   disabled = false,
   listRef,
+  enableDragAndDrop = false,
+  activeDrag = null,
 }: TransferListColumnProps<T>) {
   const {
     title,
@@ -27,11 +31,68 @@ export default function TransferListColumn<T>({
     onToggleSelectAll,
   } = config
 
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: side,
+    disabled: !enableDragAndDrop || disabled,
+  })
+
   const selectableCount = items.filter((item) => isItemSelectable(item, side)).length
   const selectAllDisabled = disabled || selectableCount === 0
+  const isDropTarget = Boolean(activeDrag && activeDrag.side !== side)
+
+  const renderListItem = (item: T) => {
+    const itemId = getItemId(item)
+    const selectable = isItemSelectable(item, side)
+    const selected = selectedIds.includes(itemId)
+    const itemDisabled = disabled || !selectable
+    const draggable = selectable
+
+    const itemContext = {
+      side,
+      selected,
+      selectionDisabled: itemDisabled,
+      onToggle: () => onToggleItem(side, itemId),
+    }
+
+    if (!enableDragAndDrop) {
+      return renderItem(item, itemContext)
+    }
+
+    if (!draggable) {
+      return renderItem(item, itemContext)
+    }
+
+    return (
+      <TransferListDraggableItem
+        side={side}
+        itemId={itemId}
+        disabled={disabled}
+        draggable={draggable}
+      >
+        {({ dragHandle, isDragging }) =>
+          renderItem(item, {
+            ...itemContext,
+            dragHandle,
+            isDragging,
+          })
+        }
+      </TransferListDraggableItem>
+    )
+  }
 
   return (
-    <section className="flex h-full min-h-0 flex-col rounded-lg border border-vscode-border bg-vscode-sidebar/60 p-4">
+    <section
+      ref={setDroppableRef}
+      className={clsx(
+        'flex h-full min-h-0 flex-col rounded-lg border p-4 transition-colors duration-150',
+        isDropTarget
+          ? clsx(
+              'border-vscode-accent/40 bg-vscode-accent/5 ring-1 ring-inset ring-vscode-accent/15',
+              isOver && 'border-vscode-accent/50 bg-vscode-accent/8',
+            )
+          : 'border-vscode-border bg-vscode-sidebar/60',
+      )}
+    >
       <div className="mb-3 flex shrink-0 items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -80,19 +141,8 @@ export default function TransferListColumn<T>({
         ) : (
           items.map((item) => {
             const itemId = getItemId(item)
-            const selectable = isItemSelectable(item, side)
-            const selected = selectedIds.includes(itemId)
 
-            return (
-              <div key={itemId}>
-                {renderItem(item, {
-                  side,
-                  selected,
-                  selectionDisabled: disabled || !selectable,
-                  onToggle: () => onToggleItem(side, itemId),
-                })}
-              </div>
-            )
+            return <div key={itemId}>{renderListItem(item)}</div>
           })
         )}
       </div>

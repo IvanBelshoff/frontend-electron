@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import AccessOwnerBadge from '@/components/access/AccessOwnerBadge'
 import AiKnowledgeToggleButton from '@/components/transfer-list/AiKnowledgeToggleButton'
 import TransferListSelectableRow from '@/components/transfer-list/TransferListSelectableRow'
@@ -13,6 +14,9 @@ type UserAccessReportRowProps = {
   showAiKnowledge?: boolean
   onToggleAiKnowledge?: () => void
   onToggle: () => void
+  dragHandle?: ReactNode
+  isDragging?: boolean
+  isOverlay?: boolean
 }
 
 export default function UserAccessReportRow({
@@ -24,9 +28,12 @@ export default function UserAccessReportRow({
   showAiKnowledge = false,
   onToggleAiKnowledge,
   onToggle,
+  dragHandle,
+  isDragging = false,
+  isOverlay = false,
 }: UserAccessReportRowProps) {
   const actions =
-    showAiKnowledge && onToggleAiKnowledge ? (
+    !isOverlay && showAiKnowledge && onToggleAiKnowledge ? (
       <AiKnowledgeToggleButton
         active={report.permitirConhecimentoIa}
         disabled={iaDisabled}
@@ -41,6 +48,9 @@ export default function UserAccessReportRow({
       onToggle={onToggle}
       itemId={report.id}
       actions={actions}
+      dragHandle={dragHandle}
+      isDragging={isDragging}
+      isOverlay={isOverlay}
     >
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-vscode-accent/25 bg-vscode-accent/10 text-vscode-accent">
         <DashboardMaterialIcon name={report.icone} className="text-[1.15rem]" filled />

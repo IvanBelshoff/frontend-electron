@@ -277,6 +277,34 @@ export function useUserDashboardAccessState(user: ManagedUser | undefined, enabl
     userId,
   ])
 
+  const moveItem = useCallback(
+    async (fromSide: AccessColumn, dashboardId: number) => {
+      if (fromSide === 'available') {
+        const movingDashboard = availableDashboards.find((dashboard) => dashboard.id === dashboardId)
+        if (!movingDashboard) {
+          return
+        }
+
+        await persistGrantedDashboards(
+          [...grantedDashboards, movingDashboard],
+          availableDashboards.filter((dashboard) => dashboard.id !== dashboardId),
+        )
+        return
+      }
+
+      const movingDashboard = grantedDashboards.find((dashboard) => dashboard.id === dashboardId)
+      if (!movingDashboard || isOwnerDashboard(movingDashboard, userId)) {
+        return
+      }
+
+      await persistGrantedDashboards(
+        grantedDashboards.filter((dashboard) => dashboard.id !== dashboardId),
+        [...availableDashboards, movingDashboard],
+      )
+    },
+    [availableDashboards, grantedDashboards, persistGrantedDashboards, userId],
+  )
+
   const controlsDisabled =
     isUserBlocked ||
     (accessQuery.isLoading && !accessQuery.data) ||
@@ -300,6 +328,7 @@ export function useUserDashboardAccessState(user: ManagedUser | undefined, enabl
     moveAllRight,
     moveSelectedLeft,
     moveAllLeft,
+    moveItem,
     isLoading: accessQuery.isLoading,
     isSaving: persistMutation.isPending,
     isError: accessQuery.isError,

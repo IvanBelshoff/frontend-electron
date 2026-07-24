@@ -35,6 +35,7 @@ export default function DashboardAccessTab({
     moveAllRight,
     moveSelectedLeft,
     moveAllLeft,
+    moveItem,
     isLoading,
     isSaving,
     isError,
@@ -100,6 +101,7 @@ export default function DashboardAccessTab({
           onMoveAllRight={moveAllRight}
           onMoveSelectedLeft={moveSelectedLeft}
           onMoveAllLeft={moveAllLeft}
+          onMoveItem={moveItem}
           disabled={controlsDisabled || isSaving}
           ownerId={ownerId}
         />
