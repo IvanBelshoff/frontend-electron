@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import IconButton from '@/components/ui/IconButton'
 import { DashboardMaterialIcon } from '@/features/dashboards/icons/DashboardIcons'
 import type { TableNodeItem } from '@/features/query-editor/query-editor-types'
@@ -10,12 +10,22 @@ import {
   type SchemaColumnDragData,
   type SchemaTableDragData,
 } from '@/features/query-editor/query-editor-dnd.utils'
+import {
+  COLUMN_REFERENCE_TEXT_CLASS,
+  isColumnReferenced,
+  isSchemaReferencedInExplorer,
+  isTableReferenced,
+  parseSqlReferencedIdentifiers,
+  SCHEMA_REFERENCE_TEXT_CLASS,
+  TABLE_REFERENCE_TEXT_CLASS,
+} from '@/features/query-editor/sql-referenced-identifiers'
 import { useSchemaTreeState } from '@/features/query-editor/use-schema-tree-state'
 
 const INSERT_HINT = 'Arraste para o editor ou duplo clique para inserir'
 
 type SchemaExplorerTreeProps = {
   connectionId: number
+  query: string
   onRegisterSchemaTables: (escopo: string, tables: string[]) => void
   onRegisterTableColumns: (escopo: string, tabela: string, columns: string[]) => void
   onInsertTable: (escopo: string, tabela: string) => void
@@ -25,18 +35,27 @@ type SchemaExplorerTreeProps = {
 
 export default function SchemaExplorerTree({
   connectionId,
+  query,
   onRegisterSchemaTables,
   onRegisterTableColumns,
   onInsertTable,
   onInsertColumn,
   onCollapse,
 }: SchemaExplorerTreeProps) {
+  const referencedIdentifiers = useMemo(
+    () => parseSqlReferencedIdentifiers(query),
+    [query],
+  )
+
+  const shouldPrefetchScopeTables = referencedIdentifiers.unqualifiedTables.size > 0
+
   const {
     filter,
     setFilter,
     scopes,
     isLoadingScopes,
     tablesByScope,
+    tableNamesByScope,
     columnsByTable,
     isLoadingTables,
     isLoadingColumns,
@@ -44,7 +63,12 @@ export default function SchemaExplorerTree({
     isExpanded,
     scopeKey,
     tableKey,
-  } = useSchemaTreeState(connectionId, onRegisterSchemaTables, onRegisterTableColumns)
+  } = useSchemaTreeState(
+    connectionId,
+    onRegisterSchemaTables,
+    onRegisterTableColumns,
+    shouldPrefetchScopeTables,
+  )
 
   const handleInsertTable = useCallback(
     (escopo: string, tabela: string) => {
@@ -96,6 +120,11 @@ export default function SchemaExplorerTree({
             const scopeNodeKey = scopeKey(scope.nome)
             const expanded = isExpanded(scopeNodeKey)
             const tables = (tablesByScope[scope.nome] ?? []) as TableNodeItem[]
+            const scopeReferenced = isSchemaReferencedInExplorer(
+              referencedIdentifiers,
+              scope.nome,
+              tableNamesByScope[scope.nome] ?? [],
+            )
 
             return (
               <li key={scope.nome}>
@@ -105,7 +134,14 @@ export default function SchemaExplorerTree({
                   className="flex w-full items-center gap-2 rounded px-2 py-1 text-left hover:bg-vscode-bg/50"
                 >
                   <span className="text-vscode-text-muted">{expanded ? '▾' : '▸'}</span>
-                  <span className="truncate font-medium text-vscode-text">{scope.nome}</span>
+                  <span
+                    className={clsx(
+                      'truncate',
+                      scopeReferenced ? SCHEMA_REFERENCE_TEXT_CLASS : 'font-medium text-vscode-text',
+                    )}
+                  >
+                    {scope.nome}
+                  </span>
                   <span className="ml-auto text-[10px] uppercase text-vscode-text-muted">
                     {scope.tipo}
                   </span>
@@ -124,6 +160,11 @@ export default function SchemaExplorerTree({
                       const tableExpanded = isExpanded(tableNodeKey)
                       const columns =
                         columnsByTable[`${scope.nome}::${table.nome}`] ?? []
+                      const tableReferenced = isTableReferenced(
+                        referencedIdentifiers,
+                        scope.nome,
+                        table.nome,
+                      )
 
                       return (
                         <li key={table.nome}>
@@ -154,9 +195,11 @@ export default function SchemaExplorerTree({
                                 }
                                 className={clsx(
                                   'w-full cursor-inherit truncate rounded px-1 py-1 text-left hover:bg-vscode-bg/50',
-                                  table.tipo === 'view'
-                                    ? 'text-vscode-accent'
-                                    : 'text-vscode-text',
+                                  tableReferenced
+                                    ? TABLE_REFERENCE_TEXT_CLASS
+                                    : table.tipo === 'view'
+                                      ? 'text-vscode-accent/70'
+                                      : 'text-vscode-text',
                                 )}
                                 title={INSERT_HINT}
                               >
@@ -173,7 +216,15 @@ export default function SchemaExplorerTree({
                                 </li>
                               )}
 
-                              {columns.map((column) => (
+                              {columns.map((column) => {
+                                const columnReferenced = isColumnReferenced(
+                                  referencedIdentifiers,
+                                  scope.nome,
+                                  table.nome,
+                                  column.nome,
+                                )
+
+                                return (
                                 <li key={column.nome}>
                                   <SchemaExplorerDraggableItem
                                     id={getSchemaColumnDraggableId(
@@ -193,7 +244,12 @@ export default function SchemaExplorerTree({
                                     <button
                                       type="button"
                                       onDoubleClick={() => handleInsertColumn(column.nome)}
-                                      className="w-full cursor-inherit truncate rounded px-2 py-1 text-left text-xs text-vscode-text-muted hover:bg-vscode-bg/50 hover:text-vscode-text"
+                                      className={clsx(
+                                        'w-full cursor-inherit truncate rounded px-2 py-1 text-left text-xs hover:bg-vscode-bg/50',
+                                        columnReferenced
+                                          ? COLUMN_REFERENCE_TEXT_CLASS
+                                          : 'text-vscode-text-muted hover:text-vscode-text',
+                                      )}
                                       title={INSERT_HINT}
                                     >
                                       {column.nome}
@@ -201,7 +257,8 @@ export default function SchemaExplorerTree({
                                     </button>
                                   </SchemaExplorerDraggableItem>
                                 </li>
-                              ))}
+                                )
+                              })}
                             </ul>
                           )}
                         </li>

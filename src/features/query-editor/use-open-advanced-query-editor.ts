@@ -13,6 +13,7 @@ type OpenAdvancedEditorParams = {
   parametros?: ParametroRelatorio[]
   returnPath: string
   relatorioId?: number
+  relatorioNome?: string
 }
 
 export function useOpenAdvancedQueryEditor() {
@@ -46,6 +47,7 @@ export function useOpenAdvancedQueryEditor() {
           parametros: params.parametros ?? [],
           returnPath: params.returnPath,
           relatorioId: params.relatorioId,
+          relatorioNome: params.relatorioNome,
         })
 
         if (params.relatorioId) {

@@ -33,6 +33,7 @@ type ReportEditFormBaseProps = {
   isSaving: boolean
   advancedEditorReturnPath: string
   advancedEditorRelatorioId?: number
+  advancedEditorRelatorioNome?: string
 }
 
 type ReportEditFormEditProps = ReportEditFormBaseProps & {
@@ -89,6 +90,7 @@ export default function ReportEditForm(props: ReportEditFormProps) {
     isSaving,
     advancedEditorReturnPath,
     advancedEditorRelatorioId,
+    advancedEditorRelatorioNome,
   } = props
   const [iconPickerOpen, setIconPickerOpen] = useState(false)
   const [parametrosJson, setParametrosJson] = useState(() => formatParametrosJson(draft.parametros))
@@ -140,6 +142,10 @@ export default function ReportEditForm(props: ReportEditFormProps) {
       parametros: draft.parametros,
       returnPath: advancedEditorReturnPath,
       relatorioId: advancedEditorRelatorioId,
+      relatorioNome:
+        advancedEditorRelatorioNome?.trim() ||
+        draft.nome.trim() ||
+        (isCreateMode ? 'Criar relatório' : 'Editar relatório'),
     })
   }
 

@@ -82,7 +82,12 @@ const MANAGE_NAV: MainNavItem[] = [
     label: 'Gerenciar Relatórios',
     icon: <TableChartIcon />,
     requiredRole: REPORT_RBAC.menuRole,
-    alsoActiveOn: ['/relatorios/novo', /^\/relatorios\/[^/]+\/editar$/],
+    alsoActiveOn: [
+      '/relatorios/novo',
+      /^\/relatorios\/[^/]+\/editar$/,
+      '/relatorios/editor-avancado',
+      /^\/relatorios\/[^/]+\/editor-avancado$/,
+    ],
   },
   {
     to: '/conexoes',

@@ -20,8 +20,9 @@ import AdvancedSqlQueryEditor, {
 import QueryEditorDragOverlay from '@/features/query-editor/QueryEditorDragOverlay'
 import QueryEditorSqlDropTarget from '@/features/query-editor/QueryEditorSqlDropTarget'
 import QueryEditorSplitPane from '@/features/query-editor/QueryEditorSplitPane'
-import QueryResultFooter from '@/features/query-editor/QueryResultFooter'
 import QueryEditorToolbar from '@/features/query-editor/QueryEditorToolbar'
+import QueryResultFooter from '@/features/query-editor/QueryResultFooter'
+import ReportFormBreadcrumb from '@/features/reports/components/ReportFormBreadcrumb'
 import SchemaExplorerPanel from '@/features/query-editor/SchemaExplorerPanel'
 import SchemaExplorerTree from '@/features/query-editor/SchemaExplorerTree'
 import type { QueryEditorSession } from '@/features/query-editor/query-editor-types'
@@ -254,8 +255,19 @@ export default function QueryEditorWorkspace({
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-vscode-border pb-4">
-        <div>
-          <h1 className="text-lg font-semibold text-vscode-text">Editor avançado de query</h1>
+        <div className="min-w-0 space-y-2">
+          <ReportFormBreadcrumb
+            parent={{ label: 'Gerenciamento de Relatórios', to: '/relatorios/gerenciar' }}
+            middle={{
+              label:
+                session.relatorioNome ??
+                (session.relatorioId ? 'Editar relatório' : 'Criar relatório'),
+              to: session.returnPath,
+            }}
+            middleSeparator="/"
+            currentSeparator=">"
+            current="Editor avançado"
+          />
           <p className="text-sm text-vscode-text-muted">
             Teste a consulta com o explorador de schema e aplique ao relatório quando estiver
             satisfeito.
@@ -298,6 +310,7 @@ export default function QueryEditorWorkspace({
             >
               <SchemaExplorerTree
                 connectionId={connectionId}
+                query={query}
                 onRegisterSchemaTables={registerSchemaTables}
                 onRegisterTableColumns={registerTableColumns}
                 onInsertTable={handleInsertTable}

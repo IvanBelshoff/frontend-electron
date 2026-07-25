@@ -41,6 +41,7 @@ export type QueryEditorSession = {
   parametros: ParametroRelatorio[]
   returnPath: string
   relatorioId?: number
+  relatorioNome?: string
 }
 
 export type QueryEditorApplyResult = {

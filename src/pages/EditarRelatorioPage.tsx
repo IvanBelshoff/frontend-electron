@@ -152,6 +152,7 @@ export default function EditarRelatorioPage() {
               saveSuccess={saveSuccess}
               advancedEditorReturnPath={`/relatorios/${relatorioId}/editar`}
               advancedEditorRelatorioId={relatorioId}
+              advancedEditorRelatorioNome={report.nome}
               onSave={saveEdit}
               onCancel={cancelEdit}
               canUpdate={canUpdate}

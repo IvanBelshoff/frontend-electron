@@ -21,6 +21,7 @@ export default function CriarRelatorioPage() {
           fieldErrors={fieldErrors}
           isSaving={isSaving}
           advancedEditorReturnPath="/relatorios/novo"
+          advancedEditorRelatorioNome={draft.nome.trim() || 'Criar relatório'}
           onSaveToList={saveToList}
           onSaveAndEdit={saveAndEdit}
         />

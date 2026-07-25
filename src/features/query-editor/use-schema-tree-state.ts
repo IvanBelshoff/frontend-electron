@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 import {
   listConnectionColumns,
@@ -9,6 +9,8 @@ import { queryKeys } from '@/lib/query-keys'
 
 type ExpandedNodeKey = string
 
+const SCHEMA_METADATA_STALE_MS = 5 * 60_000
+
 function nodeKey(parts: string[]): string {
   return parts.join('::')
 }
@@ -17,6 +19,7 @@ export function useSchemaTreeState(
   connectionId: number,
   onRegisterSchemaTables: (escopo: string, tables: string[]) => void,
   onRegisterTableColumns: (escopo: string, tabela: string, columns: string[]) => void,
+  prefetchAllScopeTables = false,
 ) {
   const [expandedKeys, setExpandedKeys] = useState<Set<ExpandedNodeKey>>(new Set())
   const [filter, setFilter] = useState('')
@@ -50,7 +53,7 @@ export function useSchemaTreeState(
   )
 
   const tablesQueries = useQuery({
-    queryKey: queryKeys.connection.tabelas(connectionId, expandedScopes.join('|')),
+    queryKey: queryKeys.connection.tabelasBatch(connectionId, expandedScopes.join('|')),
     queryFn: async () => {
       const entries = await Promise.all(
         expandedScopes.map(async (escopo) => {
@@ -118,6 +121,42 @@ export function useSchemaTreeState(
     return items.filter((item) => item.nome.toLowerCase().includes(normalizedFilter))
   }, [filter, schemaQuery.data])
 
+  const allScopes = schemaQuery.data ?? []
+
+  const scopeTablePrefetchQueries = useQueries({
+    queries: allScopes.map((scope) => ({
+      queryKey: queryKeys.connection.tabelasPrefetch(connectionId, scope.nome),
+      queryFn: async () => {
+        const tables = await listConnectionTables(connectionId, scope.nome)
+        onRegisterSchemaTables(
+          scope.nome,
+          tables.map((table) => table.nome),
+        )
+        return tables
+      },
+      enabled: connectionId > 0 && prefetchAllScopeTables,
+      staleTime: SCHEMA_METADATA_STALE_MS,
+    })),
+  })
+
+  const tableNamesByScope = useMemo(() => {
+    const result: Record<string, string[]> = {}
+
+    allScopes.forEach((scope, index) => {
+      const prefetchedTables = scopeTablePrefetchQueries[index]?.data
+
+      if (prefetchedTables) {
+        result[scope.nome] = prefetchedTables.map((table) => table.nome)
+      }
+    })
+
+    for (const [escopo, tables] of Object.entries(tablesQueries.data ?? {})) {
+      result[escopo] = tables.map((table) => table.nome)
+    }
+
+    return result
+  }, [allScopes, scopeTablePrefetchQueries, tablesQueries.data])
+
   return {
     filter,
     setFilter,
@@ -125,6 +164,7 @@ export function useSchemaTreeState(
     isLoadingScopes: schemaQuery.isLoading,
     schemaError: schemaQuery.error,
     tablesByScope: tablesQueries.data ?? {},
+    tableNamesByScope,
     columnsByTable: columnsQueries.data ?? {},
     isLoadingTables: tablesQueries.isFetching,
     isLoadingColumns: columnsQueries.isFetching,

@@ -68,6 +68,10 @@ export const queryKeys = {
     detail: (id: number) => ['connection', 'detail', id] as const,
     schema: (id: number) => ['connection', 'schema', id] as const,
     tabelas: (id: number, escopo: string) => ['connection', 'schema', id, 'tabelas', escopo] as const,
+    tabelasPrefetch: (id: number, escopo: string) =>
+      ['connection', 'schema', id, 'tabelas-prefetch', escopo] as const,
+    tabelasBatch: (id: number, escopos: string) =>
+      ['connection', 'schema', id, 'tabelas-batch', escopos] as const,
     colunas: (id: number, escopoTabela: string) =>
       ['connection', 'schema', id, 'colunas', escopoTabela] as const,
   },
