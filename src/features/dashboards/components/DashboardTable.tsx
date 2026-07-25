@@ -64,15 +64,21 @@ export default function DashboardTable({
         header: 'Dashboard',
         accessorKey: 'nome',
         enableSorting: true,
+        size: 320,
+        minSize: 220,
+        meta: { truncate: true },
         cell: ({ row }) => {
           const dashboard = row.original
 
           return (
-            <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex w-full min-w-0 items-center gap-2.5 overflow-hidden">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-vscode-accent/25 bg-vscode-accent/10 text-vscode-accent">
                 <DashboardMaterialIcon name={dashboard.icone} className="text-base" filled />
               </span>
-              <span className="min-w-0 break-words font-medium leading-snug text-vscode-text">
+              <span
+                title={dashboard.nome}
+                className="min-w-0 flex-1 truncate text-base font-medium text-vscode-text"
+              >
                 {dashboard.nome}
               </span>
             </div>
