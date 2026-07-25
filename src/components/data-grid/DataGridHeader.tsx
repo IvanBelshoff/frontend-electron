@@ -27,6 +27,7 @@ type DataGridHeaderProps<T> = {
   enableColumnResize: boolean
   enableSorting: boolean
   onColumnOrderChange: (order: string[]) => void
+  onAutoFitColumn?: (columnId: string) => void
   getColumnWidth: (columnId: string, fallback: number) => number
   headerCellClass: string
   getHeaderColumnLineClass: (isLastColumn: boolean) => string
@@ -37,6 +38,7 @@ type HeaderCellProps<T> = {
   enableColumnReorder: boolean
   enableColumnResize: boolean
   enableSorting: boolean
+  onAutoFitColumn?: (columnId: string) => void
   getColumnWidth: (columnId: string, fallback: number) => number
   headerCellClass: string
   columnLineClass: string
@@ -57,6 +59,7 @@ function SortableHeaderCell<T>({
   enableColumnReorder,
   enableColumnResize,
   enableSorting,
+  onAutoFitColumn,
   getColumnWidth,
   headerCellClass,
   columnLineClass,
@@ -124,6 +127,10 @@ function SortableHeaderCell<T>({
           onMouseDown={header.getResizeHandler()}
           onTouchStart={header.getResizeHandler()}
           onClick={(event) => event.stopPropagation()}
+          onDoubleClick={(event) => {
+            event.stopPropagation()
+            onAutoFitColumn?.(header.column.id)
+          }}
           className={clsx(
             'absolute right-0 top-0 h-full w-1.5 cursor-col-resize touch-none select-none',
             header.column.getIsResizing()
@@ -141,6 +148,7 @@ function StaticHeaderCell<T>({
   header,
   enableColumnResize,
   enableSorting,
+  onAutoFitColumn,
   getColumnWidth,
   headerCellClass,
   columnLineClass,
@@ -182,6 +190,10 @@ function StaticHeaderCell<T>({
           onMouseDown={header.getResizeHandler()}
           onTouchStart={header.getResizeHandler()}
           onClick={(event) => event.stopPropagation()}
+          onDoubleClick={(event) => {
+            event.stopPropagation()
+            onAutoFitColumn?.(header.column.id)
+          }}
           className={clsx(
             'absolute right-0 top-0 h-full w-1.5 cursor-col-resize touch-none select-none',
             header.column.getIsResizing()
@@ -201,6 +213,7 @@ export default function DataGridHeader<T>({
   enableColumnResize,
   enableSorting,
   onColumnOrderChange,
+  onAutoFitColumn,
   getColumnWidth,
   headerCellClass,
   getHeaderColumnLineClass,
@@ -250,6 +263,7 @@ export default function DataGridHeader<T>({
             enableColumnReorder={enableColumnReorder}
             enableColumnResize={enableColumnResize}
             enableSorting={enableSorting}
+            onAutoFitColumn={onAutoFitColumn}
             getColumnWidth={getColumnWidth}
             headerCellClass={headerCellClass}
             columnLineClass={getHeaderColumnLineClass(index === headers.length - 1)}
@@ -261,6 +275,7 @@ export default function DataGridHeader<T>({
             enableColumnReorder={false}
             enableColumnResize={enableColumnResize}
             enableSorting={enableSorting}
+            onAutoFitColumn={onAutoFitColumn}
             getColumnWidth={getColumnWidth}
             headerCellClass={headerCellClass}
             columnLineClass={getHeaderColumnLineClass(index === headers.length - 1)}

@@ -64,7 +64,7 @@ declare module '@tanstack/react-table' {
   interface ColumnMeta<TData, TValue> {
     lockPosition?: 'end'
     stopRowClick?: boolean
-    /** When true, truncates overflowing cell content with ellipsis. */
-    truncate?: boolean
+    /** When true, allows cell content to wrap instead of truncating with ellipsis. */
+    wrap?: boolean
   }
 }

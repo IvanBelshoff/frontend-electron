@@ -15,6 +15,11 @@ import DataGridHeader from '@/components/data-grid/DataGridHeader'
 import {
   DATA_GRID_DETAIL_ROW_ESTIMATE,
 } from '@/components/data-grid/data-grid.constants'
+import {
+  DATA_GRID_CELL_HORIZONTAL_PADDING_PX,
+  formatCellValueForMeasure,
+  measureColumnAutoFitWidth,
+} from '@/components/data-grid/data-grid-auto-fit.utils'
 import { buildDataGridVirtualItems } from '@/components/data-grid/data-grid-virtual-rows'
 import DataGridPagination, {
   DATA_GRID_PAGE_SIZE_OPTIONS,
@@ -288,37 +293,34 @@ export default function DataGrid<T>({
     }
   }, [containerWidth, fillWidth, visibleColumns, columnSizing, columnOrder])
 
-  useEffect(() => {
-    if (data.length === 0) {
-      return
-    }
+  const handleAutoFitColumn = useCallback(
+    (columnId: string) => {
+      const column = table.getColumn(columnId)
+      if (!column) {
+        return
+      }
 
-    const container = tableContainerRef.current
-    // #region agent log
-    fetch('http://127.0.0.1:7570/ingest/0db2c04a-a5ac-44c9-a409-caf72cacc101', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'ef221f' },
-      body: JSON.stringify({
-        sessionId: 'ef221f',
-        runId: 'post-fix',
-        hypothesisId: 'H2-H5',
-        location: 'DataGrid.tsx:grid-measure',
-        message: 'datagrid dimensions after data load',
-        data: {
-          gridId,
-          containerWidth,
-          tableWidth,
-          fillWidth,
-          columnCount: visibleColumns.length,
-          containerClientWidth: container?.clientWidth ?? null,
-          containerScrollWidth: container?.scrollWidth ?? null,
-          columnSizes: visibleColumns.map((column) => column.getSize()),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
-  }, [data.length, containerWidth, tableWidth, fillWidth, visibleColumns, gridId])
+      const headerDef = column.columnDef.header
+      const headerLabel = typeof headerDef === 'string' ? headerDef : columnId
+      const cellValues = table.getRowModel().rows.map((row) => row.getValue(columnId))
+      const headerExtraPadding =
+        (enableColumnReorder ? 28 : 0) + (enableSorting && column.getCanSort() ? 16 : 0)
+
+      const width = measureColumnAutoFitWidth({
+        headerLabel,
+        cellValues,
+        minSize: column.columnDef.minSize ?? 80,
+        maxSize: column.columnDef.maxSize ?? 800,
+        extraPadding: DATA_GRID_CELL_HORIZONTAL_PADDING_PX + headerExtraPadding,
+      })
+
+      setColumnSizing((current) => ({
+        ...current,
+        [columnId]: width,
+      }))
+    },
+    [enableColumnReorder, enableSorting, table],
+  )
 
   useEffect(() => {
     if (!isServer) {
@@ -421,6 +423,7 @@ export default function DataGrid<T>({
                 enableColumnResize={enableColumnResize}
                 enableSorting={enableSorting}
                 onColumnOrderChange={setColumnOrder}
+                onAutoFitColumn={enableColumnResize ? handleAutoFitColumn : undefined}
                 getColumnWidth={getColumnWidth}
                 headerCellClass={resolvedStyle.headerCellClass}
                 getHeaderColumnLineClass={resolvedStyle.getHeaderColumnLineClass}
@@ -495,6 +498,8 @@ export default function DataGrid<T>({
                 >
                   {visibleCells.map((cell, cellIndex) => {
                     const columnWidth = getColumnWidth(cell.column.id, cell.column.getSize())
+                    const shouldWrap = cell.column.columnDef.meta?.wrap
+                    const cellTitle = formatCellValueForMeasure(cell.getValue())
 
                     return (
                       <td
@@ -504,25 +509,28 @@ export default function DataGrid<T>({
                           resolvedStyle.getBodyColumnLineClass(
                             cellIndex === visibleCells.length - 1,
                           ),
-                          cell.column.columnDef.meta?.truncate && 'truncate',
+                          shouldWrap ? 'whitespace-normal' : 'truncate',
                         )}
                         style={{
                           width: columnWidth,
                           minWidth: columnWidth,
                           flex: `0 0 ${columnWidth}px`,
                         }}
-                        title={
-                          typeof cell.getValue() === 'string'
-                            ? (cell.getValue() as string)
-                            : undefined
-                        }
+                        title={cellTitle}
                         onClick={
                           cell.column.columnDef.meta?.stopRowClick
                             ? (event) => event.stopPropagation()
                             : undefined
                         }
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        <span
+                          className={clsx(
+                            'block w-full min-w-0',
+                            shouldWrap ? 'whitespace-normal' : 'truncate',
+                          )}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </span>
                       </td>
                     )
                   })}

@@ -66,7 +66,6 @@ export default function DashboardTable({
         enableSorting: true,
         size: 320,
         minSize: 220,
-        meta: { truncate: true },
         cell: ({ row }) => {
           const dashboard = row.original
 

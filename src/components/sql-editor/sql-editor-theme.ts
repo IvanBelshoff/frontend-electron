@@ -3,7 +3,45 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags as t } from '@lezer/highlight'
 import type { ResolvedTheme } from '@/features/settings/settings-types'
 
-export function createSqlEditorTheme(hasError: boolean, mode: ResolvedTheme) {
+export type SqlEditorThemeOptions = {
+  showLineNumbers?: boolean
+}
+
+export function createSqlEditorTheme(
+  hasError: boolean,
+  mode: ResolvedTheme,
+  options: SqlEditorThemeOptions = {},
+) {
+  const { showLineNumbers = false } = options
+
+  const gutterStyles = showLineNumbers
+    ? {
+        '.cm-gutters': {
+          backgroundColor: 'transparent',
+          borderRight: 'none',
+        },
+        '.cm-lineNumbers .cm-gutterElement': {
+          minWidth: '1.75rem',
+          padding: '0 0.35rem 0 0',
+          textAlign: 'right',
+          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+          fontSize: '0.8125rem',
+          lineHeight: '1.5',
+          color: 'var(--vscode-accent)',
+          opacity: '0.82',
+        },
+        '.cm-activeLineGutter': {
+          backgroundColor: 'transparent',
+          color: 'var(--vscode-accent)',
+          opacity: '1',
+        },
+      }
+    : {
+        '.cm-gutters': {
+          display: 'none',
+        },
+      }
+
   return EditorView.theme(
     {
       '&': {
@@ -19,6 +57,7 @@ export function createSqlEditorTheme(hasError: boolean, mode: ResolvedTheme) {
         fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
         fontSize: '0.875rem',
         lineHeight: '1.5',
+        ...(showLineNumbers ? { paddingLeft: '0.35rem' } : {}),
       },
       '.cm-line': {
         color: 'var(--vscode-text)',
@@ -32,9 +71,7 @@ export function createSqlEditorTheme(hasError: boolean, mode: ResolvedTheme) {
       '.cm-activeLine': {
         backgroundColor: 'rgb(var(--vscode-accent-rgb) / 0.08)',
       },
-      '.cm-gutters': {
-        display: 'none',
-      },
+      ...gutterStyles,
       '&.cm-editor': {
         borderRadius: '0.375rem',
         border: hasError ? '1px solid var(--vscode-error)' : '1px solid var(--vscode-border)',

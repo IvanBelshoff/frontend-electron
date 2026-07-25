@@ -28,19 +28,23 @@ type ReportExecutionGridProps = {
   layout?: DataGridLayoutFeatures
   enableSorting?: boolean
   showPagination?: boolean
+  showInitialEmptyBorder?: boolean
 }
 
 function ReportDataEmptyState({
   message,
   compact = false,
+  bordered = true,
 }: {
   message: string
   compact?: boolean
+  bordered?: boolean
 }) {
   return (
     <div
       className={clsx(
-        'flex flex-col items-center justify-center rounded-lg border border-dashed border-vscode-border bg-vscode-sidebar/50 px-6 text-center',
+        'flex flex-col items-center justify-center rounded-lg bg-vscode-sidebar/50 px-6 text-center',
+        bordered && 'border border-dashed border-vscode-border',
         compact ? 'h-full min-h-0 py-8' : 'py-16',
       )}
     >
@@ -72,6 +76,7 @@ export default function ReportExecutionGrid({
   layout,
   enableSorting = true,
   showPagination = true,
+  showInitialEmptyBorder = true,
 }: ReportExecutionGridProps) {
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(
     () =>
@@ -93,6 +98,7 @@ export default function ReportExecutionGrid({
         <ReportDataEmptyState
           message="Clique em Executar para carregar os resultados."
           compact={fillHeight}
+          bordered={showInitialEmptyBorder}
         />
       </div>
     )

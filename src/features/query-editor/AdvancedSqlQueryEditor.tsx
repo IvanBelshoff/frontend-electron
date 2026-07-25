@@ -181,7 +181,9 @@ export default forwardRef<AdvancedSqlQueryEditorHandle, AdvancedSqlQueryEditorPr
         upperCaseKeywords: true,
       }),
       createSqlSyntaxHighlighting(resolvedTheme),
-      createSqlEditorTheme(hasError || Boolean(executionError), resolvedTheme),
+      createSqlEditorTheme(hasError || Boolean(executionError), resolvedTheme, {
+        showLineNumbers: true,
+      }),
       autocompletion({
         override: [
           createSchemaCompletionSource(
@@ -243,6 +245,7 @@ export default forwardRef<AdvancedSqlQueryEditorHandle, AdvancedSqlQueryEditorPr
           placeholder={placeholder}
           basicSetup={{
             lineNumbers: true,
+            highlightActiveLineGutter: true,
             foldGutter: false,
             highlightActiveLine: true,
             bracketMatching: true,

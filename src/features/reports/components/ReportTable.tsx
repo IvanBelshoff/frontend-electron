@@ -69,7 +69,6 @@ export default function ReportTable({
         enableSorting: true,
         size: 320,
         minSize: 220,
-        meta: { truncate: true },
         cell: ({ row }) => {
           const report = row.original
 

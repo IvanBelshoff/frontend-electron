@@ -79,8 +79,6 @@ export default function QueryEditorWorkspace({
   } = useQueryEditorState(session)
 
   const editorRef = useRef<AdvancedSqlQueryEditorHandle>(null)
-  const layoutContainerRef = useRef<HTMLDivElement>(null)
-  const dndFlexRef = useRef<HTMLDivElement>(null)
   const layout = useQueryEditorLayout()
   const [activeDrag, setActiveDrag] = useState<SchemaExplorerActiveDrag | null>(null)
 
@@ -150,49 +148,6 @@ export default function QueryEditorWorkspace({
       document.body.style.cursor = previousCursor
     }
   }, [activeDrag])
-
-  useEffect(() => {
-    if (!hasLoadedData) {
-      return
-    }
-
-    const measureLayout = () => {
-      const layoutEl = layoutContainerRef.current
-      const dndEl = dndFlexRef.current
-      const bodyOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth
-
-      // #region agent log
-      fetch('http://127.0.0.1:7570/ingest/0db2c04a-a5ac-44c9-a409-caf72cacc101', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'ef221f' },
-        body: JSON.stringify({
-          sessionId: 'ef221f',
-          runId: 'post-fix',
-          hypothesisId: 'H1-H3',
-          location: 'QueryEditorWorkspace.tsx:layout-measure',
-          message: 'workspace layout after results loaded',
-          data: {
-            hasLoadedData,
-            columnCount: previewResult?.colunas.length ?? 0,
-            rowCount: previewResult?.dados.length ?? 0,
-            layoutClientWidth: layoutEl?.clientWidth ?? null,
-            layoutScrollWidth: layoutEl?.scrollWidth ?? null,
-            dndClientWidth: dndEl?.clientWidth ?? null,
-            dndScrollWidth: dndEl?.scrollWidth ?? null,
-            bodyHorizontalOverflow: bodyOverflow,
-            docClientWidth: document.documentElement.clientWidth,
-            docScrollWidth: document.documentElement.scrollWidth,
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {})
-      // #endregion
-    }
-
-    measureLayout()
-    const raf = requestAnimationFrame(measureLayout)
-    return () => cancelAnimationFrame(raf)
-  }, [hasLoadedData, previewResult?.colunas.length, previewResult?.dados.length])
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -276,6 +231,7 @@ export default function QueryEditorWorkspace({
         paginationMode="client"
         fillHeight
         showPagination={false}
+        showInitialEmptyBorder={false}
         enableSorting={false}
         layout={{ enableColumnReorder: false, enableColumnResize: true }}
         emptyMessage="Nenhum dado retornado pela consulta."
@@ -322,7 +278,7 @@ export default function QueryEditorWorkspace({
         />
       </div>
 
-      <div ref={layoutContainerRef} className="flex min-h-0 min-w-0 flex-1 gap-3">
+      <div className="flex min-h-0 min-w-0 flex-1 gap-3">
         <DndContext
           sensors={sensors}
           collisionDetection={pointerWithin}
@@ -331,7 +287,6 @@ export default function QueryEditorWorkspace({
           onDragCancel={handleDragCancel}
         >
           <div
-            ref={dndFlexRef}
             className={clsx(
               'flex min-h-0 min-w-0 flex-1 gap-3',
               activeDrag && 'cursor-grabbing',
