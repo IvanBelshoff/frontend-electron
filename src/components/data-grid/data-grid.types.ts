@@ -36,6 +36,9 @@ export type DataGridProps<T> = {
   stickyHeader?: boolean
   showGridLines?: boolean
   showPagination?: boolean
+  paginationPosition?: 'top' | 'bottom'
+  paginationExtra?: ReactNode
+  fillHeight?: boolean
   className?: string
   renderSubRow?: (row: T) => ReactNode
   getRowCanExpand?: (row: T) => boolean

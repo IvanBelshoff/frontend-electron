@@ -70,6 +70,9 @@ export default function DataGrid<T>({
   stickyHeader: stickyHeaderProp,
   showGridLines: showGridLinesProp,
   showPagination = false,
+  paginationPosition = 'top',
+  paginationExtra,
+  fillHeight = false,
   className,
   renderSubRow,
   getRowCanExpand,
@@ -286,6 +289,38 @@ export default function DataGrid<T>({
   }, [containerWidth, fillWidth, visibleColumns, columnSizing, columnOrder])
 
   useEffect(() => {
+    if (data.length === 0) {
+      return
+    }
+
+    const container = tableContainerRef.current
+    // #region agent log
+    fetch('http://127.0.0.1:7570/ingest/0db2c04a-a5ac-44c9-a409-caf72cacc101', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'ef221f' },
+      body: JSON.stringify({
+        sessionId: 'ef221f',
+        runId: 'post-fix',
+        hypothesisId: 'H2-H5',
+        location: 'DataGrid.tsx:grid-measure',
+        message: 'datagrid dimensions after data load',
+        data: {
+          gridId,
+          containerWidth,
+          tableWidth,
+          fillWidth,
+          columnCount: visibleColumns.length,
+          containerClientWidth: container?.clientWidth ?? null,
+          containerScrollWidth: container?.scrollWidth ?? null,
+          columnSizes: visibleColumns.map((column) => column.getSize()),
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {})
+    // #endregion
+  }, [data.length, containerWidth, tableWidth, fillWidth, visibleColumns, gridId])
+
+  useEffect(() => {
     if (!isServer) {
       setClientPagination((current) => ({ ...current, pageIndex: 0 }))
     }
@@ -325,30 +360,45 @@ export default function DataGrid<T>({
     return <DataGridEmptyState message={emptyMessage} />
   }
 
+  const paginationBar = showPagination ? (
+    <div className="shrink-0">
+      <DataGridPagination
+        table={table}
+        totalRows={totalRows}
+        manual={isServer}
+        pageIndex={pagination.pageIndex}
+        pageSize={pagination.pageSize}
+        pageCount={pageCount}
+        onPaginationChange={onPaginationChange}
+        isFetching={isFetching}
+        extra={paginationExtra}
+        position={paginationPosition}
+      />
+    </div>
+  ) : null
+
   return (
-    <div className={clsx('relative flex min-h-0 flex-col gap-3', className)}>
-      {showPagination ? (
-        <div className="shrink-0">
-          <DataGridPagination
-            table={table}
-            totalRows={totalRows}
-            manual={isServer}
-            pageIndex={pagination.pageIndex}
-            pageSize={pagination.pageSize}
-            pageCount={pageCount}
-            onPaginationChange={onPaginationChange}
-            isFetching={isFetching}
-          />
-        </div>
-      ) : null}
+    <div
+      className={clsx(
+        'relative flex min-h-0 flex-col',
+        fillHeight ? 'h-full gap-0' : 'gap-3',
+        className,
+      )}
+    >
+      {showPagination && paginationPosition === 'top' ? paginationBar : null}
 
       <div
         ref={tableContainerRef}
         className={clsx(
-          'min-h-0 flex-1 overflow-auto rounded-lg border border-vscode-border',
+          'min-h-0 flex-1 overflow-auto border border-vscode-border',
+          fillHeight && paginationPosition === 'bottom' && showPagination
+            ? 'rounded-t-lg border-b-0'
+            : fillHeight && !showPagination
+              ? 'rounded-none border-0'
+              : 'rounded-lg',
           isFetching && 'opacity-70',
         )}
-        style={{ minHeight: TABLE_MIN_HEIGHT }}
+        style={fillHeight ? undefined : { minHeight: TABLE_MIN_HEIGHT }}
       >
         <table
           className={clsx(
@@ -482,6 +532,8 @@ export default function DataGrid<T>({
           </tbody>
         </table>
       </div>
+
+      {showPagination && paginationPosition === 'bottom' ? paginationBar : null}
     </div>
   )
 }

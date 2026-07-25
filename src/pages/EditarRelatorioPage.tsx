@@ -150,6 +150,8 @@ export default function EditarRelatorioPage() {
               isDirty={isDirty}
               isSaving={isSaving}
               saveSuccess={saveSuccess}
+              advancedEditorReturnPath={`/relatorios/${relatorioId}/editar`}
+              advancedEditorRelatorioId={relatorioId}
               onSave={saveEdit}
               onCancel={cancelEdit}
               canUpdate={canUpdate}

@@ -20,6 +20,7 @@ export default function CriarRelatorioPage() {
           updateDraft={updateDraft}
           fieldErrors={fieldErrors}
           isSaving={isSaving}
+          advancedEditorReturnPath="/relatorios/novo"
           onSaveToList={saveToList}
           onSaveAndEdit={saveAndEdit}
         />

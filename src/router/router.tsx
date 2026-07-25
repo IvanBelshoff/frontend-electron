@@ -38,6 +38,8 @@ import EditarUsuarioPage from '@/pages/EditarUsuarioPage'
 import GerenciarUsuariosPage from '@/pages/GerenciarUsuariosPage'
 import LoginPage from '@/pages/LoginPage'
 import ExecutarRelatorioPage from '@/pages/ExecutarRelatorioPage'
+import EditorAvancadoRelatorioPage from '@/pages/EditorAvancadoRelatorioPage'
+import EditorAvancadoRelatorioEditRoutePage from '@/pages/EditorAvancadoRelatorioEditRoutePage'
 import MeusDashboardsPage from '@/pages/MeusDashboardsPage'
 import MeusRelatoriosPage from '@/pages/MeusRelatoriosPage'
 import VisualizarDashboardPage from '@/pages/VisualizarDashboardPage'
@@ -137,6 +139,26 @@ const editarRelatorioRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/relatorios/$relatorioId/editar',
   component: EditarRelatorioPage,
+  beforeLoad: () => {
+    requireRole(REPORT_RBAC.menuRole)
+    requirePermission(REPORT_RBAC.update, '/relatorios/gerenciar')
+  },
+})
+
+const editorAvancadoCriarRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/relatorios/editor-avancado',
+  component: () => <EditorAvancadoRelatorioPage />,
+  beforeLoad: () => {
+    requireRole(REPORT_RBAC.menuRole)
+    requirePermission(REPORT_RBAC.create, '/relatorios/gerenciar')
+  },
+})
+
+const editorAvancadoEditarRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: '/relatorios/$relatorioId/editor-avancado',
+  component: EditorAvancadoRelatorioEditRoutePage,
   beforeLoad: () => {
     requireRole(REPORT_RBAC.menuRole)
     requirePermission(REPORT_RBAC.update, '/relatorios/gerenciar')
@@ -270,6 +292,8 @@ const routeTree = rootRoute.addChildren([
     gerenciarRelatoriosRoute,
     criarRelatorioRoute,
     editarRelatorioRoute,
+    editorAvancadoCriarRoute,
+    editorAvancadoEditarRoute,
     gerenciarConexoesRoute,
     criarConexaoRoute,
     editarConexaoRoute,

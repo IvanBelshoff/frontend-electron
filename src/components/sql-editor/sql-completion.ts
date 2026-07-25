@@ -144,6 +144,20 @@ export function buildSqlCompletionItems(
   return [...keywords, ...functions]
 }
 
+export const MAX_SQL_COMPLETION_SUGGESTIONS = 50
+
+export function filterByPrefix(items: SqlCompletionItem[], prefix: string): SqlCompletionItem[] {
+  const normalized = prefix.trim().toLowerCase()
+
+  if (!normalized) {
+    return items.slice(0, MAX_SQL_COMPLETION_SUGGESTIONS)
+  }
+
+  return items
+    .filter((item) => item.label.toLowerCase().startsWith(normalized))
+    .slice(0, MAX_SQL_COMPLETION_SUGGESTIONS)
+}
+
 export function filterCompletionItems(
   items: SqlCompletionItem[],
   prefix: string,

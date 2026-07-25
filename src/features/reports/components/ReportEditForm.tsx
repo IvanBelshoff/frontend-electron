@@ -16,6 +16,8 @@ import {
 } from '@/features/dashboards/icons/DashboardIcons'
 import ConnectionSelect from '@/features/reports/components/ConnectionSelect'
 import { listConnections } from '@/features/connections/connection-api'
+import { consumeQueryEditorResult } from '@/features/query-editor/query-editor-session'
+import { useOpenAdvancedQueryEditor } from '@/features/query-editor/use-open-advanced-query-editor'
 import { queryKeys } from '@/lib/query-keys'
 import type {
   ParametroRelatorio,
@@ -29,6 +31,8 @@ type ReportEditFormBaseProps = {
   updateDraft: (patch: Partial<ReportEditDraft>) => void
   fieldErrors: ReportFieldErrors
   isSaving: boolean
+  advancedEditorReturnPath: string
+  advancedEditorRelatorioId?: number
 }
 
 type ReportEditFormEditProps = ReportEditFormBaseProps & {
@@ -77,11 +81,24 @@ function parseParametrosJson(value: string): { parametros: ParametroRelatorio[];
 }
 
 export default function ReportEditForm(props: ReportEditFormProps) {
-  const { draft, defaultIcon, updateDraft, fieldErrors, isSaving } = props
+  const {
+    draft,
+    defaultIcon,
+    updateDraft,
+    fieldErrors,
+    isSaving,
+    advancedEditorReturnPath,
+    advancedEditorRelatorioId,
+  } = props
   const [iconPickerOpen, setIconPickerOpen] = useState(false)
   const [parametrosJson, setParametrosJson] = useState(() => formatParametrosJson(draft.parametros))
   const [parametrosJsonError, setParametrosJsonError] = useState<string | null>(null)
   const isCreateMode = props.mode === 'create'
+  const {
+    openAdvancedEditor,
+    isOpeningAdvancedEditor,
+    advancedEditorOpenError,
+  } = useOpenAdvancedQueryEditor()
 
   const connectionsQuery = useQuery({
     queryKey: queryKeys.connection.list({ limit: 200 }),
@@ -103,6 +120,28 @@ export default function ReportEditForm(props: ReportEditFormProps) {
     setParametrosJson(formatParametrosJson(draft.parametros))
     setParametrosJsonError(null)
   }, [draft.parametros])
+
+  useEffect(() => {
+    const result = consumeQueryEditorResult()
+
+    if (result) {
+      updateDraft({
+        query: result.query,
+        ...(result.parametros ? { parametros: result.parametros } : {}),
+      })
+    }
+  }, [updateDraft])
+
+  const handleOpenAdvancedEditor = () => {
+    void openAdvancedEditor({
+      query: draft.query,
+      idConexao: draft.idConexao,
+      connectionTipo,
+      parametros: draft.parametros,
+      returnPath: advancedEditorReturnPath,
+      relatorioId: advancedEditorRelatorioId,
+    })
+  }
 
   const commitParametrosJson = () => {
     const { parametros, error } = parseParametrosJson(parametrosJson)
@@ -161,6 +200,26 @@ export default function ReportEditForm(props: ReportEditFormProps) {
           )}
 
           <SettingsField label="Query" htmlFor="reportEditQuery">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs text-vscode-text-muted">
+                Editor SQL com preview e explorador de schema
+              </span>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                loading={isOpeningAdvancedEditor}
+                disabled={draft.idConexao == null}
+                title={
+                  draft.idConexao == null
+                    ? 'Selecione uma conexão'
+                    : 'Abrir editor avançado (requer conexão online)'
+                }
+                onClick={handleOpenAdvancedEditor}
+              >
+                Editor avançado
+              </Button>
+            </div>
             <SqlQueryEditor
               id="reportEditQuery"
               value={draft.query}
@@ -172,6 +231,9 @@ export default function ReportEditForm(props: ReportEditFormProps) {
             />
             {fieldErrors.query && (
               <p className="text-xs text-vscode-error">{fieldErrors.query}</p>
+            )}
+            {advancedEditorOpenError && (
+              <p className="text-xs text-vscode-error">{advancedEditorOpenError}</p>
             )}
           </SettingsField>
 
