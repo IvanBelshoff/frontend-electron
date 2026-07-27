@@ -1,6 +1,8 @@
+import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { useCallback, useMemo } from 'react'
 import IconButton from '@/components/ui/IconButton'
+import { getConnection } from '@/features/connections/connection-api'
 import { DashboardMaterialIcon } from '@/features/dashboards/icons/DashboardIcons'
 import type { TableNodeItem } from '@/features/query-editor/query-editor-types'
 import SchemaExplorerDraggableItem from '@/features/query-editor/SchemaExplorerDraggableItem'
@@ -20,6 +22,7 @@ import {
   TABLE_REFERENCE_TEXT_CLASS,
 } from '@/features/query-editor/sql-referenced-identifiers'
 import { useSchemaTreeState } from '@/features/query-editor/use-schema-tree-state'
+import { queryKeys } from '@/lib/query-keys'
 
 const INSERT_HINT = 'Arraste para o editor ou duplo clique para inserir'
 
@@ -42,6 +45,23 @@ export default function SchemaExplorerTree({
   onInsertColumn,
   onCollapse,
 }: SchemaExplorerTreeProps) {
+  const connectionQuery = useQuery({
+    queryKey: queryKeys.connection.detail(connectionId),
+    queryFn: () => getConnection(connectionId),
+  })
+
+  const connectionLabel = useMemo(() => {
+    if (connectionQuery.isLoading) {
+      return 'Carregando conexão...'
+    }
+
+    if (!connectionQuery.data) {
+      return 'Conexão indisponível'
+    }
+
+    return `${connectionQuery.data.nome} (${connectionQuery.data.tipo})`
+  }, [connectionQuery.data, connectionQuery.isLoading])
+
   const referencedIdentifiers = useMemo(
     () => parseSqlReferencedIdentifiers(query),
     [query],
@@ -87,14 +107,18 @@ export default function SchemaExplorerTree({
   return (
     <div className="flex h-full min-h-0 flex-col rounded-md border border-vscode-border bg-vscode-sidebar/40">
       <div className="border-b border-vscode-border px-3 py-2">
-        <div className="flex items-center gap-1.5">
-          <input
-            type="search"
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
-            placeholder="Filtrar schema..."
-            className="min-w-0 flex-1 rounded border border-vscode-border bg-vscode-input-bg px-2 py-1 text-xs text-vscode-text placeholder:text-vscode-text-muted focus:outline-none focus:ring-2 focus:ring-vscode-accent/30"
-          />
+        <div className="mb-2 flex min-w-0 items-start gap-1.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-vscode-text-muted">
+              Conexão
+            </p>
+            <p
+              className="truncate text-xs text-vscode-text"
+              title={connectionQuery.data ? connectionLabel : undefined}
+            >
+              {connectionLabel}
+            </p>
+          </div>
           {onCollapse ? (
             <IconButton
               icon={<DashboardMaterialIcon name="chevron_left" className="text-[1.05rem]" />}
@@ -103,6 +127,16 @@ export default function SchemaExplorerTree({
               className="h-7 w-7 shrink-0 rounded-md text-vscode-text-muted hover:text-vscode-text"
             />
           ) : null}
+        </div>
+
+        <div className="border-t border-vscode-border pt-2">
+          <input
+            type="search"
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+            placeholder="Filtrar schema..."
+            className="w-full rounded border border-vscode-border bg-vscode-input-bg px-2 py-1 text-xs text-vscode-text placeholder:text-vscode-text-muted focus:outline-none focus:ring-2 focus:ring-vscode-accent/30"
+          />
         </div>
       </div>
 

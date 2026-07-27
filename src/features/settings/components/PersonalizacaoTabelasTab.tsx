@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import DataGridStylePreview from '@/components/settings/preference-designer/DataGridStylePreview'
 import PreferenceFieldList from '@/components/settings/preference-designer/PreferenceFieldList'
+import SettingsAccordion from '@/components/settings/SettingsAccordion'
 import { writeDataGridStylePreference } from '@/features/settings/data-grid-style-preferences'
 import { createTableStyleSettingFields } from '@/features/settings/table-style-fields'
 import { useUserPreferences } from '@/features/settings/use-user-preferences'
@@ -16,13 +17,13 @@ export default function PersonalizacaoTabelasTab() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div className="shrink-0">
+      <SettingsAccordion title="Opções de tabela" defaultExpanded={false}>
         <PreferenceFieldList
           fields={fields}
           value={preferences.dataGridStyle as Record<string, unknown>}
           onChange={handleChange}
         />
-      </div>
+      </SettingsAccordion>
       <DataGridStylePreview style={preferences.dataGridStyle} />
     </div>
   )
