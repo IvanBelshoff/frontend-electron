@@ -1,6 +1,10 @@
 import { readFileSync, writeFileSync, unlinkSync, existsSync } from 'fs'
-import { app, BrowserWindow, ipcMain, Menu, safeStorage } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, safeStorage, session } from 'electron'
 import path from 'path'
+import {
+  attachWindowNavigationGuards,
+  registerContentSecurityPolicy,
+} from './security'
 
 const isDev = !app.isPackaged
 const TOKEN_STORAGE_KEY = 'access_token'
@@ -100,6 +104,7 @@ function createWindow() {
   })
 
   lockDownDevTools(mainWindow)
+  attachWindowNavigationGuards(mainWindow, isDev)
 
   mainWindow.webContents.on('enter-html-full-screen', () => {
     mainWindow?.setFullScreen(false)
@@ -161,6 +166,7 @@ function registerSecureStorageHandlers() {
 }
 
 app.whenReady().then(() => {
+  registerContentSecurityPolicy(session.defaultSession, isDev)
   createApplicationMenu()
   registerSecureStorageHandlers()
   createWindow()

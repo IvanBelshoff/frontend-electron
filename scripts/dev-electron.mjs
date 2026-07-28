@@ -52,7 +52,7 @@ const electronProcess = spawn('npx', ['electron', '.'], {
   stdio: 'inherit',
   shell: true,
   env: {
-    ...process.env,
+    ...env,
     VITE_DEV_SERVER_URL: devServerUrl,
   },
 })
