@@ -21,7 +21,7 @@ export default function AiMentionChips({
       {mentions.map((mention) => (
         <span
           key={mentionKey(mention)}
-          className="inline-flex max-w-full items-center gap-1 rounded border border-vscode-accent/40 bg-vscode-accent/15 px-2 py-0.5 text-xs text-vscode-text"
+          className="inline-flex max-w-full items-center gap-1 rounded-md bg-vscode-accent/10 px-1.5 py-0.5 text-[11px] text-vscode-text"
         >
           <span className="truncate">{formatMentionChip(mention)}</span>
           {!readOnly && onRemove && (

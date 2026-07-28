@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import Alert from '@/components/ui/Alert'
-import Button from '@/components/ui/Button'
 import SettingsPageHeader from '@/components/settings/SettingsPageHeader'
 import AiAccessGate from '@/features/ai/components/AiAccessGate'
 import AiChatComposer from '@/features/ai/components/AiChatComposer'
 import AiChatLayout from '@/features/ai/components/AiChatLayout'
 import AiEmptyState from '@/features/ai/components/AiEmptyState'
 import AiMessageList from '@/features/ai/components/AiMessageList'
+import AiNewConversationButton from '@/features/ai/components/AiNewConversationButton'
 import AiServiceStatusIndicator from '@/features/ai/components/AiServiceStatusIndicator'
 import AiThreadDeleteConfirmDialog from '@/features/ai/components/AiThreadDeleteConfirmDialog'
 import AiThreadSidebar from '@/features/ai/components/AiThreadSidebar'
@@ -14,6 +14,7 @@ import type { AiMention } from '@/features/ai/ai-mention-types'
 import { useAiChatPage } from '@/features/ai/hooks/use-ai-chat-page'
 import { useAiHealth } from '@/features/ai/hooks/use-ai-health'
 import { useAiThreadDeleteDialog } from '@/features/ai/hooks/use-ai-thread-delete-dialog'
+import { useAiThreadSidebarCollapse } from '@/features/ai/hooks/use-ai-thread-sidebar-collapse'
 import { useCurrentUser } from '@/features/user/use-current-user'
 
 export default function AiChatPage() {
@@ -22,6 +23,7 @@ export default function AiChatPage() {
   const [mentions, setMentions] = useState<AiMention[]>([])
   const aiHealth = useAiHealth()
   const chat = useAiChatPage()
+  const sidebarCollapse = useAiThreadSidebarCollapse()
   const deleteDialog = useAiThreadDeleteDialog({
     activeThreadId: chat.activeThreadId,
     onActiveThreadDeleted: chat.startNewConversation,
@@ -64,17 +66,14 @@ export default function AiChatPage() {
             }
             subtitle="Consulte relatórios autorizados com respostas em tempo real e histórico de conversas."
             actions={
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={!aiHealth.isAvailable || chat.isCreatingThread}
+              <AiNewConversationButton
+                disabled={!aiHealth.isAvailable}
+                loading={chat.isCreatingThread}
                 onClick={() => {
                   setMentions([])
                   void chat.startNewConversation()
                 }}
-              >
-                Nova conversa
-              </Button>
+              />
             }
           />
         }
@@ -84,6 +83,8 @@ export default function AiChatPage() {
             activeThreadId={chat.activeThreadId}
             isLoading={chat.threadsLoading}
             isDeleting={deleteDialog.isDeleting}
+            collapsed={sidebarCollapse.collapsed}
+            onToggleCollapse={sidebarCollapse.toggle}
             onSelectThread={(thread) => {
               setMentions([])
               void chat.selectThread(thread)
