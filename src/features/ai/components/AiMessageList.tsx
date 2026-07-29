@@ -6,9 +6,15 @@ type AiMessageListProps = {
   messages: UIMessage[]
   status: ChatStatus
   isHydrating?: boolean
+  pendingAnalysisJobIds?: string[]
 }
 
-export default function AiMessageList({ messages, status, isHydrating = false }: AiMessageListProps) {
+export default function AiMessageList({
+  messages,
+  status,
+  isHydrating = false,
+  pendingAnalysisJobIds = [],
+}: AiMessageListProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
@@ -36,6 +42,7 @@ export default function AiMessageList({ messages, status, isHydrating = false }:
               message.role === 'assistant' &&
               messages.slice(index + 1).every((item) => item.role !== 'assistant')
             }
+            pendingAnalysisJobIds={pendingAnalysisJobIds}
           />
         ))}
         <div ref={bottomRef} />

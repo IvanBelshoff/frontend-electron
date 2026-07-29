@@ -6,8 +6,10 @@ import {
   useRef,
   useState,
 } from 'react'
+import AiChatModeBadges from '@/features/ai/components/AiChatModeBadges'
 import AiMentionChips from '@/features/ai/components/AiMentionChips'
 import AiMentionPopup from '@/features/ai/components/AiMentionPopup'
+import type { AiChatMode } from '@/features/ai/ai-chat-types'
 import type { AiMention } from '@/features/ai/ai-mention-types'
 import { mentionKey } from '@/features/ai/ai-mention-types'
 import { useAiMentions } from '@/features/ai/hooks/use-ai-mentions'
@@ -66,6 +68,14 @@ type AiChatComposerProps = {
   onStop: () => void
   disabled?: boolean
   isBusy?: boolean
+  /** Bloqueia o envio enquanto uma análise em fila não termina. */
+  isAnalysisPending?: boolean
+  mode: AiChatMode
+  thinking: boolean
+  isThinkingLocked: boolean
+  thinkingSupported?: boolean
+  onModeChange: (mode: AiChatMode) => void
+  onToggleThinking: () => void
 }
 
 function stripAtQuery(value: string, cursor: number): { next: string; nextCursor: number } {
@@ -90,12 +100,20 @@ export default function AiChatComposer({
   onMentionsChange,
   onSubmit,
   onStop,
-  disabled = false,
+  disabled: disabledProp = false,
   isBusy = false,
+  isAnalysisPending = false,
+  mode,
+  thinking,
+  isThinkingLocked,
+  thinkingSupported = true,
+  onModeChange,
+  onToggleThinking,
 }: AiChatComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [cursor, setCursor] = useState(0)
   const mentionsUi = useAiMentions(mentions)
+  const disabled = disabledProp || isAnalysisPending
   const canSend = !disabled && !isBusy && value.trim().length > 0
 
   useLayoutEffect(() => {
@@ -241,6 +259,16 @@ export default function AiChatComposer({
           onBack={mentionsUi.goBack}
         />
 
+        <AiChatModeBadges
+          mode={mode}
+          thinking={thinking}
+          isThinkingLocked={isThinkingLocked}
+          thinkingSupported={thinkingSupported}
+          disabled={disabled || isBusy}
+          onModeChange={onModeChange}
+          onToggleThinking={onToggleThinking}
+        />
+
         {mentions.length > 0 && (
           <div className="border-b border-vscode-border/50 px-3 py-2">
             <AiMentionChips mentions={mentions} onRemove={removeMention} />
@@ -266,7 +294,13 @@ export default function AiChatComposer({
           }}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder="Pergunte sobre seus relatórios autorizados…"
+          placeholder={
+            isAnalysisPending
+              ? 'Aguardando o resultado da análise em segundo plano…'
+              : mode === 'analitico'
+                ? 'Descreva a análise que você quer sobre seus dados…'
+                : 'Pergunte sobre seus relatórios autorizados…'
+          }
           disabled={disabled || isBusy}
           className="block max-h-40 w-full resize-none border-0 bg-transparent px-3 py-2.5 text-sm leading-relaxed text-vscode-text outline-none placeholder:text-vscode-text-muted/60"
         />
@@ -284,7 +318,9 @@ export default function AiChatComposer({
               <AtIcon className="h-4 w-4" />
             </button>
             <span className="truncate text-[11px] text-vscode-text-muted/70">
-              Enter envia · Shift+Enter quebra linha
+              {isAnalysisPending
+                ? 'Análise em andamento — o envio volta quando o resultado chegar'
+                : 'Enter envia · Shift+Enter quebra linha'}
             </span>
           </div>
 

@@ -233,6 +233,10 @@ const aiChatRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: '/ai-chat',
   component: AiChatPage,
+  // threadId permite abrir a conversa direto de uma notificação de análise.
+  validateSearch: (search: Record<string, unknown>): { threadId?: string } => ({
+    threadId: typeof search.threadId === 'string' ? search.threadId : undefined,
+  }),
   beforeLoad: () => {
     requireRole(AI_RBAC.menuRole)
   },

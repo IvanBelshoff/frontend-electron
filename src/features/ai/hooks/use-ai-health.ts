@@ -20,6 +20,8 @@ export function useAiHealth() {
     isLoading: healthQuery.isLoading,
     isChecking: healthQuery.isLoading || healthQuery.isFetching,
     isAvailable: healthQuery.data?.available ?? false,
+    // Provedores antigos não retornam o campo; nesse caso não bloqueamos o toggle.
+    supportsReasoning: healthQuery.data?.supportsReasoning !== false,
     health: healthQuery.data,
     refetch: healthQuery.refetch,
   }

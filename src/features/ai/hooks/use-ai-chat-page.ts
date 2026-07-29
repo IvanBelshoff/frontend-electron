@@ -7,12 +7,28 @@ import {
   listAiThreads,
 } from '@/features/ai/ai-chat-api'
 import { createAiChatTransport } from '@/features/ai/ai-chat-transport'
-import type { AiChatThread } from '@/features/ai/ai-chat-types'
+import type { AiChatMode, AiChatThread } from '@/features/ai/ai-chat-types'
+import { getPendingAnalysisJobIds } from '@/features/ai/ai-chat-utils'
 import type { AiMention } from '@/features/ai/ai-mention-types'
 import { useAuth } from '@/features/auth/auth-context'
+import { boostInboxPolling } from '@/features/user-inbox/inbox-polling'
 import { queryKeys } from '@/lib/query-keys'
 
-export function useAiChatPage() {
+/** Intervalo de checagem do resultado de uma análise que roda na fila. */
+const PENDING_ANALYSIS_POLL_INTERVAL_MS = 5000
+
+type UseAiChatPageOptions = {
+  mode: AiChatMode
+  thinking: boolean
+  /** Conversa a abrir na montagem (deep-link de notificação de análise). */
+  initialThreadId?: string
+}
+
+export function useAiChatPage({
+  mode,
+  thinking,
+  initialThreadId,
+}: UseAiChatPageOptions) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const userId = user?.sub ?? null
@@ -22,6 +38,8 @@ export function useAiChatPage() {
   const [pendingMentions, setPendingMentions] = useState<AiMention[]>([])
   const activeThreadIdRef = useRef<string | undefined>(activeThreadId)
   const pendingMentionsRef = useRef<AiMention[]>([])
+  const modeRef = useRef<AiChatMode>(mode)
+  const thinkingRef = useRef<boolean>(thinking)
 
   useEffect(() => {
     activeThreadIdRef.current = activeThreadId
@@ -30,6 +48,14 @@ export function useAiChatPage() {
   useEffect(() => {
     pendingMentionsRef.current = pendingMentions
   }, [pendingMentions])
+
+  useEffect(() => {
+    modeRef.current = mode
+  }, [mode])
+
+  useEffect(() => {
+    thinkingRef.current = thinking
+  }, [thinking])
 
   const threadsQuery = useQuery({
     queryKey: threadsQueryKey,
@@ -42,6 +68,8 @@ export function useAiChatPage() {
       createAiChatTransport({
         getThreadId: () => activeThreadIdRef.current,
         getMentions: () => pendingMentionsRef.current,
+        getMode: () => modeRef.current,
+        getThinking: () => thinkingRef.current,
         onThreadId: (threadId) => {
           if (!activeThreadIdRef.current) {
             activeThreadIdRef.current = threadId
@@ -69,14 +97,18 @@ export function useAiChatPage() {
   const isBusy = status === 'submitted' || status === 'streaming'
 
   const hydrateThread = useCallback(
-    async (threadId: string) => {
-      setIsHydratingMessages(true)
+    async (threadId: string, options: { silent?: boolean } = {}) => {
+      if (!options.silent) {
+        setIsHydratingMessages(true)
+      }
 
       try {
         const response = await getAiThreadMessages(threadId)
         setMessages(response.messages)
       } finally {
-        setIsHydratingMessages(false)
+        if (!options.silent) {
+          setIsHydratingMessages(false)
+        }
       }
     },
     [setMessages],
@@ -90,6 +122,39 @@ export function useAiChatPage() {
     },
     [hydrateThread],
   )
+
+  useEffect(() => {
+    if (!initialThreadId || activeThreadIdRef.current === initialThreadId) {
+      return
+    }
+
+    setActiveThreadId(initialThreadId)
+    activeThreadIdRef.current = initialThreadId
+    void hydrateThread(initialThreadId)
+  }, [hydrateThread, initialThreadId])
+
+  const pendingAnalysisJobIds = useMemo(
+    () => getPendingAnalysisJobIds(messages),
+    [messages],
+  )
+  const hasPendingAnalysis = pendingAnalysisJobIds.length > 0
+
+  // Enquanto a análise roda na fila, o resultado chega por outra mensagem
+  // persistida — só reidratando o thread para vê-la.
+  useEffect(() => {
+    if (!hasPendingAnalysis || !activeThreadId || isBusy) {
+      return
+    }
+
+    // A notificação de conclusão chega junto: acelera o polling do sino.
+    boostInboxPolling()
+
+    const interval = setInterval(() => {
+      void hydrateThread(activeThreadId, { silent: true })
+    }, PENDING_ANALYSIS_POLL_INTERVAL_MS)
+
+    return () => clearInterval(interval)
+  }, [activeThreadId, hasPendingAnalysis, hydrateThread, isBusy])
 
   const startNewConversation = useCallback(() => {
     setActiveThreadId(undefined)
@@ -110,7 +175,7 @@ export function useAiChatPage() {
   const sendUserMessage = useCallback(
     async (text: string, mentions: AiMention[] = []) => {
       const trimmed = text.trim()
-      if (!trimmed || isBusy) {
+      if (!trimmed || isBusy || hasPendingAnalysis) {
         return
       }
 
@@ -126,7 +191,7 @@ export function useAiChatPage() {
       setPendingMentions([])
       void queryClient.invalidateQueries({ queryKey: threadsQueryKey })
     },
-    [isBusy, queryClient, sendMessage, threadsQueryKey],
+    [hasPendingAnalysis, isBusy, queryClient, sendMessage, threadsQueryKey],
   )
 
   return {
@@ -138,6 +203,8 @@ export function useAiChatPage() {
     error,
     isBusy,
     isHydratingMessages,
+    pendingAnalysisJobIds,
+    hasPendingAnalysis,
     selectThread,
     startNewConversation,
     createThread: () => createThreadMutation.mutateAsync(),

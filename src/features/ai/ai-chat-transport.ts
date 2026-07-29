@@ -1,11 +1,14 @@
 import { DefaultChatTransport } from 'ai'
 import { authStore } from '@/features/auth/auth-store'
+import type { AiChatMode } from '@/features/ai/ai-chat-types'
 import type { AiMention } from '@/features/ai/ai-mention-types'
 import { getApiUrl } from '@/lib/config'
 
 type AiChatTransportOptions = {
   getThreadId: () => string | undefined
   getMentions: () => AiMention[]
+  getMode: () => AiChatMode
+  getThinking: () => boolean
   onThreadId?: (threadId: string) => void
   onThreadTitle?: (threadId: string, title: string) => void
 }
@@ -13,6 +16,8 @@ type AiChatTransportOptions = {
 export function createAiChatTransport({
   getThreadId,
   getMentions,
+  getMode,
+  getThinking,
   onThreadId,
   onThreadTitle,
 }: AiChatTransportOptions) {
@@ -34,6 +39,8 @@ export function createAiChatTransport({
         body: {
           ...body,
           messages,
+          mode: getMode(),
+          thinking: getThinking(),
           ...(threadId ? { threadId } : {}),
           ...(mentions.length > 0 ? { mentions } : {}),
         },

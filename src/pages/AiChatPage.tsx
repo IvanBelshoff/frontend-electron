@@ -1,3 +1,4 @@
+import { useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import Alert from '@/components/ui/Alert'
 import SettingsPageHeader from '@/components/settings/SettingsPageHeader'
@@ -11,6 +12,7 @@ import AiServiceStatusIndicator from '@/features/ai/components/AiServiceStatusIn
 import AiThreadDeleteConfirmDialog from '@/features/ai/components/AiThreadDeleteConfirmDialog'
 import AiThreadSidebar from '@/features/ai/components/AiThreadSidebar'
 import type { AiMention } from '@/features/ai/ai-mention-types'
+import { useAiChatMode } from '@/features/ai/hooks/use-ai-chat-mode'
 import { useAiChatPage } from '@/features/ai/hooks/use-ai-chat-page'
 import { useAiHealth } from '@/features/ai/hooks/use-ai-health'
 import { useAiThreadDeleteDialog } from '@/features/ai/hooks/use-ai-thread-delete-dialog'
@@ -21,8 +23,16 @@ export default function AiChatPage() {
   const { data: currentUser } = useCurrentUser()
   const [input, setInput] = useState('')
   const [mentions, setMentions] = useState<AiMention[]>([])
+  const { threadId: threadIdFromNotification } = useSearch({
+    from: '/authenticated/ai-chat',
+  })
   const aiHealth = useAiHealth()
-  const chat = useAiChatPage()
+  const chatMode = useAiChatMode()
+  const chat = useAiChatPage({
+    mode: chatMode.mode,
+    thinking: chatMode.thinking,
+    initialThreadId: threadIdFromNotification,
+  })
   const sidebarCollapse = useAiThreadSidebarCollapse()
   const deleteDialog = useAiThreadDeleteDialog({
     activeThreadId: chat.activeThreadId,
@@ -31,7 +41,7 @@ export default function AiChatPage() {
 
   async function handleSubmit() {
     const text = input.trim()
-    if (!text || chat.isBusy || !aiHealth.isAvailable) {
+    if (!text || chat.isBusy || chat.hasPendingAnalysis || !aiHealth.isAvailable) {
       return
     }
 
@@ -115,6 +125,13 @@ export default function AiChatPage() {
               onStop={() => chat.stop()}
               disabled={!aiHealth.isAvailable}
               isBusy={chat.isBusy}
+              isAnalysisPending={chat.hasPendingAnalysis}
+              mode={chatMode.mode}
+              thinking={chatMode.thinking}
+              isThinkingLocked={chatMode.isThinkingLocked}
+              thinkingSupported={aiHealth.supportsReasoning}
+              onModeChange={chatMode.setMode}
+              onToggleThinking={chatMode.toggleThinking}
             />
           </>
         }
@@ -130,6 +147,7 @@ export default function AiChatPage() {
             messages={chat.messages}
             status={chat.status}
             isHydrating={chat.isHydratingMessages}
+            pendingAnalysisJobIds={chat.pendingAnalysisJobIds}
           />
         )}
       </AiChatLayout>

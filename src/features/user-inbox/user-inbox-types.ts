@@ -3,6 +3,8 @@ export type UserNotificationType =
   | 'export_failed'
   | 'snapshot_ready'
   | 'snapshot_failed'
+  | 'ai_analysis_ready'
+  | 'ai_analysis_failed'
 
 export type UserNotificationPayload = {
   jobId?: string
@@ -16,6 +18,9 @@ export type UserNotificationPayload = {
   origem?: 'manual' | 'agendado' | null
   fileName?: string | null
   parametrosResumo?: string | null
+  /** Conversa do assistente a abrir nas notificações de análise. */
+  threadId?: string
+  pergunta?: string
 }
 
 export type UserInboxItem = {

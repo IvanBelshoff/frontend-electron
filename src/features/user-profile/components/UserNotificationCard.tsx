@@ -3,13 +3,16 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import {
   canDownloadNotification,
+  canOpenAiThreadNotification,
   canOpenReportNotification,
+  getAiAnalysisQuestion,
   getNotificationKindLabel,
   getNotificationOrigemLabel,
   getNotificationReportName,
   getNotificationSummary,
   getNotificationTone,
   getOpenReportButtonLabel,
+  isAiAnalysisNotification,
 } from '@/features/user-inbox/notification-display'
 import type { UserInboxItem } from '@/features/user-inbox/user-inbox-types'
 import { formatDateTime } from '@/lib/datetime'
@@ -21,7 +24,8 @@ type UserNotificationCardProps = {
   downloading?: boolean
   onDownload: (item: UserInboxItem) => void
   onMarkRead: (notificationId: string) => void
-  onOpenReport: (item: UserInboxItem) => void
+  /** Chamado ao sair do painel por um link da notificação (relatório ou conversa). */
+  onNavigate: (item: UserInboxItem) => void
 }
 
 const toneIconClasses: Record<ReturnType<typeof getNotificationTone>, string> = {
@@ -50,15 +54,20 @@ export default function UserNotificationCard({
   downloading = false,
   onDownload,
   onMarkRead,
-  onOpenReport,
+  onNavigate,
 }: UserNotificationCardProps) {
   const tone = getNotificationTone(item)
-  const reportName = getNotificationReportName(item)
+  const isAiAnalysis = isAiAnalysisNotification(item)
+  const subjectLabel = isAiAnalysis ? 'Análise' : 'Relatório'
+  const subject = isAiAnalysis
+    ? getAiAnalysisQuestion(item)
+    : getNotificationReportName(item)
   const summary = getNotificationSummary(item)
   const kindLabel = getNotificationKindLabel(item)
   const origemLabel = getNotificationOrigemLabel(item.payload.origem)
   const showDownload = canDownloadNotification(item)
   const showOpenReport = canOpenReportNotification(item)
+  const showOpenThread = canOpenAiThreadNotification(item)
   const openReportLabel = getOpenReportButtonLabel(item)
   const isFailed = tone === 'error'
 
@@ -76,8 +85,8 @@ export default function UserNotificationCard({
         <NotificationIcon tone={tone} />
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-vscode-text">{item.title}</p>
-          <p className="mt-1 text-xs text-vscode-text">
-            Relatório: <span className="font-medium">{reportName}</span>
+          <p className="mt-1 line-clamp-2 text-xs text-vscode-text">
+            {subjectLabel}: <span className="font-medium">{subject}</span>
           </p>
           {summary && (
             <p
@@ -129,10 +138,23 @@ export default function UserNotificationCard({
             to="/relatorios/$relatorioId/executar"
             params={{ relatorioId: String(item.payload.relatorioId) }}
             className="w-full"
-            onClick={() => onOpenReport(item)}
+            onClick={() => onNavigate(item)}
           >
             <Button type="button" variant="secondary" size="sm" className="w-full">
               {openReportLabel}
+            </Button>
+          </Link>
+        )}
+
+        {showOpenThread && item.payload.threadId && (
+          <Link
+            to="/ai-chat"
+            search={{ threadId: item.payload.threadId }}
+            className="w-full"
+            onClick={() => onNavigate(item)}
+          >
+            <Button type="button" variant="secondary" size="sm" className="w-full">
+              Abrir conversa
             </Button>
           </Link>
         )}

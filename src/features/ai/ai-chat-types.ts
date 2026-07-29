@@ -1,11 +1,14 @@
 import type { UIMessage } from 'ai'
 
+export type AiChatMode = 'normal' | 'analitico'
+
 export type AiHealthStatus = {
   available: boolean
   provider?: string
   model: string
   latencyMs: number
   error?: string
+  supportsReasoning?: boolean
 }
 
 export type AiAccessStatus = {

@@ -19,8 +19,20 @@ export function getNotificationReportName(item: UserInboxItem): string {
   return 'Relatório'
 }
 
+export function isAiAnalysisNotification(item: UserInboxItem): boolean {
+  return item.type === 'ai_analysis_ready' || item.type === 'ai_analysis_failed'
+}
+
+/** Pergunta que originou a análise, usada no lugar do nome do relatório. */
+export function getAiAnalysisQuestion(item: UserInboxItem): string {
+  return item.payload.pergunta?.trim() || 'Análise do assistente'
+}
+
 export function getNotificationSummary(item: UserInboxItem): string {
-  const isFailed = item.type === 'export_failed' || item.type === 'snapshot_failed'
+  const isFailed =
+    item.type === 'export_failed' ||
+    item.type === 'snapshot_failed' ||
+    item.type === 'ai_analysis_failed'
 
   if (isFailed && item.payload.errorMessage?.trim()) {
     return item.payload.errorMessage.trim()
@@ -34,15 +46,23 @@ export function getNotificationKindLabel(item: UserInboxItem): string {
     return 'Exportação CSV'
   }
 
+  if (isAiAnalysisNotification(item)) {
+    return 'Análise IA'
+  }
+
   return 'Snapshot'
 }
 
 export function getNotificationTone(item: UserInboxItem): NotificationTone {
-  if (item.type === 'export_failed' || item.type === 'snapshot_failed') {
+  if (
+    item.type === 'export_failed' ||
+    item.type === 'snapshot_failed' ||
+    item.type === 'ai_analysis_failed'
+  ) {
     return 'error'
   }
 
-  if (item.type === 'export_ready') {
+  if (item.type === 'export_ready' || item.type === 'ai_analysis_ready') {
     return 'success'
   }
 
@@ -81,6 +101,10 @@ export function canOpenReportNotification(item: UserInboxItem): boolean {
     item.type === 'export_failed' ||
     item.type === 'snapshot_failed'
   )
+}
+
+export function canOpenAiThreadNotification(item: UserInboxItem): boolean {
+  return isAiAnalysisNotification(item) && Boolean(item.payload.threadId)
 }
 
 export function getOpenReportButtonLabel(item: UserInboxItem): string {

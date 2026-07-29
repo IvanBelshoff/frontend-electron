@@ -90,7 +90,7 @@ export default function UserNotificationsPanel({
     }
   }
 
-  const handleOpenReport = (item: UserInboxItem) => {
+  const handleNavigate = (item: UserInboxItem) => {
     void handleMarkRead(item.id)
     closeProfile()
   }
@@ -141,7 +141,7 @@ export default function UserNotificationsPanel({
             downloading={downloadingId === item.id}
             onDownload={(notification) => void handleDownload(notification)}
             onMarkRead={(notificationId) => void handleMarkRead(notificationId)}
-            onOpenReport={handleOpenReport}
+            onNavigate={handleNavigate}
           />
         ))}
       </div>
