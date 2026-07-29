@@ -259,16 +259,6 @@ export default function AiChatComposer({
           onBack={mentionsUi.goBack}
         />
 
-        <AiChatModeBadges
-          mode={mode}
-          thinking={thinking}
-          isThinkingLocked={isThinkingLocked}
-          thinkingSupported={thinkingSupported}
-          disabled={disabled || isBusy}
-          onModeChange={onModeChange}
-          onToggleThinking={onToggleThinking}
-        />
-
         {mentions.length > 0 && (
           <div className="border-b border-vscode-border/50 px-3 py-2">
             <AiMentionChips mentions={mentions} onRemove={removeMention} />
@@ -306,7 +296,16 @@ export default function AiChatComposer({
         />
 
         <div className="flex items-center justify-between gap-2 px-2 pb-2">
-          <div className="flex min-w-0 items-center gap-0.5">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <AiChatModeBadges
+              mode={mode}
+              thinking={thinking}
+              isThinkingLocked={isThinkingLocked}
+              thinkingSupported={thinkingSupported}
+              disabled={disabled || isBusy}
+              onModeChange={onModeChange}
+              onToggleThinking={onToggleThinking}
+            />
             <button
               type="button"
               title="Adicionar contexto (@)"

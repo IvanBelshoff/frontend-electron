@@ -123,6 +123,9 @@ function buildContentSecurityPolicy(isDev: boolean): string {
   const connectSrc = isDev
     ? ["'self'", 'blob:', 'data:', ...getConnectSrcOrigins(isDev)]
     : ["'self'", 'blob:', 'data:', 'http:', 'https:']
+  const imgSrc = isDev
+    ? ["'self'", 'data:', 'blob:', 'https:', ...getConnectSrcOrigins(isDev)]
+    : ["'self'", 'data:', 'blob:', 'https:', ...getConnectSrcOrigins(false)]
   const scriptSrc = isDev
     ? ["'self'", "'unsafe-inline'", "'unsafe-eval'"]
     : ["'self'"]
@@ -133,7 +136,7 @@ function buildContentSecurityPolicy(isDev: boolean): string {
     `script-src ${scriptSrc.join(' ')}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data: blob: https:",
+    `img-src ${imgSrc.join(' ')}`,
     `connect-src ${connectSrc.join(' ')}`,
     `frame-src ${frameSrc.join(' ')}`,
     "object-src 'none'",

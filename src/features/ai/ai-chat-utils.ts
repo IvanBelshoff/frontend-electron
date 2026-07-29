@@ -52,6 +52,7 @@ const TOOL_PROGRESS_LABELS: Record<string, string> = {
   resumirDistribuicao: 'Resumindo a distribuição...',
   compararPeriodos: 'Comparando períodos...',
   agendarAnaliseProfunda: 'Colocando a análise na fila...',
+  graficoUsuariosPorRegra: 'Gerando gráfico de usuários por regra...',
 }
 
 /**

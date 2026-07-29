@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { AiChatMode } from '@/features/ai/ai-chat-types'
 
 type AiChatModeBadgesProps = {
@@ -70,8 +71,61 @@ function ThinkingIcon({ className }: { className?: string }) {
   )
 }
 
-const BADGE_BASE =
-  'inline-flex h-6 shrink-0 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-vscode-accent/40'
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  )
+}
+
+const MODE_OPTIONS: Array<{
+  id: AiChatMode
+  label: string
+  description: string
+  Icon: typeof ChatIcon
+}> = [
+  {
+    id: 'normal',
+    label: 'Normal',
+    description: 'Respostas diretas sobre relatórios autorizados',
+    Icon: ChatIcon,
+  },
+  {
+    id: 'analitico',
+    label: 'Analítico',
+    description: 'Análise de dados com estatísticas e gráficos',
+    Icon: AnalyticsIcon,
+  },
+]
 
 export default function AiChatModeBadges({
   mode,
@@ -82,6 +136,12 @@ export default function AiChatModeBadges({
   onModeChange,
   onToggleThinking,
 }: AiChatModeBadgesProps) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const menuId = useId()
+
+  const currentMode = MODE_OPTIONS.find((option) => option.id === mode) ?? MODE_OPTIONS[0]
+  const CurrentIcon = currentMode.Icon
   const thinkingDisabled = disabled || isThinkingLocked || !thinkingSupported
 
   const thinkingTitle = isThinkingLocked
@@ -92,72 +152,167 @@ export default function AiChatModeBadges({
         ? 'Desativar raciocínio estendido'
         : 'Ativar raciocínio estendido'
 
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
+
+  function selectMode(nextMode: AiChatMode) {
+    onModeChange(nextMode)
+    setOpen(false)
+  }
+
   return (
-    <div className="flex flex-wrap items-center gap-1.5 border-b border-vscode-border/50 px-2 py-1.5">
-      <div
-        className="flex items-center gap-0.5 rounded-lg bg-vscode-activity-bar/50 p-0.5"
-        role="group"
-        aria-label="Modo do assistente"
-      >
-        <button
-          type="button"
-          disabled={disabled}
-          aria-pressed={mode === 'normal'}
-          title="Modo normal: respostas diretas sobre relatórios autorizados"
-          onClick={() => onModeChange('normal')}
-          className={clsx(
-            BADGE_BASE,
-            mode === 'normal'
-              ? 'bg-vscode-sidebar text-vscode-text shadow-sm'
-              : 'text-vscode-text-muted hover:text-vscode-text',
-            disabled && 'pointer-events-none opacity-50',
-          )}
-        >
-          <ChatIcon className="h-3.5 w-3.5" />
-          Normal
-        </button>
-
-        <button
-          type="button"
-          disabled={disabled}
-          aria-pressed={mode === 'analitico'}
-          title="Modo analítico: análise de dados com estatísticas e gráficos"
-          onClick={() => onModeChange('analitico')}
-          className={clsx(
-            BADGE_BASE,
-            mode === 'analitico'
-              ? 'bg-vscode-accent/20 text-vscode-accent shadow-sm'
-              : 'text-vscode-text-muted hover:text-vscode-text',
-            disabled && 'pointer-events-none opacity-50',
-          )}
-        >
-          <AnalyticsIcon className="h-3.5 w-3.5" />
-          Analítico
-        </button>
-      </div>
-
+    <div ref={containerRef} className="relative shrink-0">
       <button
         type="button"
-        disabled={thinkingDisabled}
-        aria-pressed={thinking}
-        title={thinkingTitle}
-        onClick={onToggleThinking}
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={menuId}
+        title={`Modo: ${currentMode.label}`}
+        onClick={() => setOpen((current) => !current)}
         className={clsx(
-          BADGE_BASE,
-          'border',
-          thinking
-            ? 'border-vscode-accent/40 bg-vscode-accent/10 text-vscode-accent'
-            : 'border-vscode-border/70 text-vscode-text-muted hover:border-vscode-accent/30 hover:text-vscode-text',
-          thinkingDisabled && 'cursor-not-allowed opacity-60',
-          thinkingDisabled && !thinking && 'hover:border-vscode-border/70 hover:text-vscode-text-muted',
+          'inline-flex h-7 max-w-[9.5rem] items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium transition-colors',
+          'border-vscode-border/60 bg-vscode-activity-bar/80 text-vscode-text-muted',
+          'hover:border-vscode-border hover:bg-vscode-sidebar hover:text-vscode-text',
+          'focus:outline-none focus:ring-1 focus:ring-vscode-accent/40',
+          open && 'border-vscode-accent/40 bg-vscode-sidebar text-vscode-text',
+          disabled && 'pointer-events-none opacity-50',
         )}
       >
-        <ThinkingIcon className="h-3.5 w-3.5" />
-        Pensamento
-        {isThinkingLocked && (
-          <span className="text-[9px] uppercase tracking-wide opacity-70">auto</span>
-        )}
+        <CurrentIcon className="h-3.5 w-3.5 shrink-0 opacity-80" />
+        <span className="truncate">{currentMode.label}</span>
+        <ChevronDownIcon
+          className={clsx(
+            'h-3 w-3 shrink-0 opacity-60 transition-transform',
+            open && 'rotate-180',
+          )}
+        />
       </button>
+
+      {open && (
+        <div
+          id={menuId}
+          role="listbox"
+          aria-label="Modo do assistente"
+          className="absolute bottom-full left-0 z-30 mb-1.5 min-w-[15rem] overflow-hidden rounded-lg border border-vscode-border bg-vscode-sidebar py-1 shadow-xl"
+        >
+          {MODE_OPTIONS.map((option) => {
+            const isActive = option.id === mode
+            const OptionIcon = option.Icon
+
+            return (
+              <button
+                key={option.id}
+                type="button"
+                role="option"
+                aria-selected={isActive}
+                onClick={() => selectMode(option.id)}
+                className={clsx(
+                  'flex w-full items-start gap-2.5 px-2.5 py-2 text-left transition-colors',
+                  isActive
+                    ? 'bg-vscode-accent/10 text-vscode-text'
+                    : 'text-vscode-text hover:bg-vscode-activity-bar',
+                )}
+              >
+                <OptionIcon
+                  className={clsx(
+                    'mt-0.5 h-4 w-4 shrink-0',
+                    isActive ? 'text-vscode-accent' : 'text-vscode-text-muted',
+                  )}
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-xs font-medium">{option.label}</span>
+                  <span className="mt-0.5 block text-[10px] leading-snug text-vscode-text-muted">
+                    {option.description}
+                  </span>
+                </span>
+                {isActive && (
+                  <CheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-vscode-accent" />
+                )}
+              </button>
+            )
+          })}
+
+          <div className="my-1 border-t border-vscode-border/70" />
+
+          <button
+            type="button"
+            disabled={thinkingDisabled}
+            title={thinkingTitle}
+            onClick={onToggleThinking}
+            className={clsx(
+              'flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition-colors',
+              thinkingDisabled
+                ? 'cursor-not-allowed opacity-60'
+                : 'hover:bg-vscode-activity-bar',
+            )}
+          >
+            <ThinkingIcon
+              className={clsx(
+                'h-4 w-4 shrink-0',
+                thinking ? 'text-vscode-accent' : 'text-vscode-text-muted',
+              )}
+            />
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-medium text-vscode-text">
+                Pensamento
+                {isThinkingLocked && (
+                  <span className="ml-1.5 text-[9px] font-semibold uppercase tracking-wide text-vscode-text-muted">
+                    auto
+                  </span>
+                )}
+              </span>
+              <span className="mt-0.5 block text-[10px] leading-snug text-vscode-text-muted">
+                {isThinkingLocked
+                  ? 'Sempre ativo no modo Analítico'
+                  : 'Raciocínio estendido antes da resposta'}
+              </span>
+            </span>
+            <span
+              className={clsx(
+                'relative inline-flex h-4 w-7 shrink-0 rounded-full border transition-colors',
+                thinking
+                  ? 'border-vscode-accent/50 bg-vscode-accent/30'
+                  : 'border-vscode-border bg-vscode-activity-bar',
+                thinkingDisabled && 'opacity-70',
+              )}
+              aria-hidden="true"
+            >
+              <span
+                className={clsx(
+                  'absolute top-0.5 h-2.5 w-2.5 rounded-full bg-vscode-text transition-transform',
+                  thinking ? 'left-[calc(100%-0.75rem)]' : 'left-0.5',
+                )}
+              />
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   )
 }
