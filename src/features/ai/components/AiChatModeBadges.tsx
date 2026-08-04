@@ -122,7 +122,7 @@ const MODE_OPTIONS: Array<{
   {
     id: 'analitico',
     label: 'Analítico',
-    description: 'Análise de dados com estatísticas e gráficos',
+    description: 'Plano editável, SQL nos dados e gráficos',
     Icon: AnalyticsIcon,
   },
 ]

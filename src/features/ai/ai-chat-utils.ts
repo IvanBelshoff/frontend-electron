@@ -1,5 +1,7 @@
 import type { UIMessage } from 'ai'
 import { parseAiChartSpec, type AiChartSpec } from '@/features/ai/ai-chart-types'
+import type { AiPlan } from '@/features/ai/ai-chat-types'
+import { parseAiTableSpec, type AiTableSpec } from '@/features/ai/ai-table-types'
 import { EMPTY_DATE_LABEL, formatDateTime } from '@/lib/datetime'
 
 export function getMessageText(message: UIMessage): string {
@@ -26,6 +28,9 @@ export function getMessageText(message: UIMessage): string {
   }
 
   return text
+    .replace(/<\/?tool_call>/gi, '')
+    .replace(/<\/?function=[^>\s]+>/gi, '')
+    .trim()
 }
 
 /** Estados de tool part (AI SDK v7) em que a execução ainda não terminou. */
@@ -53,6 +58,14 @@ const TOOL_PROGRESS_LABELS: Record<string, string> = {
   compararPeriodos: 'Comparando períodos...',
   agendarAnaliseProfunda: 'Colocando a análise na fila...',
   graficoUsuariosPorRegra: 'Gerando gráfico de usuários por regra...',
+  proporPlanoAnalise: 'Montando o plano de análise...',
+  garantirSnapshot: 'Garantindo snapshot dos dados...',
+  executarQuerySnapshot: 'Consultando o snapshot (DuckDB)...',
+  executarQueryConexao: 'Consultando o banco do relatório...',
+  visualizarDados: 'Gerando gráfico dos dados...',
+  publicarTabela: 'Publicando tabela interativa...',
+  descreverRelatorio: 'Lendo metadados do relatório...',
+  listarRelatoriosDisponiveis: 'Listando relatórios disponíveis...',
 }
 
 /**
@@ -113,6 +126,27 @@ export function getMessageCharts(
   })
 }
 
+/**
+ * Tabelas interativas chegam como data parts `data-table` (mesmo padrão dos gráficos).
+ */
+export function getMessageTables(
+  message: UIMessage,
+): Array<{ id: string; spec: AiTableSpec }> {
+  return message.parts.flatMap((part, index) => {
+    if (part.type !== 'data-table') {
+      return []
+    }
+
+    const spec = parseAiTableSpec((part as { data?: unknown }).data)
+    if (!spec) {
+      return []
+    }
+
+    const id = (part as { id?: string }).id ?? `${message.id}-table-${index}`
+    return [{ id, spec }]
+  })
+}
+
 type AiAnalysisMetadata = {
   status: 'processing' | 'done' | 'failed'
   jobId: string
@@ -159,6 +193,100 @@ export function isMessageAwaitingAnalysis(
   const analysis = getAnalysisMetadata(message)
 
   return analysis?.status === 'processing' && pendingJobIds.includes(analysis.jobId)
+}
+
+export function parseAiPlan(value: unknown): AiPlan | null {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const plan = value as AiPlan
+  if (
+    typeof plan.id !== 'string' ||
+    typeof plan.status !== 'string' ||
+    typeof plan.objetivo !== 'string' ||
+    !Array.isArray(plan.perguntas) ||
+    !Array.isArray(plan.passos)
+  ) {
+    return null
+  }
+
+  return plan
+}
+
+const PLAN_STATUS_RANK: Record<AiPlan['status'], number> = {
+  draft: 0,
+  awaiting_approval: 1,
+  approved: 2,
+  running: 3,
+  done: 4,
+  failed: 4,
+  cancelled: 4,
+}
+
+function pickNewerPlan(a: AiPlan, b: AiPlan): AiPlan {
+  if (a.id !== b.id) {
+    return a
+  }
+
+  const rankA = PLAN_STATUS_RANK[a.status] ?? 0
+  const rankB = PLAN_STATUS_RANK[b.status] ?? 0
+  return rankA >= rankB ? a : b
+}
+
+export function getMessagePlan(message: UIMessage): AiPlan | null {
+  let fromPart: AiPlan | null = null
+
+  for (const part of message.parts) {
+    if (part.type !== 'data-plan') {
+      continue
+    }
+    const parsed = parseAiPlan((part as { data?: unknown }).data)
+    if (parsed) {
+      fromPart = fromPart ? pickNewerPlan(parsed, fromPart) : parsed
+    }
+  }
+
+  const fromMeta = parseAiPlan(
+    (message.metadata as { plan?: unknown } | undefined)?.plan,
+  )
+
+  if (fromMeta && fromPart) {
+    return pickNewerPlan(fromMeta, fromPart)
+  }
+
+  return fromMeta ?? fromPart
+}
+
+/** Planos em execução (ou analysis processing) bloqueiam novas mensagens. */
+export function hasBlockingPlanOrAnalysis(messages: UIMessage[]): boolean {
+  if (getPendingAnalysisJobIds(messages).length > 0) {
+    return true
+  }
+
+  return messages.some((message) => {
+    const plan = getMessagePlan(message)
+    return plan?.status === 'running'
+  })
+}
+
+/** True se a bolha ainda não tem conteúdo útil durante o stream. */
+export function messageNeedsStreamingPlaceholder(
+  message: UIMessage,
+  isStreamingAssistant: boolean,
+): boolean {
+  if (!isStreamingAssistant) {
+    return false
+  }
+
+  const hasText = Boolean(getMessageText(message).trim())
+  const hasPlan = Boolean(getMessagePlan(message))
+  const hasCharts = getMessageCharts(message).length > 0
+  const hasTables = getMessageTables(message).length > 0
+  const hasReasoning = Boolean(getMessageReasoning(message)?.text.trim())
+  const hasTool = messageHasActiveToolCall(message)
+
+  return !hasText && !hasPlan && !hasCharts && !hasTables && !hasReasoning && !hasTool
 }
 
 export function formatThreadDate(value: string): string {

@@ -2,15 +2,20 @@ import type { ChatStatus, UIMessage } from 'ai'
 import AiChartRenderer from '@/features/ai/components/AiChartRenderer'
 import AiMarkdown from '@/features/ai/components/AiMarkdown'
 import AiMentionChips from '@/features/ai/components/AiMentionChips'
+import AiPlanCard from '@/features/ai/components/AiPlanCard'
+import AiTableRenderer from '@/features/ai/components/AiTableRenderer'
 import AiReasoningBlock from '@/features/ai/components/AiReasoningBlock'
 import type { AiMention } from '@/features/ai/ai-mention-types'
 import {
   getMessageCharts,
+  getMessagePlan,
   getMessageReasoning,
+  getMessageTables,
   getMessageText,
   getRunningToolLabel,
   isMessageAwaitingAnalysis,
   messageHasActiveToolCall,
+  messageNeedsStreamingPlaceholder,
 } from '@/features/ai/ai-chat-utils'
 
 type AiMessageBubbleProps = {
@@ -18,6 +23,8 @@ type AiMessageBubbleProps = {
   status: ChatStatus
   isLastAssistant?: boolean
   pendingAnalysisJobIds?: string[]
+  threadId?: string
+  onPlanChanged?: () => void
 }
 
 function getMessageMentions(message: UIMessage): AiMention[] {
@@ -28,27 +35,44 @@ function getMessageMentions(message: UIMessage): AiMention[] {
   return metadata.mentions
 }
 
+function StreamingStatus({ label }: { label: string }) {
+  return (
+    <p className="flex items-center gap-2 text-sm text-vscode-text-muted">
+      <span
+        className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-current border-r-transparent"
+        aria-hidden
+      />
+      {label}
+    </p>
+  )
+}
+
 export default function AiMessageBubble({
   message,
   status,
   isLastAssistant = false,
   pendingAnalysisJobIds = [],
+  threadId,
+  onPlanChanged,
 }: AiMessageBubbleProps) {
   const isUser = message.role === 'user'
   const isAwaitingAnalysis = isMessageAwaitingAnalysis(message, pendingAnalysisJobIds)
+  const plan = isUser ? null : getMessagePlan(message)
   const text = getMessageText(message)
   const mentions = isUser ? getMessageMentions(message) : []
   const charts = isUser ? [] : getMessageCharts(message)
+  const tables = isUser ? [] : getMessageTables(message)
   const reasoning = isUser ? null : getMessageReasoning(message)
   const isStreamingAssistant =
     !isUser && isLastAssistant && (status === 'submitted' || status === 'streaming')
   const isToolRunning = isStreamingAssistant && messageHasActiveToolCall(message)
-  const showSkeleton =
-    isStreamingAssistant &&
-    !text &&
-    !isToolRunning &&
-    charts.length === 0 &&
-    reasoning === null
+  const showPlaceholder = messageNeedsStreamingPlaceholder(message, isStreamingAssistant)
+
+  // Com plano interativo, não repetir dump markdown longo do modelo.
+  const displayText =
+    plan && text && /plano de an[aá]lise|perguntas para sua aprova/i.test(text)
+      ? 'Preparei um plano de análise. Responda as perguntas no card abaixo e aprove para eu executar.'
+      : text
 
   return (
     <article
@@ -79,25 +103,32 @@ export default function AiMessageBubble({
         <AiChartRenderer key={chart.id} spec={chart.spec} />
       ))}
 
-      {showSkeleton ? (
-        <div className="space-y-2">
-          <div className="h-3 w-4/5 animate-pulse rounded bg-vscode-border/60" />
-          <div className="h-3 w-3/5 animate-pulse rounded bg-vscode-border/60" />
-        </div>
+      {tables.map((table) => (
+        <AiTableRenderer key={table.id} spec={table.spec} />
+      ))}
+
+      {showPlaceholder ? (
+        <StreamingStatus label="Montando o plano de análise…" />
       ) : isToolRunning ? (
-        <p className="flex items-center gap-2 text-sm text-vscode-text-muted">
-          <span
-            className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-current border-r-transparent"
-            aria-hidden
-          />
-          {getRunningToolLabel(message)}
-        </p>
-      ) : isUser ? (
+        <StreamingStatus label={getRunningToolLabel(message)} />
+      ) : null}
+
+      {!showPlaceholder && !isToolRunning && isUser && (
         <p className="whitespace-pre-wrap break-words text-sm text-vscode-text">{text}</p>
-      ) : (
-        <AiMarkdown
-          content={text || (isStreamingAssistant && charts.length === 0 ? '…' : '')}
-        />
+      )}
+
+      {!showPlaceholder && !isToolRunning && !isUser && displayText.trim() && (
+        <AiMarkdown content={displayText} />
+      )}
+
+      {plan && threadId && onPlanChanged && (
+        <AiPlanCard plan={plan} threadId={threadId} onChanged={onPlanChanged} />
+      )}
+
+      {plan && (!threadId || !onPlanChanged) && (
+        <p className="mt-2 text-xs text-vscode-text-muted">
+          Plano pronto — abra esta conversa novamente se o card não aparecer.
+        </p>
       )}
 
       {isAwaitingAnalysis && (

@@ -8,7 +8,7 @@ import {
 } from '@/features/ai/ai-chat-api'
 import { createAiChatTransport } from '@/features/ai/ai-chat-transport'
 import type { AiChatMode, AiChatThread } from '@/features/ai/ai-chat-types'
-import { getPendingAnalysisJobIds } from '@/features/ai/ai-chat-utils'
+import { getPendingAnalysisJobIds, hasBlockingPlanOrAnalysis } from '@/features/ai/ai-chat-utils'
 import type { AiMention } from '@/features/ai/ai-mention-types'
 import { useAuth } from '@/features/auth/auth-context'
 import { boostInboxPolling } from '@/features/user-inbox/inbox-polling'
@@ -95,6 +95,7 @@ export function useAiChatPage({
   const { messages, sendMessage, status, error, stop, setMessages } = useChat({ transport })
 
   const isBusy = status === 'submitted' || status === 'streaming'
+  const prevStatusRef = useRef(status)
 
   const hydrateThread = useCallback(
     async (threadId: string, options: { silent?: boolean } = {}) => {
@@ -113,6 +114,19 @@ export function useAiChatPage({
     },
     [setMessages],
   )
+
+  // Após o stream, reidrata para pegar data-plan/metadata persistidos (card interativo).
+  useEffect(() => {
+    const wasBusy =
+      prevStatusRef.current === 'submitted' || prevStatusRef.current === 'streaming'
+    prevStatusRef.current = status
+
+    if (!wasBusy || isBusy || !activeThreadIdRef.current) {
+      return
+    }
+
+    void hydrateThread(activeThreadIdRef.current, { silent: true })
+  }, [hydrateThread, isBusy, status])
 
   const selectThread = useCallback(
     async (thread: AiChatThread) => {
@@ -137,9 +151,9 @@ export function useAiChatPage({
     () => getPendingAnalysisJobIds(messages),
     [messages],
   )
-  const hasPendingAnalysis = pendingAnalysisJobIds.length > 0
+  const hasPendingAnalysis = hasBlockingPlanOrAnalysis(messages)
 
-  // Enquanto a análise roda na fila, o resultado chega por outra mensagem
+  // Enquanto a análise/plano roda na fila, o resultado chega por outra mensagem
   // persistida — só reidratando o thread para vê-la.
   useEffect(() => {
     if (!hasPendingAnalysis || !activeThreadId || isBusy) {
@@ -211,5 +225,7 @@ export function useAiChatPage({
     isCreatingThread: createThreadMutation.isPending,
     sendUserMessage,
     stop,
+    refreshActiveThread: () =>
+      activeThreadId ? hydrateThread(activeThreadId, { silent: true }) : Promise.resolve(),
   }
 }

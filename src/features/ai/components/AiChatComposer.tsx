@@ -288,7 +288,7 @@ export default function AiChatComposer({
             isAnalysisPending
               ? 'Aguardando o resultado da análise em segundo plano…'
               : mode === 'analitico'
-                ? 'Descreva a análise que você quer sobre seus dados…'
+                ? 'Descreva o desafio; a IA propõe um plano antes de analisar…'
                 : 'Pergunte sobre seus relatórios autorizados…'
           }
           disabled={disabled || isBusy}

@@ -64,6 +64,10 @@ No Windows, o instalador `.exe` fica em `release-build/DataDash Admin Setup *.ex
 
 Credenciais padrão (seed do backend): `admin@example.com` / `ChangeMe123`
 
+## Assistente IA — modo Analítico
+
+No modo **Analítico**, o assistente propõe um **plano editável** (perguntas A/B/C/Outra + passos). Após aprovar, a análise roda em segundo plano com exploração SQL (snapshot DuckDB e conexão do relatório) e notifica ao concluir.
+
 ## Variáveis de ambiente
 
 | Variável | Descrição |

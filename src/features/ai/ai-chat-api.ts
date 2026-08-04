@@ -3,7 +3,9 @@ import type {
   AiAccessStatus,
   AiChatThread,
   AiHealthStatus,
+  AiPlan,
   AiThreadMessagesResponse,
+  UpdateAiPlanPayload,
 } from './ai-chat-types'
 import type { AiMention } from './ai-mention-types'
 
@@ -43,5 +45,27 @@ export async function deleteAiThread(threadId: string): Promise<void> {
   await apiRequest<void>(`/ai/threads/${threadId}`, { method: 'DELETE' })
 }
 
-export type { AiMention }
+export function updateAiPlan(
+  threadId: string,
+  planId: string,
+  payload: UpdateAiPlanPayload,
+): Promise<AiPlan> {
+  return apiRequest<AiPlan>(`/ai/threads/${threadId}/plans/${planId}`, {
+    method: 'PATCH',
+    body: payload,
+  })
+}
 
+export function approveAiPlan(threadId: string, planId: string): Promise<AiPlan> {
+  return apiRequest<AiPlan>(`/ai/threads/${threadId}/plans/${planId}/approve`, {
+    method: 'POST',
+  })
+}
+
+export function cancelAiPlan(threadId: string, planId: string): Promise<AiPlan> {
+  return apiRequest<AiPlan>(`/ai/threads/${threadId}/plans/${planId}/cancel`, {
+    method: 'POST',
+  })
+}
+
+export type { AiMention }

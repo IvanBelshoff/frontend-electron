@@ -148,6 +148,10 @@ export default function AiChatPage() {
             status={chat.status}
             isHydrating={chat.isHydratingMessages}
             pendingAnalysisJobIds={chat.pendingAnalysisJobIds}
+            threadId={chat.activeThreadId}
+            onPlanChanged={() => {
+              void chat.refreshActiveThread()
+            }}
           />
         )}
       </AiChatLayout>
